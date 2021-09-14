@@ -3,6 +3,7 @@ layout: post
 title: "make site Step.1"
 date: 2021-05-24 21:03:23 +0900
 categories: jekyll update
+author: Sangho Lee
 ---
 [0. 블로그를 만든 이유]
 최근 들어 반복학습의 중요성을 뼈저리게 느낀다.
