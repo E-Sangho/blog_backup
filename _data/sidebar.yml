@@ -1,6 +1,44 @@
-sidebar:
-  - title: bigTitle1
+menu:
+  - title: ALL
+    url: /
+  - title: Algorithm
+    url: /
     submenu:
       - title: "smallTitle1"
-        url: 
+        url:
       - title: "smallTitle2"
+  - title: Computer System
+    url: /
+    submenu:
+      - title: "smallTitle"
+        url:
+      - title: "smallTitle"
+        url:
+  - title: Jekyll
+    url: /
+    submenu:
+      - title: "smallTitle"
+        url:
+      - title: "smallTitle"
+        url:
+  - title: HTML 
+    url: /
+    submenu:
+      - title: "smallTitle"
+        url:
+      - title: "smallTitle"
+        url:
+  - title: CSS 
+    url: /
+    submenu:
+      - title: "smallTitle"
+        url:
+      - title: "smallTitle"
+        url:
+  - title: JavaScript 
+    url: /
+    submenu:
+      - title: "smallTitle"
+        url:
+      - title: "smallTitle"
+        url:

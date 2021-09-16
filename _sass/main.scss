@@ -3,6 +3,10 @@
 
 /* Components */
 @import "components/navbar";
+@import "components/sidebar";
+
+/* Post */
+@import "posts/display";
 
 body {
     color: var(--text-color);

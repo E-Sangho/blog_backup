@@ -3,8 +3,11 @@ layout: post
 title: "make site Step.1"
 date: 2021-05-24 21:03:23 +0900
 categories: jekyll update
+tags: [jekyll]
 author: Sangho Lee
 sidebar:
+    title: "isThisWork?"
+    text: "thisIsText"
     nav: "sidebar"
 ---
 [0. 블로그를 만든 이유]

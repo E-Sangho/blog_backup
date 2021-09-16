@@ -1,8 +1,7 @@
 {% if page.sidebar %}
-    <h1>Sidebar Works!</h1>
-    {% for list in page.sidebar %}
-        {% if list.title %}<h3>{{ list.title }}</h3>{% endif %}
-        {% if list.text %}{{ list.text | markdownify }}{% endif %}
-        {% if list.nav %}{{ include nav_list.html nav=list.nav %}}{% endif %}
-    {% endfor %}
+    <div class="sidebar">
+        {% if page.sidebar.nav %}
+            {% include nav_list.html nav=page.sidebar.nav%}
+        {% endif %}
+    </div>
 {% endif %}

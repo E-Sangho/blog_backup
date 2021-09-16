@@ -1,0 +1,32 @@
+.sidebar {
+    padding: var(--sidebar-padding);
+}
+
+.categories {
+    font-size: 20px;
+    border-bottom: 2px solid;
+    margin-bottom: 4px;
+}
+
+.nav-list {
+    width: var(--nav-list-width);
+}
+
+.nav-list__items {
+    width: 150px;
+}
+
+.nav-list__item > a {
+    display: flex;
+    width: 150px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid;
+}
+
+.nav-list__submenu a {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}

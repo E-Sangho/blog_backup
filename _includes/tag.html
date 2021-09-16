@@ -1,0 +1,7 @@
+{% if page.tags %}
+    <div class="tags">
+        {% for tag in page.tags %}
+            <span class="tag">{{ site.data.tagformat[tag] }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
