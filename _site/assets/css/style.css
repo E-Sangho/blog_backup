@@ -19,20 +19,18 @@ a { text-decoration: none; color: inherit; }
 :root { --main-color: #fae100; --text-color: #444; --background-color: #fff; }
 
 /* Components */
-.header { display: flex; justify-content: space-between; align-items: center; width: 100%; height: 30px; padding: 25px; margin-bottom: 10px; box-sizing: border-box; border-bottom: solid 1px; }
+.navbar { position: relative; min-height: 50px; margin-bottom: 20px; border-bottom: 1px solid; }
 
-.header__home { height: 30px; display: flex; align-items: center; }
+.container { padding-right: 50px; padding-left: 50px; margin-right: auto; margin-left: auto; display: flex; justify-content: space-between; align-items: center; }
 
-.header__home a { font-size: 20px; font-weight: bold; }
+.navbar-home a { display: flex; align-items: center; height: 50px; font-size: 20px; font-weight: bold; }
 
-.header__navigation-items { display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+.navbar-nav__items { display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
 
-.header__navigation-item a { font-size: 18px; margin: auto 25px; }
+.navbar-nav__item a { display: flex; align-items: center; height: 50px; font-size: 18px; margin: auto 25px; }
+
+a:hover { color: orange; }
 
 body { color: var(--text-color); background-color: var(--background-color); }
-
-.container { width: 600px; margin: 0 auto; }
-
-.current { color: green; }
 
 /*# sourceMappingURL=style.css.map */

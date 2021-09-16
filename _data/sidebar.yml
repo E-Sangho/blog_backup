@@ -1,0 +1,6 @@
+sidebar:
+  - title: bigTitle1
+    submenu:
+      - title: "smallTitle1"
+        url: 
+      - title: "smallTitle2"

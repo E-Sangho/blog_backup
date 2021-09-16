@@ -1,0 +1,28 @@
+{% assign sidebar = site.data.sidebar[include.nav] %}
+
+<nav class="nav-list">
+    {% if page.sidebar.title %}
+        {{ page.sidebar.title }}
+    {% endif %}
+    <ul class="nav-list__items">
+        {% for menu in sidebar %}
+        <li class="nav-list__item">
+            {% if menu.url %}
+                <a href="{{ nav.url | relative_url }}">
+                    {{ menu.title }}
+                </a>
+            {% endif %}
+            
+            <ul>
+                {% for submenu in menu.submenu %}
+                    <li>
+                        <a href="{{ submenu.url | relative_url }}">
+                            {{ submenu.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
