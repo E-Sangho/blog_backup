@@ -5,10 +5,6 @@ date: 2021-05-24 21:03:23 +0900
 categories: jekyll update
 tags: [jekyll]
 author: Sangho Lee
-sidebar:
-    title: "isThisWork?"
-    text: "thisIsText"
-    nav: "sidebar"
 ---
 [0. 블로그를 만든 이유]
 최근 들어 반복학습의 중요성을 뼈저리게 느낀다.
