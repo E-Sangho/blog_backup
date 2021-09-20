@@ -1,6 +1,6 @@
 menu:
   - title: ALL
-    url: /
+    url: "/categories/all/index.html"
   - title: Algorithm
     url: /
     submenu:
@@ -15,7 +15,7 @@ menu:
       - title: "smallTitle"
         url:
   - title: Jekyll
-    url: /
+    url: "/categories/jekyll/index.html"
     submenu:
       - title: "smallTitle"
         url:

@@ -2,6 +2,37 @@ title: "미정"
 name: Lee Sangho
 url: "https://E-sangho.github.io"
 
+# Site Footer
+footer:
+  links:
+    -
+      lagel: "email"
+      icon:
+      url: "istrangeho@gmail.com"
+    - 
+      label: "github"
+      icon: "fab fa-github" 
+      url: "https://github.com/E-Sangho"
+    -
+      label: "twitter"
+      icon:
+      url:
+
+# Plugins
+plugins:
+  - jekyll-paginate-v2
+
+# Jekyll-Pagination
+# https://github.com/sverrirs/jekyll-paginate-v2/blob/master/README-GENERATOR.md
+pagination:
+  enabled: true
+  sort_field: 'date'
+  sort_reverse: true
+  trail: 
+    before: 2
+    after: 2
+
+# Defaults
 defaults:
   -
     scope:
