@@ -1,42 +1,42 @@
 menu:
   - title: ALL
-    url: "/categories/all/index.html"
+    url: "/categories/all"
   - title: Algorithm
-    url: /
+    url: "/categories/algorithm"
     submenu:
       - title: "smallTitle1"
         url:
       - title: "smallTitle2"
   - title: Computer System
-    url: /
+    url: "/categories/computersystem"
     submenu:
       - title: "smallTitle"
         url:
       - title: "smallTitle"
         url:
   - title: Jekyll
-    url: "/categories/jekyll/index.html"
+    url: "/categories/jekyll"
     submenu:
       - title: "smallTitle"
         url:
       - title: "smallTitle"
         url:
   - title: HTML 
-    url: /
+    url: "/categories/html"
     submenu:
       - title: "smallTitle"
         url:
       - title: "smallTitle"
         url:
   - title: CSS 
-    url: /
+    url: "/categories/css"
     submenu:
       - title: "smallTitle"
         url:
       - title: "smallTitle"
         url:
   - title: JavaScript 
-    url: /
+    url: "/categories/javascript"
     submenu:
       - title: "smallTitle"
         url:

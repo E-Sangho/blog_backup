@@ -3,6 +3,6 @@ layout: posts
 title: Blog
 pagination:
     enabled: true
-    category: algorithm
+    category: css 
 ---
-# This is blog page
+# This is jekyll page
