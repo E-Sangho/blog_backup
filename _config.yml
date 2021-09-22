@@ -21,6 +21,7 @@ footer:
 # Plugins
 plugins:
   - jekyll-paginate-v2
+  - jekyll-toc
 
 # Jekyll-Pagination
 # https://github.com/sverrirs/jekyll-paginate-v2/blob/master/README-GENERATOR.md

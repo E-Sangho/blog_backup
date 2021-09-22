@@ -14,9 +14,11 @@
                 <ul class="nav-list__submenu">
                     {% for submenu in menu.submenu %}
                         <li>
-                            <a href="{{ submenu.url | relative_url }}">
-                                {{ submenu.title }}
-                            </a>
+                            {% if submenu.url %}
+                                <a href="{{ submenu.url | relative_url }}">
+                                    {{ submenu.title }}
+                                </a>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
