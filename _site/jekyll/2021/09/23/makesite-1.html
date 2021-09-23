@@ -178,22 +178,71 @@
     </div>
 
         <h1>Make site - 1</h1>
-<p>22 Sep 2021 - Lee Sangho</p>
+<p>23 Sep 2021 - Lee Sangho</p>
 <div>
     <div class="table-of-contents">
         <ul id="toc" class="section-nav">
-<li class="toc-entry toc-h1"><a href="#1-블로그를-만든-이유">1. 블로그를 만든 이유</a></li>
+<li class="toc-entry toc-h1"><a href="#1-설치">1. 설치</a></li>
+<li class="toc-entry toc-h1"><a href="#2-사이트-생성과-빌드">2. 사이트 생성과 빌드</a></li>
 </ul>
     </div>
     <div class="md-content">
-        <h1 id="1-블로그를-만든-이유">1. 블로그를 만든 이유</h1>
+        <h1 id="1-설치">1. 설치</h1>
 
-<p>어느 책이건 앞부분에 목차를 포함하기 마련이다. 목차는 책을 읽는 사람에게 앞으로의 다룰 것을 알려주기도 하지만, 내용을 정리하는데도 효과적이다. 그래서 나는 어떤 책을 읽더라도 목차를 바탕으로 정리하는 것을 선호한다. 그 순서를 그대로 따르진 않더라도 같은 주제를 묶는데는 효과적이기 때문이다.</p>
+<p>Jekyll은 ruby로 만들어졌기 때문에 ruby를 설치해야 한다. 구글에서 검색하거나 다음 링크를 클릭해서 설치해주면 된다.</p>
 
-<p>그동안 프로그래밍을 공부하면서 느낀 것은 정보를 얻는 방법이 굉장히 다양하다는 점이다. 책 이외에도 동영상이나 인터넷 상의 글을 보면서 배울 것이 많았다. 하지만 그 때문에 내용을 한데 모으고 정리하는데 어려움이 따랐다. 어떤 내용을 같은 내용으로 둬야할지 막막하기만 했다. 그러던 중 블로그 포스팅을 보게 되었다. 블로그 글은 카테고리와 태그를 여러개 달 수 있고 같은 종류끼리 모으기 편해보였다. 게다가 정리한 내용을 어디서든 보기 편하다는 것도 큰 장점이었다.</p>
+<p><a href="https://www.ruby-lang.org/ko/">ruby 홈페이지 링크</a></p>
 
-<p>그래서 블로그를 하나 만들어서 내용을 정리해야겠다는 생각을 가진지 오래였지만, 어떤 블로그를 선택해야 좋을지 몰랐다. 그동안 고려해본 것은</p>
+<p>루비를 설치했으면 아래 명령어를 순서대로 입력한다.</p>
 
+<ul>
+  <li>jekyll과 bundler를 설치한다.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install jekyll bundler
+</code></pre></div>    </div>
+  </li>
+  <li>Gemfile을 생성한다.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bundle init
+</code></pre></div>    </div>
+  </li>
+  <li>Gemfile을 열서 jekyll을 추가한다.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Gemfile
+gem "jekyll"
+</code></pre></div>    </div>
+  </li>
+  <li>프로젝트에 jekyll을 추가한다.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bundle
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>jekyll 버전에 따라 플러그인이 동작하지 않을 수도 있다. 그래서 Gemfile에 현재 지킬 버전이 정의된다. 위의 단계를 거쳤으면 jekyll 명령어 앞에 <code class="language-plaintext highlighter-rouge">bundle exec</code>를 붙여 Gemfile 버전의 jekyll로 실행가능하다.</p>
+
+<h1 id="2-사이트-생성과-빌드">2. 사이트 생성과 빌드</h1>
+
+<p>jekyll은 현재 폴더의 파일을 읽어서 <code class="language-plaintext highlighter-rouge">_site</code>에 정적 사이트를 생성한다. 이대로 페이지를 만들어도 아무것도 나오지 않으므로, jekyll을 빌드하기 전에 현재 위치에 간단한 파일을 하나 만들었다.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// index.html
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta http-equiv="X-UA-Compatible" content="IE=edge"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Home&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello World!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>이렇게 만든 사이트를 보려면 파일을 블드해야 한다. 빌드 방법은 2가지가 있다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">jekyll build</code>: 사이트를 빌드하고 <code class="language-plaintext highlighter-rouge">_site</code>에 생성한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">jekyll serve</code>: 위와 동일하지만, 내용이 추가되면 사이트를 다시 빌드하고 <code class="language-plaintext highlighter-rouge">http://localhost:4000</code>에 로컬 웹서버를 연다.</li>
+</ul>
+
+<p>사이트를 만들 때는 다시 빌드하는 번거로움이 없도록 <code class="language-plaintext highlighter-rouge">jekyll serve</code>를 사용하는게 좋다. 간략하게 <code class="language-plaintext highlighter-rouge">jekyll s</code>라고만 입력해도 작동한다.</p>
 
     </div>
 </div>
