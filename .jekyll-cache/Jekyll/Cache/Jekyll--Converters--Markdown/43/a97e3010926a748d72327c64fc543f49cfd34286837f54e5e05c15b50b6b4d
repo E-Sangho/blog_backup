@@ -1,6 +1,6 @@
-I"�<h1 id="css란">CSS란?</h1>
+I"�<h1 id="css란">CSS란?</h1>
 
-<p>CSS는 <em>Cascading Style Sheet</em>의 약자로 HTML이 어떻게 표현될지 정해주는 언어다. 간단히 말해서 HTML은 내용만 포함하고 있는데, 그 내용의 색, 위치, 효과 등 눈에 보이는 것을 꾸며준다. 그런데 “Style Sheet”가 아닌 “Cascading Style Sheet”인 이유가 있다. CSS는 부모 element의 스타일이 자식 element에도 적용된다. 만약 부모의 색이 붉은색이라면 별다른 지정을 안 해도 자식도 붉은색이 된다. 하지만 상속되지 않는 내용들도 있다. box와 관련된 속성들은 상속되지 않는데, 간략히 간격은 상속되지 않는다고 기억하면 된다.</p>
+<p>CSS는 <em>Cascading Style Sheet</em>의 약자로 HTML이 어떻게 표현될지 정해주는 언어다. 간단히 말해서 HTML은 내용만 포함하고 있는데, 그 내용의 색, 위치, 효과 등 눈에 보이는 것을 꾸며준다. 그런데 “Style Sheet”가 아닌 “Cascading Style Sheet”인 이유가 있다. CSS는 부모 element의 스타일이 자식 element에도 적용된다. 만약 부모의 색이 붉은색이라면 별다른 지정을 안 해도 자식도 붉은색이 된다. 그래서 폭포라는 뜻의 <em>Cascading</em>이 붙었다. 하지만 상속되지 않는 내용들도 있다. box와 관련된 속성들은 상속되지 않는데, 간략히 간격은 상속되지 않는다고 기억하면 된다.</p>
 
 <p>왜 CSS가 필요한지를 알기 위해선 초창기의 웹을 알아야 한다. 초창기 웹은 그리 복잡하지 않았기에 HTML에 디자인 요소를 포함해서 만들 수 있었다. 하지만 HTML을 다양한 방법으로 꾸미다보니 HTML의 본래의 목적을 벗어나기 시작했다. 문서로써의 역할보다 디자인 정보를 더 많이 포함하게 되었다. 그 결과 HTML을 디자인적 요소와 분리시켰고 CSS가 만들어졌다. 현재는 디자인에 필요한 부분은 CSS가 전담해서, 디자인 요소를 고치고 싶으면 CSS 파일만 수정하면 된다.</p>
 
@@ -45,22 +45,13 @@
 </code></pre></div></div>
 
 <h1 id="mdn">MDN</h1>
-<p>여기서 설명한 것 외에도 블록간의 간격이나 마우스가 올려졌을 때의 효과 등 다양한 것이 있지만 기본적인 구조는 Selector, Property, Property Value로 이루어진 rule set인건 동일하다. 그래서 HTML처럼 CSS를 시작하는데 별다른 어려움은 없다. 문제는 시작하기엔 별로 어렵지 않지만 숙달되려면 상당한 연습이 필요하다. 예를 들어서 웹사이트의 버튼을 생각해보자. 버튼에 마우스를 올리면 색이 바뀌거나 크기가 커지는 등의 변화가 생길 것이다. 과연 CSS로 이를 표현하려면 어떻게 해야 할까? Selector은 그 버튼은 지정하면 되지만 Property와 Value는 알지 못해 인터넷에 검색해봐야 할 것이다. 이 때 도움 되는 것이 MDN이다. <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup></p>
+<p>여기서 설명한 것 외에도 블록간의 간격이나 마우스가 올려졌을 때의 효과 등 다양한 것이 있지만 기본적인 구조는 Selector, Property, Property Value로 이루어진 rule set인건 동일하다. 그래서 HTML처럼 CSS를 시작하는데 별다른 어려움은 없다. 문제는 시작하기엔 별로 어렵지 않지만 숙달되려면 상당한 연습이 필요하다. 예를 들어서 웹사이트의 버튼을 생각해보자. 버튼에 마우스를 올리면 색이 바뀌거나 크기가 커지는 등의 변화가 생길 것이다. 과연 CSS로 이를 표현하려면 어떻게 해야 할까? Selector은 그 버튼은 지정하면 되지만 Property와 Value는 알지 못해 인터넷에 검색해봐야 할 것이다. 이 때 도움 되는 것이 MDN이다.</p>
 
 <p>MDN은 웹을 만드는데 필요한 각종 정보가 있는 사이트로, 한글로 번역된 페이지도 많다. MDN은 튜토리얼도 다루고 있으므로 모르는 정보를 배우기엔 가장 좋은 곳이다. 하지만 처음부터 끝까지 읽어보는 것은 고될뿐더러 무쓸모한 행동이다. 모르는 내용을 검색할 때, 검색어에 MDN을 포함하는 것만으로 충분하다. 그렇게 하면 MDN에 해당하는 정보를 가진 페이지가 나오고 링크 몇 개 만으로 필요한 Property와 Value를 알 수 있기 때문이다. 하지만 설명이 좋지 못한 경우도 있기 때문에 이해가 안 되면 MDN외의 글을 참조하는 것도 좋은 방법이다.</p>
 
 <h1 id="css-파일-연결법">CSS 파일 연결법</h1>
 
-<p>CSS 파일을 HTML에 적용하는 것은 <em>style</em> 태그 사이에 넣거나 HTML 태그에 style 속성값을 직접 지정하는 방법도 있지만 절대 권장하지 않는다. 사실상 사용하는 방법은 딱 하나 뿐이라 생각하면 된다. HTML의 head 태그에 아래와 같이 써주면 된다.</p>
+<p>CSS 파일을 HTML에 적용하는 것은 <em>style</em> 태그 사이에 넣거나 HTML 태그에 style 속성값을 직접 지정하는 방법도 있지만 별로 권장하지 않는다. 사실상 사용하는 방법은 딱 하나 뿐이라 생각하면 된다. HTML의 head 태그에 아래와 같이 써주면 된다.</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;link rel="stylesheet" href="여기에 파일 주소를 적어준다."&gt;
 </code></pre></div></div>
-
-<hr />
-<div class="footnotes" role="doc-endnotes">
-  <ol>
-    <li id="fn:1" role="doc-endnote">
-      <p>MDN dkjlsdf <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
-    </li>
-  </ol>
-</div>
 :ET
