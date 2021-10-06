@@ -1,0 +1,10 @@
+---
+layout: post
+title: "CS:APP Floating Point"
+date: Tue Oct  5 09:38:17 JST 2021
+categories: CSAPP
+tag:
+toc: true
+---
+$E = Exp - Bias$
+여기서 한 가지 의문이 생긴다. 앞서 배운 Two's Complement를 이용해서 E를 표현하면 될텐데 왜 Bias 표현을 사용하는 것일까?  같은 방법을 사용하는 것일까? 여기서 만약 E를 Two's Complement로 표현할 경우 비트 단위 연산에서 번거롭기 때문이다. Bias 표현방법으로 E는 가장 작은 지수는 000...00이고 가장 큰 수는 011...111로 표현된다. 만약 두 수를 비교하려고 할 때, Two's Complement는 E부분을 따로 계산해줘야 한다. 반면 Bias로 표현한 것은 전체 비트를 unsigned로 취급해서 비교해주면 간단하게 비교할 수 있다.
