@@ -212,7 +212,15 @@
 </li>
 <li class="toc-entry toc-h2"><a href="#floating-point">Floating Point</a>
 <ul>
-<li class="toc-entry toc-h3"><a href="#floating-point-representation">Floating Point Representation</a></li>
+<li class="toc-entry toc-h3"><a href="#floating-point-representation">Floating Point Representation</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#normalized-values정규화-값">Normalized Values(정규화 값)</a></li>
+<li class="toc-entry toc-h4"><a href="#denormalized-values비정규화-값">Denormalized Values(비정규화 값)</a></li>
+<li class="toc-entry toc-h4"><a href="#special-values특수-값">Special Values(특수 값)</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h3"><a href="#rounding">Rounding</a></li>
+<li class="toc-entry toc-h3"><a href="#floating-point-calculation">Floating Point Calculation</a></li>
 </ul>
 </li>
 </ul>
@@ -764,10 +772,56 @@ for(i = CNT; i-DELTA &gt;= 0; i -= DELTA)
 <p>보다시피 코드에서 생각하지 못한 오류가 발생할 수 있고 이를 찾아내는 것은 생각보다 오랜 시간이 걸릴 수도 있다. 그래서 Unsigned를 쓰는 경우는 제한적인 것이 좋다. Modular Arithmetic을 실행하거나, Set을 표현할 때처럼 항상 양수만이 필요한 경우에는 Unsigned를 사용한다.</p>
 
 <h2 id="floating-point">Floating Point</h2>
-<p>지금까지는 정수를 어떻게 표현하는지를 배웠다. 그런데 실수를 표현하려면 어떻게 해야 할까? 수를 표현하는 방법으로 이진법을 사용했으므로, 정수 아래부분도 이진법으로 표현해보겠다. 실수를 이진법으로 표현하려고 할 때, 제일 먼저 떠올릴 수 있는 방법은 일부는 정수 부분을 표현하고 다른 부분은 소수점 아래를 표현하는 것이다. 즉, $b_i b_{i-1} … b_1 b_0 b_{-1} b_{-2} … b_{-j}$ 같은 비트로 $\sum_{k=-j}^i2^k \cdot b_k$를 표현하는 것이다. 이 방법은 $5 \cdot 3/4 = 101.11_2$과 $2 \cdot 7/8 = 10.111_2$처럼 표현가능한 것이 있는가 하면 $1/3 = 0.[01]_2$처럼 끝없이 이어져서 표현할 수 없는 수도 존재한다. 또한 정수와 소수점 아래를 동시에 사용해서 표현할 수 있는 수의 범위가 협소하다. 특히 큰 수나 너무 작은 수는 표현할 수 없다. 이런 단점을 보완하기 위한 방법이 <strong>Floating Point(부동소수점)</strong>이다. 부동소수점은 값 V를 $V = x \times 2^y$ 형태로 인코딩한다. 이 방식은 매우 큰 수나 반대로 매우 작은 수를 인코딩할 때 유용하다.</p>
+<p>지금까지는 정수를 어떻게 표현하는지를 배웠다. 그런데 실수를 표현하려면 어떻게 해야 할까? 수를 표현하는 방법으로 이진법을 사용했으므로, 정수 아래부분도 이진법으로 표현해보겠다. 실수를 이진법으로 표현하려고 할 때, 제일 먼저 떠올릴 수 있는 방법은 일부는 정수 부분을 표현하고 다른 부분은 소수점 아래를 표현하는 것이다. 즉, $b_i b_{i-1} … b_1 b_0 b_{-1} b_{-2} … b_{-j}$ 같은 비트로 $\sum_{k=-j}^i2^k \times b_k$를 표현하는 것이다. 이 방법은 $5 \frac{3}{4} = 101.11_2$과 $2 \frac{7}{8} = 10.111_2$처럼 표현가능한 것이 있는가 하면 $\frac{1}{3} = 0.[01]_2$처럼 끝없이 이어져서 표현할 수 없는 수도 존재한다. 또한 정수와 소수점 아래를 동시에 사용해서 표현할 수 있는 수의 범위가 협소하다. 특히 큰 수나 너무 작은 수는 표현할 수 없다. 이런 단점을 보완하기 위한 방법이 <strong>Floating Point(부동소수점)</strong>이다. 부동소수점은 값 V를 $V = x \times 2^y$ 형태로 인코딩한다. 이때 표현할 수 없는 수는 가까운 수로 근사해서 나타낸다. 이 방식은 매우 큰 수나 반대로 매우 작은 수를 인코딩할 때 유용하다.</p>
 
 <h3 id="floating-point-representation">Floating Point Representation</h3>
-<p>$(-1)^s M 2^E$</p>
+<p>부동소수점은 $V = (-1)^s \times M \times 2^E$ 형태로 나타낸다.</p>
+<ul>
+  <li>$s$는 양수인지 음수인지를 다룬다.</li>
+  <li>$M$은 $1 \leq M &lt; 2$ 또는 $0 \leq M &lt; 1$ 사이의 값이다.</li>
+  <li>$E$는 2의 지수를 표현하는데, 음수값도 가능하다.</li>
+</ul>
+
+<p>부동소수점의 비트는 3개의 구역으로 나뉜다.</p>
+<ul>
+  <li>첫번째 비트 s는 부호 $s$를 인코딩한다.</li>
+  <li>exp(=$e_{k-1}e_{k-2}…e_1e_0$)는 지수 $E$를 인코딩한다.</li>
+  <li>frac(=$f_{n-1}f_{n-2}…f_1f_0$)는 M을 인코딩한다.</li>
+</ul>
+
+<p>이때 k와 n의 값은 비트에 따라 크기가 달라지는데 32bits 라면 k = 8, n = 23이 되고 64bits에서는 k = 11, n = 52가 된다. 인코딩된 값은 exp 값에 따라 3가지 방법으로 나뉜다.</p>
+
+<h4 id="normalized-values정규화-값">Normalized Values(정규화 값)</h4>
+<p>exp의 비트가 모두 0도 아니고 모두 1도 아닌 경우다. 이 경우 $E = exp - Bias$로 해석하는데 Bias는 $2^{k-1}-1$이다. 이렇게 하면 exp의 범위가 $1 ~ 2^k-2$이므로 E의 범위는 $-2^{k-1}+2 ~ 2^{k-1}-1$이 된다. frac은 f가$0 \leq f &lt; 1$인 이진수 $0.f_{n-1}…f_1f_0$를 의미하고 $M = 1 + f$로 계산한다. 이렇게 하면 $1.f_{n-1}…f_1f_0$와 같기 때문에 1을 표현하는 비트를 추가로 얻을 수 있다.</p>
+
+<p>이렇게 frac에서 1을 넣어주는 것으로 1비트륵 이득볼 수 있었지만 대신 문제가 생긴다. M값이 항상 1이상이기 때문에 0을 표현할 수 없게 된다. 그래서 exp가 0인 경우는 해석을 달리해서 0을 포함해야 한다.</p>
+
+<p>여기서 한 가지 의문이 생긴다. 앞서 배운 Two’s Complement를 이용해서 E를 표현하면 될텐데 왜 Bias 표현을 사용하는 것일까? 여기서 만약 E를 Two’s Complement로 표현할 경우 비트 단위 연산에서 번거롭기 때문이다. Bias 표현방법으로 E는 가장 작은 지수는 000…00이고 가장 큰 수는 011…111로 표현된다. 만약 두 수를 비교하려고 할 때, Two’s Complement는 E부분을 따로 계산해줘야 한다. 반면 Bias로 표현한 것은 전체 비트를 앞에서부터 비교해주면 간단하게 비교할 수 있다.</p>
+
+<h4 id="denormalized-values비정규화-값">Denormalized Values(비정규화 값)</h4>
+<p>exp의 비트가 모두 0일 경우로, $E = 1 - Bias$, $M = f$로 계산한다. 앞서 말했듯이 비정규화 값은 0을 표현하기 위해 사용하는데, exp와 frac의 모든 비트가 0이면 된다. 그런데 부호비트 s에 따라 +0.0과 -0.0이 생기게 된다. 이 둘은 다른 수로 취급되는데 +0.0은 0에 아주 가깝지만 0보다는 큰 값을, -0.0은 0에 가깝지만 0보다 작은 값을 표시한다. 그리고 E를 계산할 때, $1- Bias$로 쓴 것이 부자연스러워 보일 수 있지만, 정규화 값에서 exp가 모두 0인 경우를 제외했기 때문에 가장 작은 exp가 1이 된다. 그래서 값이 자연스럽게 이어지게 하기 위해서 $1-Bias$를 사용한다.</p>
+
+<h4 id="special-values특수-값">Special Values(특수 값)</h4>
+<p>exp의 비트가 모두 1인 경우로, frac이 모두 0이면 무한대를 나타낸다. 이 또한 s값에 따라 $+\infty$와 $-\infty$로 나뉘는데, 매우 큰 값의 곱셈이나 0으로 나눌 때처럼 Overflow를 표시할 때 쓴다. frac이 0이 아니면 Nan이라 하며 “not a number”의 약어로, 결과값이 실수나 무한대가 아닐 때 반환되는 값이다.</p>
+
+<h3 id="rounding">Rounding</h3>
+<p>부동소수점 표기법은 제한된 범위의 값만 나타낼 수 있으므로 연산 결과를 근사값으로 표시한다. 근사 방법은 Round-to-Even(짝수 근사법)을 사용하는데, 짝수 근사법은 이름 그대로 가장 가까운 짝수로 근사하는 방법이다. 예를 들어서 $1.4는 $1로 근사하고 $1.6은 $2로 근사한다. 이는 반올림과 다를바 없지만 중요한 것은 $1.5와 같은 중간값에서 나타난다. $1.5는 가장 가까운 짝수인 $2로 근사된다. $2.5는 반올림하면 $3이겠지만 가장 가까운 짝수는 $2이기 때문에 $2로 근사된다.</p>
+
+<p>반올림이 아니라 짝수 근사법이 사용되는 것이 의아할 수도 있을 것이다. 이는 반올림을 사용할 경우 평균값이 약간 커지는 반면, 짝수 근사법은 평균값을 유지해준다. 마찬가지로 올림이나 버림 또한 평균을 커지게 하거나 작아지게 하기 때문에 쓰지 않는다.</p>
+
+<h3 id="floating-point-calculation">Floating Point Calculation</h3>
+<p>부동소수점 연산에서 중요한 사실은 교환법칙은 성립하지만 결합법칙은 성립하지 않는다는 것이다. 예를 들어 $(1 + 1e10)-1e10$은 계산하면 0.0이지만, $1 + (1e10 - 1e10)$ 은 1이 된다. 곱셈의 경우에도 교환법칙은 성립하지만 결합법칙은 성립하지 않는다. 예를 들어 $(1e20 * 1e20) * 1e-20$은 $\infty$가 되지만, $1e20 * (1e20 * 1e-20)$은 1e20이 된다. 또한 곱셈에서는 분배법칙도 성립하지 않는다. 예를 들어 $1e20 * (1e20-1e20)$은 0.0이지만, $1e20 * 1e20 - 1e20 * 1e20$은 NaN이 된다. 마지막으로 부동소수점의 특징은 monotone하다는 것이다. 즉, x가 NaN이 아니라면 $a /geq b$일때, $a + x \geq b + x$가 성립한다. 또한 $x /geq 0$이면 $a * x /geq b * x$가 성립하고 $x &lt; 0$이면 $a * x /leq b * x$가 성립한다.</p>
+
+<p>부동소수점 계산에서 결합법칙과 분배법칙이 성립하지 않는다는 것은, 코드를 단축하려다가 예상하지 못한 오류를 발생시킬 가능성이 있다는 것이다. 그래서 코드를 작성할 때 주의해서 작성해야 한다.</p>
+
+<p>구체적으로 계산이 일어나는 방식을 설명해보겠다. 우선 곱셈은 간단하게 sign끼리 Xor로 계산하고, M끼리 곱하고 E끼리 더하게 된다. 이때, M이 2이상이 되면 E를 증가시켜서 M을 2보다 작게 만들어 준다. 만약 E가 범위를 벗어나면 overflow가 일어난다. 마지막으로 계산이 끝나면 M을 근사하게 된다.</p>
+<ul>
+  <li>s = s1 ^ s2</li>
+  <li>M = M1 x M2</li>
+  <li>E = E1 + E2</li>
+</ul>
+
+<p>덧셈의 경우 E를 서로 동일한 수로 바꿔주고 그만큼 M을 shift해준다. 그리고 덧셈 연산을 진행한 후에 자리수를 넘어서는 것을 짝수 근사법으로 계산한다. 그렇게하면 정규화된 값을 얻을 수 있다.</p>
 
 <hr />
 <p>[1^]객체는 주소값을 가지는 데이터로 run-time memory에 저장된다. 객체의 type은 int, float, double 등이 있으며, class라는 프로그래머가 지정하는 타입으로도 만들 수 있다. 이 때, class로 object를 만들면 이를 클래스의 instance라고 한다. <a href="https://stackoverflow.com/questions/1093968/what-is-a-class-and-object-in-c/1093994">What is Class and Object?</a></p>

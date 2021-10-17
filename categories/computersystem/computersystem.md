@@ -3,6 +3,6 @@ layout: posts
 title: Blog
 pagination:
     enabled: true
-    category: computersystem 
+    category: CSAPP 
 ---
 # This is jekyll page
