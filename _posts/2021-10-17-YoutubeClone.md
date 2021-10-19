@@ -7,7 +7,9 @@ tag: Clone NodeJs
 toc: true
 ---
 ## 0 What is this post?
-이 포스트는 노마드코더라는 사이트의 유튜브 클론코딩을 정리한 포스트다. 우선은 영상을 보면서 배운 내용을 다 적은 다음 다시 정리하려고 한다. 내용을 다 정리하고 나면 정리된 내용을 바탕으로 새로운 것을 만들어서 배운 것을 응용하는 단계까지 진행하고 그 과정을 기록하는 포스트다. 수업에서 배우는 내용은 다음과 같다.
+이 포스트는 노마드코더라는 사이트의 유튜브 클론코딩을 정리한 포스트다. 처음 배울때는 무엇을 시작해야 할지 모르기 때문에 클론코딩은 효과적인 수단이라 생각한다. 하지만 그 다음으로 스스로 만들어보지 않으면 아무런 쓸모가 없을 것이다. 이 포스트는 영상에서 배운 내용을 전체적으로 정리하고 기록하려고 한다. 그 후에는 배운 것을 응용해서 새로운 것을 만드는 포스트를 작성할 예정이다.
+
+이 수업에서 필요한 것은 기초적인 HTML, CSS, JS 지식이다. 잘 알지 못하더라도 어느 정도 이해만 하고 있다면 별다른 문제 없이 들을 수 있다. 수업에서 다루는 내용들은 아래와 같다.
 
 - 프론트엔드: HTML5, CSS3, Pug
 - 백엔드: NodeJS, MongoDB, Express
@@ -119,3 +121,124 @@ require("@babel/core").transform("code", {
 이번에 npm run dev로 실행하면 코드가 끝나지 않는 것을 알 수 있다. 이 때, index.js 파일을 수정해서 console에 이것저것 출력하게 만들어보자. 그러면 수정된 파일을 인식해서 자동으로 파일을 새로 시작해 주는 것을 알 수 있다.
 
 정리하면 처음에 우리는 `node index.js`로 파일을 실행시켰다. 이는 노드로 index.js 파일을 실행 시킨 것을 의미한다. 하지만 노드는 최신 자바스크립트를 이해하지 못할 때가 있다. 그렇기 때문에 바벨을 사용해서 최신 자바스크립트를 사용할 수 있게 했다. 그래서 `babel-node index.js`로 실행했다. 마지막으로 우리는 파일이 수정되면 자동으로 재실행되도록 하려고 노드몬을 설치했다. 최종적으로 코드는 `nodemon --exec babel-node index.js`가 되었다. 그래서 콘솔이 종료되지 않고 파일이 변할때마다 매번 명령어를 새로 시작해주게 되었다.
+
+## Introduction To Express
+
+### 3.0 Your First Server
+파일이 굉장히 많기 때문에 코드를 포함하고 있는 파일은 앞으로 src 폴더에 저장한다. 우선 자바스크립트 파일의 이름을 바꿔준다. index.js 대신에 server.js를 사용한다. 그 이유는 앞으로 이 파일에 서버와 관련된 코드를 작성할 예정이기 때문이다. 그 후 scr 폴더에 server.js 파일을 옮겨준다. 그런데 우리는 파일의 이름을 바꾸고 옮겼기 때문에 package.json의 scripts 명령에서 파일을 찾을 수 없게 된다. 그러므로 `"dev": "nodemon --exec babel-node src/server.js"`로 코드를 코쳐준다.
+
+다음으로 server.js 파일을 고쳐보겠다. 우선 코드에 `import express from "express";`를 작성한다. 이때 express는 node_modules에 있지만 위치를 적지 않아도 NodeJs가 알아서 node_modules 아래에서 패키지를 찾는다. express를 사용하기 위해서는 `const app = express();`를 적어준다. 이름이 꼭 app일 필요는 없지만 편의를 위해 그렇게 적어준다. 이렇게 하면 어플리케이션에 생긴 것이다. 이제 해야할 일은 어플리케이션이 우리의 요청(request)을 듣도록(listen) 만드는 것이다.
+
+여기서 잠깐 서버가 무엇인지 알아보자. 서버는 항상 커져있는 컴퓨터와 같다. 예를 들어 그 컴퓨터에 구글에 가고 싶다는 request를 보낸다면, 서버는 이를 듣고(listen) 그에 맞는 응답을 보낸다. 앞서 우리는 어플리케이션을 만들었다. 그리고 서버가 요청을 기다리도록 만들어야 한다. 이 때 사용하는 것이 `app.listen();`이다. listen은 callback이다. callback은 button.addEventListener("click", handleClick) 같은 것이다. 버튼을 누르게 되면 handleClick이 실행된다. 그런데 서버를 listen 할 때, 몇 번 포트를 listen 하도록 만들지 정해야 한다. 보통은 높은 숫자의 port가 비어 있으므로 `app.listen(4000, handleListening);`이라고 쓴다. 이렇게 하면 서버가 실행됐을 때, handleListening이라는 함수가 실행된다.
+
+다음으로 넘어가기 전에 잠시 콜백 함수를 설명하겠다. 콜백 함수를 다른 함수의 인자로써 이용되는 함수, 이벤트로 호출되는 함수다. 다시 말해 콜백 함수는 함수를 등록하고, 어떤 이벤트가 발생했을 때 실행하는 함수를 말한다. 위에서 handleListening은 app.listen의 인자로 사용되고, listen이 일어났을 때 호출되는 함수이므로 callback 함수인 것이다.
+
+아직 handleListening이라는 함수가 없으므로 코드로 하나 만들어 준다. `const handleListening = () => console.log("Server listening on port 4000")` 이렇게 하면 서버가 실행됐을 때, 콘솔에 글자가 나오게 된다. callback 함수를 꼭 이렇게 지정할 필요 없이 `app.listen(4000, () => console.log("Server listening on port 4000"));`로 적어줘도 된다.
+
+이번에는 이렇게 만든 서버에 들어가보겠다. 크롬에서 localhost:4000에 들어가면 Cannot GET / 오류가 나오지만, 이전과는 달리 무엇인가 생긴 것을 확인할 수 있다. 이전에 어떤 화면이 나오는지 확인하려면 서버를 종료하고 다시 들어가보면 된다. 참고로 서버를 종료하려면 Ctrl + c를 눌러주면 된다. 그러면 콘솔을 다시 사용할 수 있게 된다. 서버를 종료한 후에 다시 localhost:4000에 들어가면 이 서버는 존재하지 않는다는 오류가 나오게 된다. 즉, 이전과 달라진 것을 확인할 수 있고, 앞서 서버를 열었다는 것을 알 수 있다.
+
+포트 번호 같은 상수는 따로 지정하는 것이 의미적으로 편하다. 그러므로 `const PORT = 4000;`으로 하고 코드를 `app.listen(PORT, handleListening);`으로 고쳐준다. handleListening도 좀 더 의미를 가지도록 ```const handleListening = () => console.log(`Server listening on port http://localhost:${PORT}`);```로 고쳐준다.
+
+지금까지 작성한 코드는 다음과 같다.
+```
+// server.js
+import express from "express";
+
+const PORT = 4000;
+
+const app = express();
+
+const handleListening = () => console.log(`Server listening on port http://localhost:${PORT}`);
+
+app.listen(PORT, handleListening);
+```
+
+### 3.1 HTTP GET
+HTTP(HyperText Transfer Protocol)는 문서를 전송하기 위한 규약이다. HTTP는 프로토콜의 일종으로, 이때 프로토콜은 컴퓨터에서 데이터의 교환 방식을 정하는 규약을 의미한다. 다시말해 HTTP는 서버와 클라이언트 사이에서 어떻게 정보를 교환할지 정해놓은 약속이다. 보통은 클라이언트인 브라우저에서 보내는 메세지를 요청(Request)라고 부르고, 그에 대답하는 서버의 메세지는 응답(Respond)라고 한다. 우리가 사용하는 웹 브라우저의 주소를 보면 http://를 볼 수 있다. 이 http://가 바로 프로토콜을 사용해서 정보를 교환한다는 표시로, 인터넷 주소(URL)로 정보를 조회할 수 있다. HTTP가 보내는 요청은 다양한 것이 있지만 이번에는 GET만 알아볼 것이다. GET은 데이터를 가져올 때 사용하는 것으로 정해진 주소로부터 정보를 받아오는 것이다. 서버를 실행하고 localhost:4000에 들어가보자. 그러면 Cannot GET / 라는 메세지만 확인할 수 있다. 먼저 /는 root를, 다시 말해 첫 페이지를 의미한다. 다음으로 GET은 HTTP method이므로 GET /는 HTTP로 첫 페이지를 불러오는 명령이다. 그런데 우리는 첫 페이지를 만들어주지 않았으므로 오류가 나게 된다.
+
+### 3.2 GET Requests part Two
+앞으로 작성할 코드는 모두 `const app = express();` 다음에 와야 한다. 왜냐하면 app으로 만들어주고 listen으로 요청을 기다리는데, 그 사이에 기능을 넣어줘야 하기 때문이다. 서버를 실행하면 GET으로 /를 요청하고 있으므로 이에 응답해야 한다. 하지만 그 전에 콘솔로 출력해보겠다. 코드를 작성하기 전에 틀을 한 번 알아보자. 우리가 작성할 코드는 `app.get(address, callback)` 형태다. 이 코드의 의미난 app이 address에 get 요청을 보냈을 때, callback이 실행된다는 의미다. 우리는 /로 갔을 때, callback이 실행되도록 하고 싶다. 그러므로 `app.get("/", () => console.log("Get Home"));`을 적어준다. 이 코드의 뜻은 app에서 get으로 /에 가려고 하면 콘솔에 문장이 출력되게 하는 것이다. 주의할 것은 callback에 단순히 console.log로 적어주면 안 된다. callback 함수를 적어줘야 하므로 꼭 () => console.log 형태가 되도록 해야 한다. 이 방식이 불편하면 따로 함수를 만들어서 다뤄줘도 된다.
+
+여기까지 작성하고 서버를 새로고침 하면 브라우저가 불러오기에서 멈춘 것을 볼 수 있다. 콘솔을 확인하면 Get Home이 출력된 것을 확인할 수 있다. 즉, 브라우저는 get request를 보내고 있는데 서버는 app.get으로 어떻게 응답해야하는지 알게 되었으므로 응답한다. 그런데 우리는 콘솔에 출력만 할 뿐, 아무런 응답을 하고있지 않다. 그렇기 때문에 브라우저는 응답이 돌아올때까지 기다리고 있고 불러오기 단계에 머물러 있게 된다. 
+
+```
+// server.js
+import express from "express";
+
+const PORT = 4000;
+
+const app = express();
+
+const handleHome = () => console.log("Somebody is trying to go home");
+
+app.get("/", handleHome);
+
+const handleListening = () => console.log(`Server listening on port http://localhost:${PORT}`);
+
+app.listen(PORT, handleListening);
+```
+
+### 3.3 Responses
+브라우저가 응답을 계속 기다리고 있기 때문에 강제로 꺼줘야 한다. Ctrl + c로 서버를 종료하고 다시 브라우저로 돌아가면 localhost refused to conntect라는 에러가 뜬다. 이번에는 브라우저에 응답하는 방법을 배워보겠다. 그전에 잠시 자바스크립트를 복습해보겠다. 자바스크립트에서 `button.addEventListener("click", handleClick);`과 같은 코드가 있고 여기서 콜백 함수 `const handleClick = (event) => {...}` 형태가 되는 것을 기억할 것이다. 여기서 보듯이 handleClick이 콜백 함수로 쓰일때, event를 변수로 쓰이지만 addEventListener에는 적혀있지 않다. 이는 브라우저가 자동으로 처리해주기 때문이다.
+
+이와 동일한 일이 express에서도 일어난다. 익스프레스의 함수는 req, res를 인수로 사용한다. req는 요청을, res는 응답을 의미한다. 이름이 꼭 req, res로 사용해야 하는 것은 아니지만, 굳이 다른 이름을 사용할 필요는 없으므로 저대로 쓴다. app.get이 일어나면 handleHome에 req, res 두 인수가 전달이 된다. 우선은 req가 무엇인지 알기 위해 console.log로 출력시켜보자. 그러므로 코드는 아래처럼 될 것이다.
+
+```
+// server.js
+...
+const handleHome = (req, res) => {
+    console.log(req);
+};
+
+app.get("/", handleHome);
+...
+```
+
+이렇게 하면 아직 브라우저에 응답을 보내지 않아서 브라우저는 계속 동작한다. 그리고 콘솔을 확인하면 이것저것 출력되는 것을 알 수 있다. 그 중에서도 url, method나 사용자의 os등 다양한 정보가 있는 것을 볼 수 있다. req 대신에 res를 출력 시켜도 비슷한 것들이 나온다. 다음으로 응답을 전달해보겠다. 응답은 handleHome에다가 `return res.end();`를 적어줘서 가능하다. 이렇게 하고 페이지를 새로고침하면 브라우저는 빈화면으로 나온다. 아무것도 나오진 않지만, 브라우저가 응답을 계속 기다리진 않는다. 응답을 보내는 다른 방법으로 send가 있는데, `return res.send("This is end message");` 처럼 사용한다. 이렇게 하고 페이지를 새로고침하면 페이지에 글자가 나오는 것을 볼 수 있다.
+
+```
+// server.js
+...
+const handleHome = (req, res) => {
+    return res.send("This is end message"); // or return res.end();
+};
+
+app.get("/", handleHome);
+...
+```
+
+페이지를 하나 더 만들어서 똑같이 적용해보겠다. 이번에는 /login 페이지를 만들어서 handleLogin을 사용할 것이다. 그러면 코드는 아래처럼 적어주면 된다.
+
+```
+// server.js
+...
+const handleHome = (req, res) => {
+    return res.send("This is end message"); // or return res.end();
+};
+
+const handleLogin = (req, res) => {
+    return res.send("This is Login Page");
+};
+
+app.get("/", handleHome);
+app.get("/login", handleLogin);
+...
+```
+
+localhost:4000/login에 들어가보면 This is Login Page가 출력된다. 
+
+### 3.4 Recap
+
+### 3.5 MiddleWares Part One
+
+### 3.6 MiddleWares Part Two
+
+### 3.7 Setup Recap
+
+### 3.8 Servers Recap
+
+### 3.9 Controllers Recap
+
+### 3.10 MiddleWare Recap
+
+### 3.11 External Middlewares
