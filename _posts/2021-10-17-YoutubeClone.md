@@ -242,15 +242,86 @@ API도 인터페이스의 일종으로 프로그램 간에 데이터를 주고 �
 여담으로 폴더가 조금씩 복잡해지면 그 구조를 출력하고 싶을 때가 있다. 이는 디렉터리 구조를 출력하는 방법을 찾아보면 되는데, 맥에서는 tree를 사용하면 된다. 다른 운영체제도 각자 디렉토리 출력법이 있으므로 필요하면 찾아보자. 맥에서는 터미널을 연 후 `brew install tree`로 tree를 설치해준다. 그 후 원하는 폴더에 들어가서 tree만 입력하면 폴더의 구조를 출력해준다. 세세한 사항은 `tree --help`로 확인해보자.
 
 ### 3.5 MiddleWares Part One
+Middleware는 이름 그대로 Middle Software이다. 미들웨어는 요청과 응답 사이에 있다. 지금까지 handler라고 했던 것은 사실 controller인데 controller은 req, res 뿐만 아니라 next라는 인자를 가지고 있다. next는 다음 함수를 호출해준다.
+
+```
+// server.js
+...
+const gossipMiddleware = (req, res, next) => {
+    console.log("I'm in the middle!");
+    next();
+};
+
+const handleHome = (req, res, next) => {
+    return res.end();
+};
+
+app.get("/", gossipMiddleware, handleHome);
+...
+```
+
+위의 코드는 브라우저는 /에 가려고 한다. 그러면 gossipMiddleware가 실행된다. 그리고 next()가 실행되고 다음 함수인 handleHomedㅣ 실행된다. 이때, handleHome은 finalware가 된다. 이때, middleware에서 return res.send() 같은 종료 시키는 문구가 next보다 먼저 올 경우 다음 함수는 실행되지 않는다. 이는 당연한 것이 먼저 반환해버리면 next가 실행될 기회가 없기 때문이다. middleware는 다양한 방법으로 사용할 수 있는데, 이번에는 요청하는 페이지의 url을 반환하는 함수를 생각해보겠다.
+
+```
+// server.js
+...
+const gossipMiddleware = (req, res, next) => {
+    console.log(`Someone is going to: ${req.url}`);
+    next();
+};
+
+const handleHome = (req, res, next) => {
+    return res.end();
+};
+
+app.get("/", gossipMiddleware, handleHome);
+...
+```
+
+위의 함수는 사용자가 가려는 페이지의 url을 반환하겠지만, 지금은 /에만 적용되어 있으므로 무쓸모하다. 이를 다음 강의에서 고쳐보겠다.
 
 ### 3.6 MiddleWares Part Two
+이번에 배워볼 것은 `app.use()`다. app.use는 global middleware를 만들게 해준다. 다시 말해 어떤 url에서도 실행되는 middleware다. 주의할 것은 하나뿐이다. app.use가 app.get보다 먼저 와야한다. 만약 순서가 반대로 되면 app.get이 일어날때, app.user가 적용되지 않으므로 middleware가 실행되지 않게 된다. app.use의 사용법은 간단하다. 그저 사용하고 싶은 middleware의 이름을 적어주면 된다.
+
+```
+// server.js
+...
+const gossipMiddleware = (req, res, next) => {
+    console.log(`Someone is going to: ${req.url}`);
+    next();
+};
+
+const handleHome = (req, res, next) => {
+    return res.end();
+};
+
+app.user(gossipMiddleware);
+app.get("/", handleHome);
+...
+```
+
+미들웨어는 다른 방법으로도 사용 가능하다. if-else문을 사용해서 특정 url에서만 실행되고 다른 url에서는 next가 실행되도록 할 수도 있다.
+
+```
+const privateMiddleware = (req, res, next) => {
+    if(req.url === "/private") {
+        return res.send("<h1>Not Allowed</h1>);
+    }
+    console.log("Allowed, you may continue.");
+    next();
+};
+```
 
 ### 3.7 Setup Recap
+간단하게 지금까지 배운 것을 package.json 파일부터 정리해보겠다. 우리가 package.json에서 바꾼 것은 scripts, dependencies, Devdependencies다. 먼저 scripts는 복잡한 명령어를 실행하는 별명을 만들어준다. 우리는 dev라는 scripts를 만들었다. 서버를 실행하려면 매번 `nodemon --exec babel-node index.js`를 입력해야 한다. 하지만 이 명령어는 굉장히 길어서 굉장히 번거롭다. 그래서 scripts로 이를 대체하는 간단한 명령어를 만들 수 있다. 이를 위해 우리는 dev라는 명령어를 만들었다. `"dev": "nodemon --exec babel-node index.js"`를 사용하면 우리는 `npm run dev`만으로 저 복잡한 명령어를 대체할 수 있다.
+
+다음으로 dependencies는 프로젝트를 실행하기 위한 패키지 모음이다. 이곳에는 필요한 패키지와 그 버전이 적혀있기 때문에 다른 컴퓨터에서 작업할 때 package.json만 있으면 `npm i`로 필요한 패키지를 다운 받을 수 있다. Devdependencies는 개발자를 위한 패키지로, 우리는 Nodemon으로 파일이 수정될 때마다 재실행시켜주고, Babel로 최신 자바스크립트를 NodeJS에 맞게 번역시킨다. dependencies와 Devdependencies 모두 node_modules에 저장된다. 요약하면 dependencies는 프로젝트를 실행하기 위한 필수적인 패키지고, Devdependencies는 개발자를 도와주는 패키지다.
 
 ### 3.8 Servers Recap
+서버는 요청을 기다리고 있는 컴퓨터로, 요청을 보내면 그에 맞는 응답을 보낸다. 우리는 서버를 만들기 위해 express를 사용한다. express를 사용하는 방법은 `import express from "express"`로 가능하다. 이때 express는 node_modules 폴더에 있지만, npm이 알아서 저 폴더에서 찾아주기 때문에 그냥 express라고만 써도 된다. express에서 어플리케이션을 만드는 방법은 굉장히 간단하다. 그저 `const app = express()`라고만 적어주면 된다. 이렇게 만들어진 서버는 listening 중일 때에만 요청을 받고 응답을 한다. 이를 하는 방법은 `app.listen(PORT, handleListening);`으로 가능하다. 이때, listen일 때 실행되는 함수가 handleListening이다. PORT는 지금 사용하는 포트의 숫자를 말하는데, 대부분 `const PORT = 4000;`으로 사용한다. 이는 관습적인 숫자일 뿐 다른 숫자를 사용해도 된다. 그런데 어떤 포트는 사용중일 수도 있어서 작동하지 않을 수도 있다. 숫자가 높은 포트는 비어있을 가능성이 높으므로 다른 포트를 사용한다면 숫자가 높은 것 중에 하나를 고르면 된다.
 
 ### 3.9 Controllers Recap
-
+라우팅은 URI와 HTTP 요청 메소드에 어플리케이션이 응답하는 방법을 결정하는 것을 말한다. 그리고 이 역할을 수행하는 것을 라우터라고 한다. 
 ### 3.10 MiddleWare Recap
 
 ### 3.11 External Middlewares
