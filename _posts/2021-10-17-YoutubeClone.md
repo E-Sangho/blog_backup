@@ -417,7 +417,101 @@ app.get("/", home);
 app.get("/login", login);
 
 const handleListening = () =>
-  console.log(`✅ Server listenting on port http://localhost:${PORT} 🚀`);
+  console.log(`Server listenting on port http://localhost:${PORT}`);
 
 app.listen(PORT, handleListening);
 ```
+
+## 4 Routers
+
+### 4.0 What are the routers?
+Route는 명사로 사용하면 *두 장소 사이의 경로(noun)*라는 뜻이고, 동사로 사용하면 *어떤 경로로 무엇인가를 보내다(verb)*를 의미한다. 그리고 이 단어로부터 라우터(Router)가 만들어졌다. 이렇게 읽으니까 생소해 보이는 단어다. 그런데 route를 그냥 읽으면 루트다. 그렇게 생각하면 라우트도, 라우터도 쉽게 이해된다. 어떻게 루트였던 단어가 라우트로 읽혔는가 이해가 안 되지만 영어니까 그러려니 하자. 어쨌거나 웹은 route -> function 으로 맵핑을 한다. 즉 라우트라는 key로 function을 사용한다. 예를 들어 /car/:color 라는 라우터가 있다고 하자. 여기서 :color 부분이 변수로 저기에 red, blue 등의 색이 들어간다. 그러면 /car/blue 라는 URL은 파란색 차를 호출할 것이다. 라우터는 라우트가 어떤 함수를 호출하는지 명시하는 것을 말한다. 다시 말해 라우트 개념을 구현해서 URL에 따라 어떤 함수를 사용하는지 코드로 만든 것이 라우터다. 간략히 요약하면 라우트는 사용자의 요청에 따라 다른 페이지로 보내주는 것을 말하고, 이를 구현한 것이 라우터다. 라우팅은 라우터가 동사이므로 이를 명사로 사용할 때 쓰는 동명사로, 라우트를 명사로 사용하는 표현이다.
+
+이 개념을 바탕으로 앞으로 우리가 만들 웹 페이지를 구상해보자.
+
+```
+/ -> Home
+/join -> Join
+/login -> Login
+/search -> Search
+
+/users/edit -> Edit user
+/users/delete -> Delete user
+
+/videos/watch -> Watch Video
+/videos/edit -> Edit Video
+/videos/delete -> Delete Video
+/videos/comments -> Comment on a video
+/videos/comments/delete -> Delete A Comment of a Video
+```
+
+보다시피 Edit user, Delete user 기능은 /users에서 /edit과 /delete로 나눠서 만들었다. 라우터를 만드는 가장 큰 이유는 이처럼 같은 카테고리에 속하는 기능들을 묶어서 만들 수 있다는 것이다. 그래서 필요한 기능끼리 묶어서 만들 수 있고 유지 보수에도 쉽게 할 수 있게 된다.
+
+### 4.1 Making Our Routers
+앞서 만든 라우터 중에 '/', '/join', '/login', '/search' 처럼 홈에서 바로 갈 수 있는 페이지를 담고 있는 것을 Global Routers라고 한다. 앞서 우리는 users와 videos로 라우터를 만들었다. 그런데 글로벌 라우터를 보면 login, join은 users가 하는 것이므로 users 라우터에 있어야 할 것 같다. 또한 edit, delete도 videos 라우터에 있어야 할 것 같다. 논리적으로는 그렇게 하는 것이 맞지만, 때로는 예외로 하기도 한다. 그 이유는 논리적으로 작성할 경우 URL이 너무 복잡해지기 때문이다. login이나 join 등의 기능은 굉장히 기본적인 기능이다. 어떤 웹 페이지를 쓰더라도 기본적으로 있을 기능이다. 만약 이를 users 라우터에 넣게 된다면, url이 복잡해질뿐더러 사람들의 직관과 반대될 수 있다. 누군가  google에서 가입을 하고 싶다면, google/join에 들어가야 한다고 예상할 것이다. 그런데 googlt/users/join에서 가능하다면 오히려 더 불편할 것이다. 그렇기 때문에 논리적으로 맞지 않더라도, 편의를 위해 예외가 생길 수 있다.
+
+이제 라우터를 만들어 보자. 라우터는 `express.Router()`로 만들 수 있다. 예를 들어 globalRouter를 만들고 싶다면 `const globalRouter = express.Router();` 로 만들 수 있다. 비슷한 방법으로 userRouter과 videoRouter를 만들 수 있다. 이렇게 만든 라우터를 사용하는 법도 간단하다. 우선 라우터의 루트 url이 필요하다. 예를 들어 videoRouter의 루트 url은 /videos가 되고, userRouter의 루트 url은 /users가 된다. 마지막으로 globalRouter의 루트 url은 /다. 다음으로 app.use로 사용하는데 `app.use("/videos", videoRouter);` 형태로 사용하면 된다. 지금까지를 코드로 작성하면 아래와 같다.
+
+```
+const globalRouter = express.Router();
+const userRouter = express.Router();
+const videoRouter = express.Router();
+
+app.use("/", globalRouter);
+app.use("/users", userRouter);
+app.user("/videos", videoRouter);
+```
+
+하지만 이 코드는 아무런 일도 하지 않는다. 그래서 실행할 함수를 만들어줘야 한다. `const handleEditUser = (req, res) => res.send("Edit User");` 라는 함수를 만들었다면, 이를 사용하고 싶은 곳은 users/edit이다. `userRouter.get("/edit", handleEditUser);` 로 작성하면 된다. 나머지 부분도 비슷하게 작성하면 아래처럼 된다.
+
+```
+const globalRouter = express.Router();
+
+const handleHome = (req, res) => res.send("Home");
+
+globalRouter.get("/", handleHome);
+
+const userRouter = express.Router();
+
+const handleEditUser = (req, res) => res.send("Edit User");
+
+userRouter.get("/edit", handleEditUser);
+
+const videoRouter = express.Router();
+
+const handleWatchVideo = (req, res) => res.send("Watch Video");
+
+videoRouter.get("/watch", handleWatchVideo);
+
+app.use("/", globalRouter);
+app.use("/videos", videoRouter);
+app.use("/users", userRouter);
+```
+
+이렇게 만들고 /videos/watch 나 /users/edit 에 들어가면 메세지가 나오는 것을 확인할 수 있다. 그런데 우리는 코드 상에 /videos/watch를 작성하지 않았다. 이는 라우터의 특성 때문이다. 라우터는 미들웨어 함수처럼 사용된다. 그래서 app.use()의 인자(Argument)로 사능 가능할 뿐만 아니라, 다른 라우터의 use()에 쓸 수 있다. 코드로 돌아가서 videoRouter만 대표로 살펴보자.
+
+```
+const videoRouter = express.Router();
+
+const handleWatchVideo = (req, res) => res.send("Watch Video");
+
+videoRouter.get("/watch", handleWatchVideo);
+
+app.use("/videos", videoRouter);
+```
+
+위의 코드는 작성 순서와는 반대 순서로 작동한다. 예를 들어 /videos/watch에 접속했다고 하자. 그러면 app.use에서 /videos에 들어갔으므로 videoRouter를 호출한다. 라우터는 미들웨어처럼 작동하기 때문에 이전 정보를 가지고 간다. 다시 말해, 현재 주소가 /videos라는 정보를 가지고 videoRouter.get()을 확인한다. videoRouter.get("/watch", handleWatchVideo)를 보면 /watch를 확인할 수 있다. 미들웨어의 PATH는 현재 주소를 루트로 사용하기 때문에, 실질적인 주소는 /videos/watch가 된다. 그리고 우리는 /videos/watch에 접속했으므로 handleWatchVideo가 호출되고 "Watch Video"가 출력된다.
+
+### 4.2 Cleaning the Code
+
+### 4.3 Exports
+
+### 4.4 Router Recap
+
+### 4.5 Architecture Recap
+
+### 4.6 Planning Routers
+
+### 4.7 URL Parameters part One
+
+### 4.8 URL Parameters part Two
