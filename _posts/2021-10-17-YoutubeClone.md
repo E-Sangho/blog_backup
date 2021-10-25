@@ -504,7 +504,205 @@ app.use("/videos", videoRouter);
 
 ### 4.2 Cleaning the Code
 
+#### export & import
+
+애플리케이션의 크기가 커지면 파일을 분리하는게 더 효율적이게 된다. 이때 분리된 각각의 파일을 모듈(Module)이라고 하는데, 대부분 클래스 하나 또는 특정한 목적을 가진 복수의 함수로 구성된 라이브러리 하나로 구성된다. 이렇게 파일을 분리하게 되면 다시 파일을 불러와 합치는 과정이 필요하다. 이를 위한 지시어가 **export**와 **import**다.
+- export: 변수나 함수 앞에 붙이면 그 변수나 함수를 외부에서 접근 가능하게 된다.
+- import: 외부 모듈의 기능을 가져올 수 있다.
+
+예를 들어서 다음과 같은 코드가 있다고 하자. 이 코드는 export로 helloWorld, sayHi 함수를 내보낸다. 보다시피 export를 사용해서 여러 개를 내보낼 수 있다.
+
+```
+// Hello.js
+export function HelloWorld() {
+    console.log("Hello World!");
+}
+
+export function sayHi(user) {
+    console.log(`Hello ${user}`);
+}
+```
+
+이를 사용하기 위해선 다른 파일에서 import로 불러와야 한다. 불러오는 방식은 `import {name1, name2, ... , name5} from "PATH"`의 형태로 불러온다. 주의할 것은 불러올때 같은 이름을 사용해야 한다는 것이다.
+
+```
+// main.js
+import {HelloWorld, sayHi} from "Hello.js";
+
+HelloWorld();
+sayHi("Jack");
+```
+
+그런데 export 하는 함수가 하나 뿐이라거나 기본으로 내보낼 것을 정하고 싶을 수 있다. 이때 사용하는 것이 export default다. 사용법은 기존과 크게 다르지 않은데, 그저 export 대신에 export default를 써주는 것이다. 대신에 이를 import 하는 파일에선 조금 차이가 생긴다. import를 할 때 {}를 사용할 필요가 없고, 이름을 바꿀 수 있다. 하지만 불필요한 혼란을 일으키므로 이름을 그대로 사용하는 것이 좋다.
+
+```
+// Hello.js
+export default function HelloWorld() {
+    console.log("Hello World!");
+}
+
+// main.js
+import anotherName from "Hello.js";
+
+anotherName();
+```
+
+둘을 섞어서 사용할 수도 있는데, 이 경우 export default를 import할 때는 {}를 사용하지 않고, export를 불러올 때는 {}를 사용해줘야 한다.
+
+#### Clean Code
+이번에는 import와 export를 사용해서 우리가 작성한 코드를 고쳐볼 것이다. 기존에 우리가 작성했던 코드는 여러 라우터가 한 파일안에 들어있다. 이 경우 유지 보수에 어려움을 격을 수 있다. 만약 라우터에 사용되는 함수가 굉장히 많아지거나 라우터의 수가 크게 늘어나면, 코드의 가독성도 떨어지고 서로 연괸된 코드가 어떤 것인지 분간하기 어려워진다. 그래서 라우터별로 코드를 모아주겠다. 우선 src에 routers라는 폴더를 하나 만든다. 그후 globalRouter.js, userRouter.js, videoRouter.js 파일을 만들고 각 라우터와 관련된 코드를 옮겨준다. 주의할 점은 각 모듈에서도 express를 import해야 정상적으로 작동한다는 점이다. 그 외에는 export default와 import를 사용해서 파일을 정리하면 된다. 이 과정을 완료하면면 코드는 아래처럼 된다.
+
+```
+// server.js
+import express from "express";
+import morgan from "morgan";
+import globalRouter from "./routers/globalRouter";
+import videoRouter from "./routers/videoRouter";
+import userRouter from "./routers/userRouter";
+
+const PORT = 4000;
+
+const app = express();
+const logger = morgan("dev");
+app.use(logger);
+
+app.use("/", globalRouter);
+app.use("/videos", videoRouter);
+app.use("/users", userRouter);
+
+const handleListening = () =>
+  console.log(`Server listenting on port http://localhost:${PORT}`);
+
+app.listen(PORT, handleListening);
+```
+
+```
+// globalRouter.js
+import express from "express";
+
+const globalRouter = express.Router();
+
+const handleHome = (req, res) => res.send("Home");
+
+globalRouter.get("/", handleHome);
+
+export default globalRouter;
+```
+
+```
+// userRouter.js
+import express from "express";
+
+const userRouter = express.Router();
+
+const handleEditUser = (req, res) => res.send("Edit User");
+
+userRouter.get("/edit", handleEditUser);
+
+export default userRouter;
+```
+
+```
+// videoRouter.js
+import express from "express";
+
+const videoRouter = express.Router();
+
+const handleWatchVideo = (req, res) => res.send("Watch Video");
+
+videoRouter.get("/watch", handleWatchVideo);
+
+export default videoRouter;
+```
+
 ### 4.3 Exports
+앞서 우리는 각 라우터별로 모듈을 나눴다. 그런데 우리는 파일에서 라우터만을 다루고 싶은데, 파일에는 컨트롤러도 같이 존재하고 있다. 현재는 컨트롤러가 그리 많지 않아서 문제가 없어보이지만, 파일이 커지게 되면 관리에 어려움이 생긴다. 라우터만 수정하고 싶은데도 컨트롤러도 같이 나오니 코드가 길어지고, 반대로 컨트롤러를 수정하고 싶으면 각 라우터를 뒤지면서 해당 컨트롤러를 찾아야 한다. 그래서 각 라우터의 컨트롤러를 관리하는 파일을 따로 만들어주겠다.
+
+src 폴더에 새로 controllers라는 폴더를 하나 만든다. 그리고 그 속에 userController.js와 videoController.js 파일을 만든다. 이때, globalController는 만들지 않는데, 그 이유는 globalRouter가 url의 편이를 위해 생성된 것이기 때문이다. 앞으로 globalRouter에 만들 컨트롤러들은 url의 편이를 위해 globalRouter에 있을 뿐, 실제로는 사용자와 비디오를 다룬다. 그렇기 때문에 globalController를 따로 만드는 것이 아니라 userController과 videoController에 만들어 줄 것이다. 예를 들어 /login은 globalRouter에 있지만 사용자가 로그인 하는 것이므로 userController에서 관리를 한다.
+
+이렇게 각 파일을 나눴으면 원하는 컨트롤러를 만들어서 각 라우터에 연결해준다. 이때 여러 함수를 export하므로 export default가 아닌 그냥 export로 내보내고, import로 각 함수를 불러와주면 된다. 우리가 필요한 함수를 하나하나 살펴보자. 먼저 globalRouter에는 "/"에서 인기 동영상을 불러오는 기능이 필요하므로, 이를 `globalRouter.get("/", trending)`으로 만든다. 그리고 `globalRouter.get("/join", join)`으로 회원가입하는 함수를 하나 만든다. 이 경우 join은 userController.js에 만들어야 하고, trending은 videoController.js에 만들어야 한다. 각 파일에 하나씩 만들면 다음처럼 된다.
+
+```
+// userController.js
+export const join = (req, res) => res.send("Join");
+```
+
+```
+// videoControllser.js
+export const trending = (req, res) => res.send("Home Page Videos");
+```
+
+그리고 이를 불러오는 globalRouter.js는 import로 join과 trending을 불러와서 라우터를 만든다.
+
+```
+// globalRouter.js
+import express from "express";
+import { join } from "../controllers/userController";
+import { trending } from "../controllers/videoController";
+
+const globalRouter = express.Router();
+
+globalRouter.get("/", trending);
+globalRouter.get("/join", join);
+
+export default globalRouter;
+```
+
+나머지 필요한 것들은 user가 edit, remove하는 기능과 video를 watch, edit하는 기능이다. 이 둘을 각각 userController.js와 videoController.js에 만들어서 userRouter.js와 videoRouter.js에 import해서 만들어주면 파일은 최종적으로 아래처럼 된다.
+
+```
+// userController.js
+export const join = (req, res) => res.send("Join");
+export const edit = (req, res) => res.send("Edit User");
+export const remove = (req, res) => res.send("Remove User");
+```
+
+```
+// videoController.js
+export const trending = (req, res) => res.send("Home Page Videos");
+export const watch = (req, res) => res.send("Watch");
+export const edit = (req, res) => res.send("Edit");
+```
+
+```
+// globalRouter.js
+import express from "express";
+import { join } from "../controllers/userController";
+import { trending } from "../controllers/videoController";
+
+const globalRouter = express.Router();
+
+globalRouter.get("/", trending);
+globalRouter.get("/join", join);
+
+export default globalRouter;
+```
+
+```
+// userRouter.js
+import express from "express";
+import { edit, remove } from "../controllers/userController";
+
+const userRouter = express.Router();
+
+userRouter.get("/edit", edit);
+userRouter.get("/remove", remove);
+
+export default userRouter;
+```
+
+```
+// videoRouter.js
+import express from "express";
+import { watch, edit } from "../controllers/videoController";
+
+const videoRouter = express.Router();
+
+videoRouter.get("/watch", watch);
+videoRouter.get("/edit", edit);
+
+export default videoRouter;
+```
 
 ### 4.4 Router Recap
 
