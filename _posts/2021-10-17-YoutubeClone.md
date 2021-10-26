@@ -709,6 +709,87 @@ export default videoRouter;
 ### 4.5 Architecture Recap
 
 ### 4.6 Planning Routers
+```
+// README.md
+/login -> Login
+/search -> Search
+
+/users/:id -> See User
+/users/logout -> Log Out
+/users/edit -> Edit MY Profile
+/users/delete -> Delete MY Profile
+
+/videos/:id -> See Video
+/videos/:id/edit -> Edit Video
+/videos/:id/delete -> Delete Video
+/videos/upload -> Upload Video
+```
+
+```
+// userController.js
+export const join = (req, res) => res.send("Join");
+export const edit = (req, res) => res.send("Edit User");
+export const remove = (req, res) => res.send("Remove User");
+export const login = (req, res) => res.send("Login");
+export const logout = (req, res) => res.send("Log out");
+export const see = (req, res) => res.send("See User");
+```
+
+```
+// videoController.js
+export const trending = (req, res) => res.send("Home Page Videos");
+export const see = (req, res) => res.send("Watch");
+export const edit = (req, res) => res.send("Edit");
+export const search = (req, res) => res.send("Search");
+export const upload = (req, res) => res.send("Upload");
+export const deleteVideo = (req, res) => res.send("Delete Video");
+```
+
+```
+// globalRouter.js
+import express from "express";
+import { join, login } from "../controllers/userController";
+import { trending, search } from "../controllers/videoController";
+
+const globalRouter = express.Router();
+
+globalRouter.get("/", trending);
+globalRouter.get("/join", join);
+globalRouter.get("/login", login);
+globalRouter.get("/search", search);
+
+export default globalRouter;
+```
+
+```
+// userRouter.js
+import express from "express";
+import { edit, remove, logout, see } from "../controllers/userController";
+
+const userRouter = express.Router();
+
+userRouter.get("/logout", logout);
+userRouter.get("/edit", edit);
+userRouter.get("/remove", remove);
+userRouter.get(":id", see);
+
+export default userRouter;
+```
+
+```
+// videoRouter.js
+import express from "express";
+import { see, edit, upload, deleteVideo } from "../controllers/videoController";
+
+const videoRouter = express.Router();
+
+videoRouter.get("/upload", upload);
+videoRouter.get("/:id", see);
+videoRouter.get("/:id/edit", edit);
+videoRouter.get("/:id/delete", deleteVideo);
+
+export default videoRouter;
+```
 
 ### 4.7 URL Parameters part One
 
