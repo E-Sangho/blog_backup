@@ -792,5 +792,176 @@ export default videoRouter;
 ```
 
 ### 4.7 URL Parameters part One
+url을 보면 변수를 사용하는게 더 편한 경우가 많다. 예를 들어 강의가 1, 2, 3, ... , 10까지 있다면 하나하나 페이지를 만들어주기보다는 숫자 부분을 변수로 설정해서 하나만 만드는게 편할 것이다. 또는 차의 색에 따라 페이지를 다르게 보이고 싶을 때 red, blue, green 등으로 각 페이지를 만들기보다는, 색을 변수로 가져와서 페이지 색을 바꿀 수 있다면 편할 것이다. 그래서 이번에는 url에서 변수를 사용하는 방법을 배워볼 것이다.
+
+방법은 간단하다. 변수로 사용하고 싶은 키워드 앞에 *:*를 붙여주면 된다. 예를 들어 `videoRouter.get("/:id", see);`로 적어주면 :id가 변수처럼 쓰인다. 페이지를 들어가기 전에 see를 수정해보자. ```export const see = (req, res) => { return res.send(`Watch Video #${req.params.id}`)}```라고 적었다. 여기서 req.params.id는 요청하는 url의 변수(req.params)에서 id를 출력하고 싶기 때문에 써준 것이다. 위처럼 코드를 수정했다면 videos/4를 들어가보면 Watch Video #4가 출력된다. 4가 아니라 그 외에 어떤 수를 적어주더라도 페이지는 바뀐 수에 대응해 알아서 출력한다.
+
+그런데 url에 변수를 사용할 때는 작성 순서가 중요하다. 예를 들어 다음처럼 작성했다고 해보자.
+
+```
+// videoRouter.js
+...
+videoRouter.get("/:id", see);
+videoRouter.get("/upload", upload);
+```
+
+이때 videos/upload에 들어간다면 upload 컨트롤러가 실행되는 것이 아니라 see 컨트롤러가 실행된다. 사람의 시선에서 보면 :id외에 upload가 있으므로 videos/upload에 들어가면 upload가 실행되어야 할 것으로 보인다. 하지만 컴퓨터 입장에서는 :id가 변수이고 upload도 변수가 될 수 있고 코드는 순서대로 실행되기 때문에, see가 실행되는 것이다. 이런 일이 발생하지 않으려면 변수 부분은 모두 아래로 내리는 것이 필수적이다. 그러므로 위의 코드를 고쳐 아래처럼 만든다.
+
+```
+// videoRouter.js
+...
+videoRouter.get("/upload", upload);
+videoRouter.get("/:id", see);
+```
+
+그런데 코드 순서를 바꿔도 해결할 수 없는 경우가 있다. 우리가 변수를 특정 값으로만 받고 싶은 경우다. 예를 들어 우리는 :id 값으로 숫자만 받고 싶은데, 현재는 문자를 입력해도 되게 만들어져 있다. 다음에는 이를 수정하는 방법을 배워보겠다. 
 
 ### 4.8 URL Parameters part Two
+정규 표현식(Regular Expression or regex)는 특정 조건을 만족하는 문자열을 만드는 방법이다. 몇 가지 코드를 보면서 확인해보자. 아래 코드 경로는 acd, abcd가 된다.
+
+```
+app.get('/ab?cd', function(req, res) {
+  res.send('ab?cd');
+});
+```
+
+그 이유는 ?가 있어도 되고 없어도 되는 것을 의미하기 때문이다. 그래서 b가 없는 acd도 될 수 있고, b가 있는 abcd도 될 수 있다.
+
+```
+app.get('/ab+cd', function(req, res) {
+  res.send('ab+cd');
+});
+```
+
+위의 경로는 abcd, abbcd, abbbcd, abbbb...bcd가 가능하다. 즉 +를 사용하면 그 문자가 얼마나 많이와도 상관없다. 이처럼 경로를 작성할 때, 특정 문자를 사용해서 경로를 표현할 수 있다. 이 외에도 *를 사용하면 사이에 어떤 문자가 와도 상관 없다는 것을 의미한다. 그리고 ()는 그 속에 있는 문자를 하나로 생각한다. 예를 들어 ab(cd)?e는 abe 또는 abcde가 된다.
+
+그 외에도 정규 표현식은 굉장히 다양하기 때문에 여기서 정리하기 곤란하다. 그래서 [MDN](https://developer.mozilla.org/ko/docs/Web/JavaScript/Guide/Regular_Expressions)이나 다른 인터넷 글을 참조하는게 좋다.
+
+우리가 필요한 것은 :id를 숫자로만 받는 것이다. 우선 수를 의미하는 것은 \d로 0~9까지의 수를 의미한다. 우리는 그보다 긴 수도 쓰고 싶으므로 (\d+)를 사용한다. 다만 주의할 것이 있는데 정규 표현식을 문자열로 쓸때 \ 앞에 \를 하나 더 붙여줘야 한다는 점이다. 이는 문자열에서 이미 \가 이스케이프 문자로 쓰이기 때문이다. 무슨 뜻이냐면 \는 뒤에 오는 문자가 특수하고, 다르게 해석해야 한다는 것을 의미한다. 예를 들어 \d는 d를 의미하는 것이 아니라, \d라는 특수한 문자를 의미한다는 것이다. 그런데 우리가 쓰고 싶은 것은 \d를 의미하는 특수 문자가 아니라 말 그대로 \와 d를 쓰고 싶은 것이다. 이때도 \를 사용하면 되는데, 특수 문자 앞에 위치한 \는 뒤에 글자는 특별하지 않고 그대로 해석해야 한다는 뜻이기 때문이다. 예를 들어 /a*/는 0개 이상의 a 문자열을 의미하는데, /a\\\*/는 \*가 특별한 문자가 아니므로 a\*라는 문자열을 의미한다. 다시 돌아가서 우리는 \자체를 쓰고 싶다. 그러므로 \앞에 \를 붙여 써야 한다. 그러면 우리가 원하는 것은 `\\d+`가 된다.
+
+마지막으로 정규 표현식을 매개변수와 함께 사용할 수 있다. 우리는 :id에 정규 표현식으로 조건을 더해주려고 한다. 이는 매개변수 뒤에 ()로 정규 표현식을 적어주면 된다. 우리는 :id가 숫자만 되도록 하고 싶으므로, `:id(\\d+)`가 되어야 한다. 이를 바탕으로 url을 수정하면 아래처럼 된다.
+
+```
+// videoRouter.js
+const videoRouter = express.Router();
+
+videoRouter.get("/:id(\\d+)", see);
+videoRouter.get("/:id(\\d+)/edit", edit);
+videoRouter.get("/:id(\\d+)/delete", deleteVideo);
+videoRouter.get("/upload", upload);
+
+export default videoRouter;
+```
+
+## 5 Templates
+
+### 5.0 Returning HTML
+지금까지 작성한 코드는 별다른 의미가 없었다. 앞으로는 res.send()로 HTML을 보내주려고 한다. 2가지 방법이 있는데, 우선은 HTML을 그대로 써서 반환하는 것이다. 예를 들어 `res.send("<h1>Contents</h1>")`과 같이 작성해서 HTML을 보내주는 것이다. 그런데 우리가 쓰고 싶은 HTML은 굉장히 길다. head, title, body, footer 등 들어가야할 내용이 굉장히 많다. 이를 일일이 적어주는 것은 굉장히 비효율적이고 어려울 것이다. 또한 코드 특성상 반복되는 부분이 많을 것인데, 하나를 고치면 코드를 공유하는 부분을 하나하나 찾아서 수정해줘야 한다. 이처럼 HTML을 그대로 작성하게 되면 어려운 부분이 너무 많다.
+
+그래서 우리는 두 번째 방법을 채택한다. 우리가 사용할 것은 Pug라는 것인데 자세한 것은 다음 강의에서 확인해보자.
+
+### 5.1 Configuring Pug
+[Pug](https://www.npmjs.com/package/pug)에 들어면 퍼그의 설명을 볼 수 있다. 퍼그는 Template Engine의 일종인데, 쉽게 말해 일정 양식으로 작성하면 이를 코드로 변환해준다는 의미다. 퍼그 홈페이지에서 Syntax 부분을 보면 작성법과 그에 따른 변환 결과를 볼 수 있다.
+
+본격적으로 퍼그를 사용하기에 앞서 `npm install pug`로 설치해준다. 퍼그를 설치했으면 익스프레스에서 설정을 해줘야 한다. 템플릿 엔진을 연결해주지 않으면 양식을 변환해주지 않으므로 오류가 발생하게 된다. 사용방법은 `app.set('view engine', 'pug')`라고 쓰면 된다. 코드는 뜻 그대로 view engine으로 pug를 설정하는 것이다. 그러므로 server.js에 저 코드를 추가해준다.
+
+```
+// server.js
+...
+const logger = morgan("dev");
+
+app.set("view engine", "pug");
+app.use(logger);
+```
+
+이번에는 본격적으로 퍼그를 사용해보겠다. 먼저 퍼그를 사용하기 위해 src 폴더에 views라는 폴더를 만든다. 이는 뷰 엔진이 views라는 폴더에서 파일을 찾아보기 때문이다. views 폴더에 퍼그로 홈 파일을 하나 만든다. 퍼그는 문자를 전부 소문자로 적어야 하고, html처럼 사용하지만 태그 사용법이 다르다. 여는 태그와 닫는 태그 대신에 tab키로 태그를 구분하는데, 탭의 위치가 동일하면 형제 노드가 되고 탭이 더 많으면 자식 노드가 된다. 이는 기존 html보다 직관적이고 편한데다가 가독성도 좋다.
+
+```
+// src/views/home.pug
+doctype html
+html(lang="en")
+    head
+        title Wetube
+    body
+        h1 Welcome to Wetube
+        footer &copy; 2021 Wetube
+```
+
+이제 홈 화면을 불러오는 home.pug를 컨트롤러에 연결시켜줘야 한다. 홈 화면을 불러오는 것은 trending에 만들었고 이 컨트롤러는 videoController.js에 있다. 뷰로 랜더링 하려면 res.render(view)를 사용한다. 여기서 view는 [MVC](https://developer.mozilla.org/ko/docs/Glossary/MVC)의 V를 의미하는데 자세한건 인터넷 검색으로 찾아보자. 지금은 간단히 views 폴더 안의 퍼그 파일이 view라고 생각하면 된다. 우리가 랜더링 하려는 파일은 home.pug이니 res.render("home")이라고 적어주면 된다. 뒤에 .pug를 붙이지 않는 것은, 우리가 이미 뷰 엔진을 퍼그로 설정했기 때문이다.
+
+```
+// videoController.js
+export const trending = (req, res) => res.render("home");
+...
+```
+
+그런에 이렇게 한 후에 진행하면 에러가 발생한다. 그 이유는 views 폴더 지정을 해주지 않았기 때문이다. app.set()으로 돌아가서 views를 보면 아무런 지정도 하지 않으면 process.cwd() + '/views'로 한다는 것을 익스프레스 사이트에서 확인할 수 있다. process.cwd()는 현재 작업중인 디렉토리의 위치가 된다. 우리가 작업하는 파일인 server.js가 src 폴더 안에 있으므로 현재 위치를 Wetube/src로 생각하기 쉽다. 그렇지만 실제로 파일이 실행되는 곳은 package.json이므로 process.cwd()는 Wetube가 된다. 그런데 우리는 views 폴더를 src 안에 넣어줬기 때문에 app.get의 "views"를 수정해야 한다. 그러므로 app.get("views", process.cwd() + "/src/views")로 바꿔주면 된다.
+
+### 5.2 Partials
+지금까지 한 내용들을 보면 퍼그로 얻을 수 있는 장점이라곤 HTML을 좀 더 쉽게 쓸 수 있다는 정도 밖에 없다. 앞서 우리는 퍼그를 사용하는 이유가 코드의 재사용성을 높이기 위함이라고 했었다. 이번에는 어떻게 코드를 재활용할 수 있는지 알아보자. 우선 우리가 작성한 코드에서 재활용 가능한 부분을 생각해보자. footer는 모든 코드에서 동일하게 나타나고 또 수정할 일이 별로 없으므로, footer를 모든 파일에서 공유할 수 있으면 더 효율적인 코드 작성이 가능하다. 그러므로 footer를 따로 만들겠다. 우선 src/views 폴더 안에 partials라는 폴더를 만들자. 앞으로 재사용할 코드는 모두 이곳에 저장할 것이다. 그리고 footer.pug 라는 파일 속에 `footer &copy; 2021 Wetube`라고 적어주자. 그런데 우리는 2021 대신에 올해를 넣고 싶다. 이는 #{}을 사용해서 간단하게 해결할 수 있다. #{}는 interpolation이라고 불리는데, {}안의 코드를 실행하고 결과를 탬플릿에 넣어준다. render에서 변수를 받아올 때 쓰이는게 일반적이지만, 자바스크립트가 작동한다는 것을 이용해서 간단한 코드를 작동하게 만들기도 한다. #{new Date().getFullYear()}를 쓰면, 자바스크립트를 실행시켜서 이번 년도를 반환한다. 그러므로 코드는 `footer &copy; #{new Date().getFullYear()}`로 작성하면 된다.
+
+다음으로 다른 파일에서 코드를 불러오는 방법을 알아보자. include라는 명령어를 사용하면 다른 파일의 코드를 해당 위치에 불러올 수 있다. 우리는 partials 폴더 안의 footer.pug를 포함하고 싶으므로, 코드가 있길 원하는 곳에 `include partials/footer.pug`라고 적어주면 된다. 파일이 하나만 있으면 pug의 효과를 확인하기 어려우므로 watch, edit 또한 만들어준다.
+
+```
+// videoController.js
+export const trending = (req, res) => res.render("home");
+export const see = (req, res) => res.render("watch");
+export const edit = (req, res) => res.render("edit");
+...
+```
+
+```
+// edit.pug
+doctype html
+html(lang="ko")
+    head
+        title Wetube
+    body
+        h1 Edit
+    include partials/footer.pug
+```
+
+```
+// home.pug
+doctype html
+html(lang="ko")
+    head
+        title Wetube
+    body
+        h1 Welcome to Wetube
+    include partials/footer.pug
+```
+
+```
+// watch.pug
+doctype html
+html(lang="ko")
+    head
+        title Wetube
+    body
+        h1 Watch Video!
+    include partials/footer.pug
+```
+
+```
+// footer.pug
+footer &copy; #{new Date().getFullYear()} Wetube
+```
+
+위의 코드를 보면서 아직 문제가 있음을 알 수 있다. 우리는 코드의 재활용을 위해 퍼그를 사용했다. 그래서 footer 파일을 따로 만들었고 나중에 각 파일을 일일이 수정하는 것이 아니라 footer 파일만 수정하면 되도록 했다. 하지만 코드를 확인하면 매번 include를 사용하고 있고, 각 페이지가 거의 동일한 것을 알 수 있다. 만약 여기서 우리가 구조를 바꾸고 싶다면 다시 각 파일을 일일이 바꿔줘야 한다. 다음에는 퍼그로 반복되는 구조를 어떻게 처리하는지 배워보겠다.
+
+### 5.3 Extending Templates
+
+### 5.4 Variables to Templates
+
+### 5.5 Recap
+
+### 5.6 MVP Styles
+
+### 5.7 Conditionals
+
+### 5.8 Iteration
+
+### 5.9 Mixins
+
+### 5.10 Recap
