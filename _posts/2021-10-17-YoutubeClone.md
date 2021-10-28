@@ -951,17 +951,316 @@ footer &copy; #{new Date().getFullYear()} Wetube
 위의 코드를 보면서 아직 문제가 있음을 알 수 있다. 우리는 코드의 재활용을 위해 퍼그를 사용했다. 그래서 footer 파일을 따로 만들었고 나중에 각 파일을 일일이 수정하는 것이 아니라 footer 파일만 수정하면 되도록 했다. 하지만 코드를 확인하면 매번 include를 사용하고 있고, 각 페이지가 거의 동일한 것을 알 수 있다. 만약 여기서 우리가 구조를 바꾸고 싶다면 다시 각 파일을 일일이 바꿔줘야 한다. 다음에는 퍼그로 반복되는 구조를 어떻게 처리하는지 배워보겠다.
 
 ### 5.3 Extending Templates
+퍼그는 [상속(Inheritance)](https://pugjs.org/language/inheritance.html)을 사용한다. 여기서 상속이란 한 코드를 기본으로 해서 다른 코드에서 이를 끌어다 쓸 수 있다는 의미다. views에 base.pug를 만들고 아래처럼 만들어주자.
+
+```
+// base.pug
+doctype html
+html(lang="ko")
+    head
+        title Wetube
+    body
+        h1 This is base!
+    include partials/footer.pug
+```
+
+이 코드를 확인해보면 edit, watch, home과 형태가 거의 유사하다. 이 경우 기본이 되는 파일로부터 **확장(extends)**이 가능하다. 확장을 하는 방법은 다른 파일에서 `extends fileName`으로 불러오는 것이다. 즉 edit, watch, home에서 base 파일을 확장하면 아래처럼 된다.
+
+```
+// edit, watch, home.pug
+extends base.pug
+```
+
+이렇게 하면 3파일에는 한 줄을 제외하곤 아무런 코드도 없다. 그런데 랜더링된 페이지를 확인해보면 base.pug와 동일하게 만들어지는 것을 알 수 있다. 하지만 이렇게 만들경우 동일한 페이지만 만들어진다. 퍼그에선 **블록(block)**을 사용할 수 있다. 블록이란 이름 그대로 하나의 코드 덩어리를 의미하는데, 블록을 지정할 경우 그 부분만 확장해서 사용할 수 있다. 좀 더 단순히 말하면 extends는 모두 같은 코드를 사용하게 되는데, 서로 다른 부분을 만들기 위해 블록을 사용한다. 블록을 만들려고 하면 `block keyword` 형태로 사용하면 된다. 아래는 base.pug에 block content로 블록을 만들어준 것이다.
+
+```
+// base.pug
+doctype html
+html(lang="ko")
+    head
+        title Wetube
+    body
+        block content
+    include partials/footer.pug
+```
+
+그리고 block에 다른 내용을 넣고 싶으면 extends한 파일에서 block content 아래에 넣고 싶은 내용을 적어주면 된다.
+
+```
+// edit.pug
+extends base.pug
+
+block content
+    h1 Edit Video
+```
+
+```
+// watch.pug
+extends base.pug
+
+block content
+    h1 Watch Video
+```
+
+```
+// home.pug
+extends base.pug
+
+block content
+    h1 Home!
+```
+
+이렇게 하고 랜더링된 페이지를 확인해보면 block content 대신에 각 페이지 별로 내용이 들어가 있는 것을 확인할 수 있다. block은 여러 개를 지정할 수 있다. 예를 들어 title도 페이지마다 다르게 적용할 수 있다. 아래는 block head를 만들어서 각 파일의 타이틀이 다르게 만든 것이다.
+
+```
+// base.pug
+doctype html
+html(lang="ko")
+    head
+        block head
+    body
+        block content
+    include partials/footer.pug
+```
+
+```
+// edit.pug
+extends base.pug
+
+block head
+    title Edit | Wetube
+
+block content
+    h1 Edit Video
+```
+
+```
+// watch.pug
+extends base.pug
+
+block head
+    title Watch | Wetube
+    
+block content
+    h1 Watch Video
+```
+
+```
+// home.pug
+extends base.pug
+
+block head
+    title Home | Wetube
+
+block content
+    h1 Home!
+```
 
 ### 5.4 Variables to Templates
+퍼그로 불필요한 부분을 상당히 지웠지만 아직도 title 부분을 보면 같은 구조가 반복되는 것이 보인다. 구조를 보면 `title (Page) | Wetube` 형태인 것을 알 수 있다. 이번에도 퍼그의 interpolation을 사용한다. 각 파일의 block head는 모두 삭제하고 base.pug에 `title #{pageTitle} | Wetube`를 적어준다. 그런데 우리는 #{pageTitle}을 정의하지 않았다. 이는 랜더링할 때 전달할 것이다. 다시 랜더링으로 돌아가서 함수 구조를 살펴보자. `res.render(view[,locals][,callback])`의 형태인데 여기서 [,locals]는 view에게 전달되는 객체로 지역변수를 포함하고 있다. 쉽게 말해서 json 형태로 변수를 보내주면 된다. 예를 들어 pageTitle로 Home을 보내주고 싶으면 `res.render("home", { pageTitle: "Home"})`이라고 해주면 된다. 이렇게 수정하면 videoController.js, base.pug, home.pug는 다음처럼 수정된다.
+
+```
+//videoController.js
+export const trending = (req, res) => res.render("home", { pageTitle: "Home" });
+...
+```
+
+```
+// base.pug
+...
+    head
+        title #{pageTitle} | Wetube
+...
+```
+
+```
+// home.pug
+extends base.pug
+
+block content
+    h1 Home
+```
 
 ### 5.5 Recap
 
 ### 5.6 MVP Styles
+프로그래밍을 하다보면 css는 뒤로 미루게 된다. 일단은 컨텐츠를 다 만들고 나서 css를 만들어야 불필요한 수정을 안 해도 되기 때문이다. 그래서 만드는 도중인 페이지를 보면 휑하기 그지없다. 그래서 간단한 css를 적용 시켜주겠다. MVP css는 간단한 css를 입혀서 보기 더 좋게 만들어준다. 코드도 간단히 `<link rel="stylesheet" href="https://unpkg.com/mvp.css">`를 추가시켜 주면 된다. 그런데 우리가 사용하는 파일은 퍼그이므로 퍼그에 맞게 조금만 바꿔주면 된다. 기억해야할 것은 퍼그에서 속성을 사용할때, ()로 적어준다는 점이다.
+
+```
+// base.pug
+...
+    head
+        link(rel="stylesheet" href="https://unpkg.com/mvp.css")
+...
+```
 
 ### 5.7 Conditionals
+태그에 변수를 넣어줄 때 `h1 #{page.title}` 외에도 `h1=page.title`로 적어줄 수도 있다. 이렇게 하면 딱 하나의 변수만 사용가능하므로, 여러 변수를 사용하기엔 적합하지 않다. 대신에 하나의 변수만 사용하는 것을 명시하기엔 좋다. 내 생각에는 굳이 두 방식으로 작성하기보다는 하나로 통일해서 작성하는게 더 좋아보인다.
+
+퍼그에서도 if, else를 사용가능하다. res.render()에서 정보를 받아와서 if, else문으로 필요한 화면을 보이거나 보이지 않게 적용하는게 가능하다.
 
 ### 5.8 Iteration
+퍼그에서 반복문도 사용가능하다. 먼저 컨트롤러에서 배열을 만들어주겠다. `const videos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];` 그 후에 랜더링 하는 곳에 videos도 같이 보내준다. `return res.render("home", { pageTitle: "Home", videos });` 그렇게하면 Home에서는 videos를 사용가능해진다. 이번에는 home.pug 파일에 들어가서 다음과 같이 작성한다.
+
+```
+// home.pug
+...
+    ul
+        each video in videos
+            li=video
+...
+```
+
+여기서 video는 다른 단어가 되어도 상관 없다. 그저 videos의 단수형을 써줬을 뿐이다. 이렇게 하면 videos 각 원소를 하나씩 꺼내서 video에 넣고 each 아래에 있는 것을 반복해서 실행시켜준다. 그런데 만약 videos 배열이 비어있다면 아무것도 나오지 않는다. 그렇게 되면 우리가 원하는 것이 아무것도 출력되지 않게 된다. 퍼그는 꽤 유용하게도 이런 상황도 대응 가능하다. 만약 each를 실행했는데 비어있다면 그 아래 else문으로 이어지기 때문이다. 
+
+```
+each video in videos
+    li=video
+else
+    li Sorry Nothing found.
+```
+
+위의 코드에서 videos가 비어있다면 아무것도 찾지 못했다는 문장이 나온다. 보다시피 퍼그는 만약 아무것도 들어있지 않은 경우에도 쉽게 대응 가능하게 만들어져있다. 이번에는 객체가 넘어갔을 때 어떻게 되는지 알아보겠다.
+
+```
+const videos = [
+    {
+        title: "first",
+    },
+    {
+        title: "second",
+    },
+    {
+        title: "third",
+    },
+];
+```
+
+이 경우 `each video in videos`의 video가 객체가 된다. 그러므로 `li=video`라고 적으면 객체라서 원하는대로 작동하지 않는다. 그러므로 객체를 다루는 것과 동일하게 다루면 된다. video 대신에 video.title이라고 적어주면 우리가 원하는대로 나오게 된다.
+
+```
+each video in videos
+    li=video.title
+else
+    li Sorry Nothing found.
+```
 
 ### 5.9 Mixins
+[Mixins](https://pugjs.org/language/mixins.html)은 재사용 가능한 블록을 만드는 것이다. mixin (name)의 형태로 작성하고 +(name)으로 mixin을 불러올 수 있다. 아래는 mixin을 랜더링한 결과다.
+
+```
+mixin list
+    ul
+        li foo
+        li bar
+        li baz
+
++list
+```
+
+```
+<ul>
+  <li>foo</li>
+  <li>bar</li>
+  <li>baz</li>
+</ul>
+<ul>
+  <li>foo</li>
+  <li>bar</li>
+  <li>baz</li>
+</ul>
+```
+
+mixin은 변수를 포함한 함수로도 만들 수 있다.
+
+```
+mixin pet(name)
+  li.pet= name
+ul
+  +pet('cat')
+  +pet('dog')
+  +pet('pig')
+```
+
+```
+<ul>
+  <li class="pet">cat</li>
+  <li class="pet">dog</li>
+  <li class="pet">pig</li>
+</ul>
+```
+
+이 기능을 활용하면 재사용 가능한 블록을 만들 수 있다. views 폴더에 mixins 폴더를 만들어준다. 그 후 video.pug 파일을 만든다. 이 파일은 비디오에 관한 mixin을 담을 것이다.
+
+```
+// video.pug
+mixin content(video)
+    h4=video.title
+```
+
+위의 mixin을 home.pug에서 사용하려고 한다. +를 사용하면 mixin을 사용할 수 있지만, 그전에 include로 mixin을 불러와야 한다.
+
+```
+// home.pug
+extends base
+include mixins/video
+
+block content
+    h2 Welcome here you will see the trending videos
+    each video in videos
+        +content(video)
+    else
+        li Sorry nothing found.
+```
+
+이처럼 mixin을 사용하면 재사용 가능한 블록을 쉽게 만들고 관리할 수 있다. 지금은 객체의 규모가 작아서 그리 효과적이지 않아 보인다. 그러므로 객체의 크기를 좀 더 크게 만들어보겠다.
+
+```
+// videoRouter.js
+...
+  const videos = [
+    {
+      title: "First Video",
+      rating: 5,
+      comments: 2,
+      createdAt: "2 minutes ago",
+      views: 59,
+      id: 1,
+    },
+    {
+      title: "Second Video",
+      rating: 5,
+      comments: 2,
+      createdAt: "2 minutes ago",
+      views: 59,
+      id: 1,
+    },
+    {
+      title: "Third Video",
+      rating: 5,
+      comments: 2,
+      createdAt: "2 minutes ago",
+      views: 59,
+      id: 1,
+    },
+  ];
+...
+```
+
+보다시피 video 객체에 더 많은 정보를 넣어주었다. 그리고 이에 맞춰서 mixin을 수정하겠다.
+
+```
+// video.pug
+mixin content(video)
+    div
+        h4video.title
+        ul
+            li #{video.rating}/5.
+            li #{video.comments} comments.
+            li Posted #{video.createdAt}.
+            li #{video.views} views.
+```
+
+그런데 우리는 video.pug 파일을 수정했을 뿐, home.pug를 수정하지 않았다. mixin을 사용하면 코드가 공유되는 곳만 수정하면 되기 때문에 더 쉽게 파일을 관리할 수 있다.
 
 ### 5.10 Recap
