@@ -219,8 +219,43 @@ app.use("/", globalRouter);
 ### 6.6 More Practice Part Two
 
 ### 6.7 Introduction to MongoDB
+[MongoDB](https://docs.mongodb.com/manual/)는 NoSQL DBMS의 일종으로, 크로스 플랫폼 도큐먼트 지향 데이터베이스 시스템이다. 정의만 봐도 모르는 단어가 너무 많이 나와서 하나하나 설명이 필요하다. 먼저 NoSQL은 Not only SQL의 약자로 SQL만을 사용하지 않는 DBMS(DataBase Management System)을 말한다. 여기서 SQL(Structed Query Languare)는 데이터베이스에서 사용하는 자료 처리용 언어로 에스큐엘, 시퀄이라고 읽는다. SQL로 데이터를 다룰 수 있지만, MongoDB는 NoSQL이므로 SQL도 사용하고 추가로 다른 데이터베이스를 사용한다. 복잡하지만 간단히 말해 MongoDB는 JSON 형태로 데이터를 저장한다고 생각하면 된다.
+
+MongoDB를 설치하려면 홈페이지에서 Resources -> Server -> Installation에 들어간다. 이것저것 있지만 우리가 사용할 것은 무료버전인 Community Edition이다. 각자 OS에 따라 설치법이 다르지만, 맥에서는 `xcode-select --install` `brew tap mongodb/brew` `brew install mongodb-community@5.0`를 순서대로 실행해주면 된다. MongoDB 버전에 따라 다를 수도 있으니 홈페이지에서 확인하고 설치하자.
+
+마지막으로 MongoDB를 실행하려면 `brew services start mongodb-community@5.0`를 입력해주고 종료하려면 `brew services stop mongodb-community@5.0`를 입력하면 된다.
 
 ### 6.8 Connecting to Mongo
+[mongoose](https://mongoosejs.com/)는 Node.js와 MongoDB를 연결시켜주는 일을 한다. mongoose를 사용하면 자바스크립트로 MongoDB를 사용할 수 있으므로 여러 언어를 사용하지 않아도 된다. 우선 설치한 MongoDB가 제대로 작동하는지 확인해보자. 터미널을 열어서 `mongod`를 입력하자. 그러면 여러 줄이 나오게 된다. 에러메세지만 나오지 않는다면 문제 없다. 확인되었다면 mongo라고 입력한다. 그러면 MongoDB shell이 열리게 되는데, 여기다 명령어를 입력하면 MongoDB를 다룰 수 있다. help, show dbs 같은 명령어를 입력할 수 있으면 확인이 끝났으므로 exit으로 나와준다. 마지막으로 `npm i mongoose`로 mongoose를 설치한다.
+
+이번에는 데이터베이스를 만들어보겠다. server.js 옆에 db.js 파일을 하나 만든다. 우리는 컴퓨터에 실행되고 있는 mongo database에 연결시켜줄 것이다. 우선 mongoose를 import한다. `import mongoose from "mongoose";` 그 후 url과 mongoose를 연결시킨다. 연결시키는 명령은 `mongoose.connect("url")`로 해주면 된다. 여기서 url을 확인하려면 터미널에서 `mongo`를 입력한 후에 두번째 줄에 connecting to:에서 확인할 수 있다. 나 같은 경우는 mongodb://127.0.0.1:27017/ 였다. 여기다가 데이터베이스를 만들려면 /뒤에 데이터베이스 이름을 적어주면 된다. 데이터베이스 이름으로 wetube를 사용하고 싶으므로, `mongoose.connect("mongodb://127.0.0.1:27017/wetube")`를 입력한다. 이렇게 하면 
+mongoose는 wetube라는 데이터베이스로 연결시켜준다.
+
+그런에 아직 이 파일을 서버에서 사용하고 있지 않으므로 연결시켜줘야 한다. `import "./db";`를 server.js 파일 제일 위에 적어주면 된다. 그런데 이렇게 하고 로그를 보면 에러가 나온다. 정확히는 경고가 나오는데 { useNewUrlParser: true }를 사용해야 한다는 문장과 { useUnifiedTopology: true }를 사용해야 한다는 문장이 나온다. 이 두 문장을 넣어주면 db.js 파일은 다음처럼 된다.
+
+```
+// db.js
+import mongoose from "mongoose";
+
+mongoose.connect("mongodb://127.0.0.1:27017/wetube", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+```
+
+마지막으로 연결 성공 여부를 출력해주는 문장을 만들어주겠다. 여기서 on과 once의 차이는 on은 여러 번 사용할 수 있고, once는 한 번만 실행된다는 것이다.
+
+```
+// db.js
+...
+const db = mongoose.connection;
+
+const handleOpen = () => console.log("✅ Connected to DB");
+const handleError = (error) => console.log("❌ DB Error", error);
+
+db.on("error", handleError);
+db.once("open", handleOpen);
+```
 
 ### 6.9 CRUD Introduction
 
