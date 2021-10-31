@@ -258,8 +258,48 @@ db.once("open", handleOpen);
 ```
 
 ### 6.9 CRUD Introduction
+CRUD는 컴퓨터 소프트웨어가 사용하는 가장 기본적인 데이터 처리 기능인 Create, Read, Update, Delete를 묶어서 쓰는 말이다. 앞으로는 우리가 만든 코드에도 CRUD를 적용시킬 것이다. 즉 비디오를 만들고, 불러오고, 수정하고, 삭제하는 기능을 만든다. 지금까지는 이런 일을 가짜 데이터베이스로 진행했지만, 이번 장에서는 진짜 데이터베이스를 만들어서 위의 일을 진행하겠다.
+
+우선 src에 models라는 폴더를 만든다. 그 안에 Video.js라는 파일을 만들고 여기에 비디오의 모델을 만든다. 그러기 위해선 mongoose에게 우리가 사용할 데이터가 어떤 것을 포함하고 있는지 말해줘야 한다. 
 
 ### 6.10 Video Model
+모델을 만들기 전에 mongoose를 import 해줘야 한다. 그리고 모델이 어떻게 생겼는지를 정해야 하는데 이를 Schema라고 한다. 스키마는 어떤 자료가 들어가고, 또 각 자료의 자료형으로 표현되는지 표현한 것이다. 몽구스는 스키마를 바탕으로 들어온 데이터를 검사하고, 스키마와 어긋나면 에러를 발생시킨다. 그렇기 때문에 스키마의 형태와 맞지 않는 데이터를 거를 수 있다. 스키마를 만드는 방법은 `new mongoose.Schema({});`안에 만들어주면 된다. 이때 각 자료와 자료형을 표현해줘야 한다. 아래를 보면 쉽게 이해할 수 있다.
+
+```
+// Video.js
+import mongoose from "mongoose";
+
+const videoSchema = new mongoose.Schema({
+    title: String,
+    description: String,
+    createdAt: Date,
+    hashtags: [{ type: String }],
+    meta: {
+        views: Number,
+        rating: Number,
+    },
+});
+```
+
+위에서 meta를 보면 스키마 안에 또 스키마를 작성했는데, 이처럼 스키마 안에 스키마를 쓰는 것도 가능하다. 이렇게 작성한 스키마를 다른 파일에서 사용하려면 등록해줘야 한다. 이는 `mongoose.model("[Name]", [schemaName])` 형태로 작성하는데, schemaName에 작성한 스키마의 이름을 넣어주고 Name에 모델의 이름을 넣어주면 된다. 몽구스는 모델의 이름으로 컬렉션을 만든다. 예를 들어 Name이 Video면 컬렉션은 이를 소문자로 바꾸고 복수형으로 만들어서 videos가 된다. 이렇게 만든 파일을 다른 곳에서 불러와야하기 때문에 export 해준다.
+
+```
+// Video.js
+...
+const Video = mongoose.model("Video", videoSchema);
+
+export default Video;
+```
+
+다음으로 server.js에서 import해준다. `import "./models/Video";`
+
+```
+// server.js
+import "./db";
+import "./models/Video";
+import express from "express";
+...
+```
 
 ### 6.11 Our First Query
 
