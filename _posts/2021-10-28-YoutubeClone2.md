@@ -302,16 +302,346 @@ import express from "express";
 ```
 
 ### 6.11 Our First Query
+우리는 Video 모델을 만들어서 server.js 파일에 import 해주었다. 그런데 앞으로도 많은 파일들을 import 할텐데, import는 서버를 다루는 것이 아니므로 server.js와 상관이 없는 부분이다. 그래서 따로 파일을 만들어서 import 부분을 분리시켜주겠다. src 폴더에 init.js 파일을 생성한다. 앞으로는 이 파일로 서버를 시작할 것이다. 그렇게하면 server.js는 express에 관련된 부분을 작성하고, init은 시작하는데 필요한 것을 모을 것이다. 먼저 server.js 파이를 살펴보자. 익스프레스와 관련된 부분만 남기기로 했으므로, `import "./db"`, `import "./models/Video"`는 상관 없는 부분이다. 또한 `app.listen()` 또한 서버를 시작할 때 사용하는 것으로 서버자체와는 상관 없는 부분이다. 그러므로 이와 관련된 handleListening과 PORT 부분도 옮겨줘야 한다. 그렇게 되면 init.js 파일에서 app이 필요하므로 server.js에서 export 하고, init.js에서 import 해야 한다. 그러므로 init.js 파일과 server.js 파일은 다음처럼 바뀐다.
+
+```
+// init.js
+import "./db";
+import "./models/Video";
+import app from "./server";
+
+const PORT = 4000;
+
+const handleListening = () => {
+  console.log(`✅ Server listenting on http://localhost:${PORT} 🚀`);
+}
+
+app.listen(PORT, handleListening);
+```
+
+```
+// server.js
+import express from "express";
+import morgan from "morgan";
+import globalRouter from "./routers/globalRouter";
+import videoRouter from "./routers/videoRouter";
+import userRouter from "./routers/userRouter";
+
+const app = express();
+const logger = morgan("dev");
+
+app.use("/videos", videoRouter);
+app.use("/users", userRouter);
+
+export default app;
+```
+
+또한 시작하는 파일을 나눠줬기 때문에, server.js로 시작하는 것이 아니라 init.js로 시작해야 한다. 그러므로 package.json 파일에서 시작파일을 변경시켜준다.
+
+```
+// package.json
+...
+  "scripts": {
+    "dev": "nodemon --exec babel-node src/init.js"
+  },
+...
+```
+
+앞으로 우리가 만든 진짜 데이터베이스를 사용하기 위해, 가짜 데이터베이스를 삭제하겠다. 간단히 말해 videoController.js에 있는 video와 관련된 코드를 모두 삭제하면 된다. 빈 부분이 많지만 우선 아래처럼 된다.
+
+```
+// videoController.js
+export const home = (req, res) => {
+  return res.render("home", { pageTitle: "Home" });
+};
+export const watch = (req, res) => {
+  const { id } = req.params;
+  return res.render("watch", { pageTitle: `Watching` });
+};
+export const getEdit = (req, res) => {
+  const { id } = req.params;
+  return res.render("edit", { pageTitle: `Editing` });
+};
+export const postEdit = (req, res) => {
+  const { id } = req.params;
+  const { title } = req.body;
+  return res.redirect(`/videos/${id}`);
+};
+
+export const getUpload = (req, res) => {
+  return res.render("upload", { pageTitle: "Upload Video" });
+};
+
+export const postUpload = (req, res) => {
+  const { title } = req.body;
+  return res.redirect("/");
+};
+```
+
+여기서 데이터베이스를 사용하기 위해 파일을 import해주겠다. 그리고 trending 컨트롤러의 이름을 home으로 바꾼다. globalRouter의 trending도 home으로 바꿔야 하는 것을 잊지말자. 그리고 home 파일에 비디오를 가져오기위해 find를 사용했다.
+
+```
+// videoController.js
+import Video from "../models/Video";
+
+export const home = (req, res) => {
+  Video.find({}, (error, videos) => {});
+  return res.render("home", { pageTitle: "Home" });
+};
+...
+```
+
+mongoose는 다양한 [Queries](https://mongoosejs.com/docs/queries.html)를 사용한다. 링크를 따라가면 CRUD를 볼 수 있다. 그중에서 find 퀴리를 살펴보겠다. 형태는 Model.find([filter] [,projection] [,options] [,callback])의 모양이다. filter는 이름 그대로 조건을 만족하는 데이터만을 불러오는 기능이다. 아직 우리는 어떤 것도 필터링 하고 싶지 않으므로 {}를 사용하면 된다. 그 외의 조건은 우선은 넘기고 콜백 함수를 보겠다. 콜백함수는 err, docs라는 매개변수가 있는데, err는 이름 그대로 에러를 의미하고, docs는 모델의 컬렉션을 의미한다. 우리가 사용하는 모델은 video고 그 컬렉션은 videos가 되므로, docs는 videos가 된다.
 
 ### 6.12 Our First Query part Two
+이번에는 error와 videos를 콘솔에 출력시켜보겠다. 그 전에 home.pug에서 videos를 사용하기 때문에 res.render에 videos를 보내줘야 한다. 우선은 비어있는 array로 보내주겠다.
+
+```
+// videoController.js
+import Video from "../models/Video";
+
+export const home = (req, res) => {
+  Video.find({}, (error, videos) => {
+    console.log("errors", error);
+    console.log("videos", videos);
+  });
+  return res.render("home", { pageTitle: "Home", videos: [] });
+};
+```
+
+서버를 실행하고 콘솔을 확인해보면 errors는 null, videos는 []가 나온다. 즉, 아무런 에러 없이 데이터베이스와 통신을 성공했다. 물론 아무런 비디오가 없으니 아무런 일도 하진 않지만, 그래도 작동은 한다. 우리는 Video.find의 videos를 사용하고 싶으므로 마지막 줄의 videos: []를 그냥 videos로 수정해주자.
+
+다음으로 넘어가기 전에 자바스크립트의 비동기 처리를 알아보자. 런타임이란 프로그램이 실행되고 있는 시간, 또는 공간을 말한다. 자바스크립트는 Node.js가 나오기 전에는 익스플로어, 파이어폭스, 크롬 같은 웹 브라우저만이 런타임으로 사용되었다. 브라우저의 런타임은 크게 4가지 요소로 구성된다.
+
+- JavaScript Engine: 힙 메모리, 콜 스택을 포함하는 자바스크립트 해석 엔진
+- WebAPI: DOM 조작, 네트워크 요청, 응답 등의 브라우저 기능
+- Callback Queue: WebAPI에서 전달받은 콜백 함수 저장
+- Event Loop: 콜 스택이 빌때마다, 콜백큐에서 콜백함수를 콜스택으로 하나씩 옮긴다.
+
+자바스크립트는 싱글 쓰레드 언어로 한 번에 한 가지 일만 처리가 가능하다. 처리해야 하는 일은 스택으로 쌓아서 만드는데 작업을 하나밖에 처리하지 못하기 때문에 코드 전체가 멈추고 결과가 나와야 다시 시작된다. 그런데 작업이 굉장히 오래 걸리게 되면 문제가 생긴다. 보통 브라우저는 60프레임인데 만약 16ms 안에 작업이 끝나지 않으면 브라우저가 끊겨서 보이게 된다. 그렇기 때문에 작업이 오래 걸리는 일은 비동기 함수로 만들어서 WebAPI로 보내서 일을 대신 시키고 결과를 받아오게 된다.
+
+콜백은 비동기적인 함수를 불러오면 이를 WebAPI로 보낸다. WebAPI는 브라우저에서 제공하는 API로 콜스택에서 불러온 함수를 처리하는데, WebAPI는 자바스크립트와 달리 싱글 스레드가 아니다. WebAPI는 멀티 스레드로 동시에 여러가지 일을 처리한다. 하지만 멀티 스레드의 특성상 일처리의 끝나는 순서가 다를 수 있다. 끝난 작업은 순서대로 콜백큐에 쌓이게 된다. 그리고 만약 콜스택이 비어있다면 이벤트루프가 콜백큐의 작업을 콜스택으로 옮겨준다. 
+
+결론적으로 자바스크립트는 작업을 콜스택에 올리고 비동기 함수들은 WebAPI에 위임했다가 결과를 받아와서 실행하게 된다. 그 때문에 작업 순서에 변화가 생기기도 한다. 다음 코드를 확인해보자.
+
+```
+// videoController.js
+import Video from "../models/Video";
+
+export const home = (req, res) => {
+  Video.find({}, (error, videos) => {
+    console.log("errors", error);
+    console.log("videos", videos);
+  });
+  console.log("hello");
+  return res.render("home", { pageTitle: "Home", videos: [] });
+};
+```
+
+이 코드를 실행시키면 순서대로 errors, videos 다음에 hello가 나와야 할 것 같다. 그런데 실행해보면 hello가 먼저 오게 된다. 이는 Video.find()가 비동기 함수이기 때문이다. 즉 Video.find()를 실행하면 이를 WebAPI에 넘겨주고 다른 작업들을 실행하다가 Video.find()의 결과를 받아오는 것이다. 특히 이때 문제가 생기는 부분은 return이다. 우리는 Video.find()에서 videos를 받아와서 res.render에 넘겨주고 싶다. 그런데 비동기화 때문에 생각한대로 작동하지 않는다. 이를 해결하기 위해서는 return을 Video.find() 안에 넣어줘야 한다. 이런 일을 종종 발생하게 되는데, 이를 처리하는 가장 간단한 방법은 콜백함수를 사용하는 것이다. 다음에 하고 싶은 일을 콜백함수로 넣어줘서 작업을 순서대로 실행되게 만드는 것이다. 하지만 이렇게 하면 콜백 지옥이란게 발생하는데, 콜백함수를 너무 많이 사용해서 코드를 도저히 알아볼 수 없게 되는 것이다. 예를 들어서 다음 코드를 보자.
+
+```
+step1(function (err, value1) {
+    if (err) {
+        console.log(err);
+        return;
+    }
+    step2(function (err, value2) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        step3(function (err, value3) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            step4(function (err, value4) {
+                ...
+            });
+        });
+    });
+});
+```
+위는 step1 -> step2 -> step3 ... 순서로 코드를 실행시키려고 만든 것이다. 그리고 사이사이 에러가 발새앟면 멈추도록 만들었다. 보다시피 별거 아닌 코드임에도 굉장히 가독성이 떨어진다. 그런데 이런 코드가 몇 개나 쌓이게 되면 도저히 이해할 수 없는 코드가 만들어지는 것이다. 이를 고치는 방법은 다음에 배워보겠다.
 
 ### 6.13 Async Await
+비동기 함수를 async 함수로 만들기 위해서는 function() 앞에 async 키워드를 추가한다. async는 await 키워드가 비동기 코드를 호출할 수 있게 해주며, 비동기 함수를 동기 함수처럼 사용할 수 있게 만들어준다. 이전의 home 컨트롤러를 async/await를 사용해서 만들어보겠다.
+
+```
+// videoController.js
+...
+export const home = async (req, res) => {
+  console.log("start");
+  const videos = await Video.find({});
+  console.log("finish");
+  return res.render("home", {pageTitle: "Home", videos});
+};
+```
+
+보다시피 원래 비동기 함수였던 Video.find() 앞에 await를 붙였다. 그리고 작동 순서를 보여주기 위해 console.log로 몇 가지 출력을 해주었다. await을 사용하지 않았을 때는 Video.find()가 제일 마지막에 실행됬었다. 하지만 위의 코드를 실행시키면 코드의 순서대로 작동한다. 즉 async/await을 쓰면 코드가 순서대로 작동하는 것을 알 수 있다. 이는 우리에게 굉장히 직관적인 방식이기 때문에 코드 작성이 효율적이게 된다. 
+
+그런데 기존 Video.find()는 콜백함수로 (err, docs)를 매개변수로 하는 함수를 사용했다. 위의 코드를 보면 videos를 docs로 받아오는 것은 알 수 있지만 err 처리 부분이 없다. 이는 try catch로 해결할 수 있다. 예를 들어서 아래처럼 가능하다.
+
+```
+// videoController.js
+...
+export const home = async (req, res) => {
+  try {
+    const videos = await Video.find({});
+    return res.render("home", {pageTitle: "Home", videos});
+  } catch(error) {
+    return res.render("server-error", { error });
+  }
+};
+```
+
+위의 코드를 보면 먼저 try를 실행한다. 그러다가 await에서 err가 발생하면 밑의 catch(error)에서 err을 error로 받아들여서 사용하게 된다. 위는 에러가 발생하면 "server-error"라는 페이지가 열리도록 만들었다. 만약 에러를 사용할 생각이 없다면 error을 빼고 아래처럼 작성할 수도 있다.
+
+```
+// videoController.js
+...
+export const home = async (req, res) => {
+  try {
+    const videos = await Video.find({});
+    return res.render("home", {pageTitle: "Home", videos});
+  } catch {
+    return res.render("server-error");
+  }
+};
+```
 
 ### 6.14 Returns and Renders
+이전에 작성한 코드는 다음과 같다.
+
+```
+// videoController.js
+export const home = async (req, res) => {
+  const videos = await Video.find({});
+  return res.render("home", { pageTitle: "Home", videos });
+};
+```
+
+여기서 설명을 위해서 코드를 잠시 아래처럼 고쳐보겠다.
+
+```
+export const home = async (req, res) => {
+  Video.find({}, (error, videos) => {
+    return res.render("home", {pageTitle: "Home", videos });
+  });
+};
+```
+그런데 여기서 return은 아무런 일도 하지 않는다. 그 이유는 return이 home 속의 함수에서 사용되었기 때문이다. 즉 home 바로 아래에서 쓰이지 않았으므로 home은 아무런 리턴값이 없다. 실제로 위의 코드를 return을 빼고 실행하더라도 아무런 문제도 없이 작동한다.
+
+```
+export const home = async (req, res) => {
+  Video.find({}, (error, videos) => {
+    res.render("home", {pageTitle: "Home", videos });
+  });
+};
+```
+
+이번에는 res.render을 2번 사용해보겠다.
+
+```
+export const home = async (req, res) => {
+  Video.find({}, (error, videos) => {
+    res.render("home", {pageTitle: "Home", videos });
+    res.render("home", {pageTitle: "Home", videos });
+  });
+};
+```
+
+그런데 이렇게 하면 화면은 그대로 출력되지만 콘솔을 보면 에러가 나온다. 이는 랜더링 이후에 다시 랜더링을 할 수 없기 때문에 생기는 현상이다. 여기서 우리가 return을 사용했던 이유가 있다. return은 아무런 반환값이 없지만 코드를 종료시켜주는 효과가 있다. 그렇기 때문에 res.render에 return을 붙여주면 확실하게 그 코드가 종료되었다는 것을 확신할 수 있는 것이다. 위의 코드에서도 첫 번째 랜더링에 return을 붙여주면 아래 코드는 동작하지 않는다. 그렇기 때문에 우리는 랜더링을 하는 곳에 return을 붙여서 에러가 발생하는 것을 막아줘야 한다.
 
 ### 6.15 Creating a Video part One
+비디오를 업로드하는 부분을 고쳐서 데이터를 업로드 할 수 있게 만들겠다. upload.pug의 코드를 고쳐서 title, description, hashtag를 입력받도록 만들어준다. 이때 name을 꼭 붙여서 만들어야 데이터가 전달되고 req.body로 사용할 수 있음을 기억하자.
+
+```
+// upload.pug
+extends base.pug
+
+block content
+    form(method="POST")
+        input(placeholder="Title", required, type="text", name="title")
+        input(placeholder="Description", required, type="text", name="description")
+        input(placeholder="Hashtags, separated by comma.", required, type="text", name="hashtags")
+        input(type="submit", value="Upload Video")
+```
+
+다음으로 이를 실제로 컨트롤러에서 받아서 데이터를 만들어보겠다. upload.pug에서 전달된 데이터는 라우터를 거쳐서 postUpload 컨트롤러에서 사용한다. 전달받은 데이터를 `const { title, decsription, hashtags } = req.body;`로 받아준다. 그 후 우리가 만든 Video 스키마에 맞춰서 document를 만들어줘야 한다. 여기서 document는 데이터를 가진 비디오라고 생각하면 된다. document를 만들 때, `title: title`이라고 적어주면 title에 req.body.title이 들어가는데, 위치만 같다면 이를 간단히 title로도 적어줘도 된다.
+
+```
+// videoController.js
+...
+export const postUpload = (req, res) => {
+  const { title, description, hashtags } = req.body;
+  const video = new Video({
+    title: title,           // or you can use title,
+    description: description,
+    createdAt: Date.now(),
+    hashtags: hashtags.split(",").map((word) => `#${word}`),
+    meta: {
+      views: 0,
+      rating: 0,
+    },
+  });
+  console.log(video);
+  return res.redirect("/");
+};
+```
+
+이때 createdAt에는 현재 시간이 들어가야 하므로 Date.now()를 사용했고, meta에서 views, rating은 0으로 만들었다. 그런데 hashtags는 string 형태로 들어오는데, 우리가 작성한 스키마에서는 string의 array로 만들었으므로 이를 split으로 나눠줘야 한다. `hashtags.split(",")`를 사용해서 ,를 기준으로 hashtags를 나눠준다. 그 후 #을 붙여야 하므로 ```.map( (word) => `#${word}`)```를 사용해서 글자 앞에 #을 만든다. 이렇게 한 후에 console.log(video)로 우리가 만든 비디오를 확인해보면 된다.
+
+여기까지 작성했으면 비디오를 하나 만들어서 업로드를 누른다. 그렇게 하면 콘솔에서 우리가 올린 비디오의 정보를 볼 수 있다. 그런데 여기서 우리가 사용한적 없는 _id라는 것이 있는데 이는 몽구스가 만들어준 것으로, 현재는 이런 것이 있다는 것만 기억하면 된다. 그런데 아직은 데이터를 데이터베이스에 저장하는 기능이 없으므로 홈화면에서 데이터를 확인할 수 없다.
 
 ### 6.16 Creating a Video part Two
+데이터를 정해진 자료형과 다른 것을 넣으면 어떻게 될까? 숫자를 넣으면 string으로 바꿔서 넣어주게 된다. 그렇다면 숫자를 넣어줘야 하는 부분에 string을 넣으면 어떻게 될까? 데이터는 잘못 넣은 부분을 제외하고 만들어진다. 이는 우리가 스키마를 만든 이유로 자료형에 맞지 않은 데이터가 들어오면 이를 알아서 처리해준다. 변환할 수 있다면 변환해주고 아니라면 무시하고 진행하는 것이다.
+
+데이터를 데이터베이스에 저장하는 것은 간단하다. 우리의 데이터는 video 이므로 `video.save()`를 해주면 된다. 이때 save는 promise를 반환하므로 async/await를 사용해서 저장되는 것을 기다려줘야 한다.
+
+```
+// videoController.js
+...
+export const postUpload = async (req, res) => {
+  const { title, description, hashtags } = req.body;
+  const video = new Video({
+    title,
+    description,
+    createdAt: Date.now(),
+    hashtags: hashtags.split(",").map((word) => `#${word}`),
+    meta: {
+      views: 0,
+      rating: 0,
+    },
+  });
+  await video.save();
+  return res.redirect("/");
+};
+```
+
+여기서 Video.create를 사용하면 위의 코드와 완전히 동일한 역할을 하는 코드를 만들 수 있다.
+
+```
+// videoController.js
+...
+export const postUpload = async (req, res) => {
+  const { title, description, hashtags } = req.body;
+  await Video.create({
+    title,
+    description,
+    createdAt: Date.now(),
+    hashtags: hashtags.split(",").map((word) => `#${word}`),
+    meta: {
+      views: 0,
+      rating: 0,
+    },
+  });
+  return res.redirect("/");
+};
+```
+
+둘의 차이점은 하나는 자바스크립트 오브젝트를 만든 다음에 저장하는 것이고, Video.create는 이를 자동으로 처리해준다는 점 뿐이다. 그런데 저장하는 자료가 잘못된 데이터가 들어있으면, 데이터베이스에 저장되지 않는다. 대신 브라우저가 저장을 계속 기다리게 된다. 그러므로 이를 처리하기 위해선 try catch로 에러를 처리해줘야 한다.
 
 ### 6.17 Exceptions and Validation
 
