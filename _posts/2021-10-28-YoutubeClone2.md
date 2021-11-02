@@ -591,7 +591,7 @@ export const postUpload = (req, res) => {
 };
 ```
 
-이때 createdAt에는 현재 시간이 들어가야 하므로 Date.now()를 사용했고, meta에서 views, rating은 0으로 만들었다. 그런데 hashtags는 string 형태로 들어오는데, 우리가 작성한 스키마에서는 string의 array로 만들었으므로 이를 split으로 나눠줘야 한다. `hashtags.split(",")`를 사용해서 ,를 기준으로 hashtags를 나눠준다. 그 후 #을 붙여야 하므로 ```.map( (word) => `#${word}`)```를 사용해서 글자 앞에 #을 만든다. 이렇게 한 후에 console.log(video)로 우리가 만든 비디오를 확인해보면 된다.
+이때 createdAt에는 현재 시간이 들어가야 하므로 Date.now()를 사용했고, meta에서 views, rating은 0으로 만들었다. 그런데 hashtags는 string 형태로 들어오는데, 우리가 작성한 스키마에서는 string의 array로 만들었으므로 이를 split으로 나눠줘야 한다. `hashtags.split(",")`를 사용해서 ,를 기준으로 hashtags를 나눠준다. 그 후 #을 붙여야 하므로 ```.map((word) => `#${word}`)```를 사용해서 글자 앞에 #을 만든다. 이렇게 한 후에 console.log(video)로 우리가 만든 비디오를 확인해보면 된다.
 
 여기까지 작성했으면 비디오를 하나 만들어서 업로드를 누른다. 그렇게 하면 콘솔에서 우리가 올린 비디오의 정보를 볼 수 있다. 그런데 여기서 우리가 사용한적 없는 _id라는 것이 있는데 이는 몽구스가 만들어준 것으로, 현재는 이런 것이 있다는 것만 기억하면 된다. 그런데 아직은 데이터를 데이터베이스에 저장하는 기능이 없으므로 홈화면에서 데이터를 확인할 수 없다.
 
@@ -644,20 +644,362 @@ export const postUpload = async (req, res) => {
 둘의 차이점은 하나는 자바스크립트 오브젝트를 만든 다음에 저장하는 것이고, Video.create는 이를 자동으로 처리해준다는 점 뿐이다. 그런데 저장하는 자료가 잘못된 데이터가 들어있으면, 데이터베이스에 저장되지 않는다. 대신 브라우저가 저장을 계속 기다리게 된다. 그러므로 이를 처리하기 위해선 try catch로 에러를 처리해줘야 한다.
 
 ### 6.17 Exceptions and Validation
+앞서 도큐먼트를 만들 때, 잘못된 자료형을 넣어주면 에러가 발생하는 것을 보았다. 그렇다면 데이터가 아예 누락되먼 어떻게 될까? 우리 코드에서 createdAt을 완전히 지우고 실행시키면 문제 없이 작동하지만, createdAt은 포함되지 않는 것을 볼 수 있다. 이는 우리가 스키마를 만들 때, required를 써주지 않았기 때문이다. 만약 데이터를 꼭 넣도록 만들고 싶다면 `createdAt: { type: Date, required: true };`로 required를 적어줘야 한다. 그런데 required라고 적어줬는데 데이터를 보내지 않는다면 당연히 에러가 발생한다. 그렇기 때문에 try/catch를 사용해야 한다.
+
+```
+// videoController.js
+export const postUpload = async (req, res) => {
+  const { title, description, hashtags } = req.body;
+  try {
+    await Video.create({
+      title,
+      description,
+      createdAt: Date.now(),
+      hashtags: hashtags.split(",").map((word) => `#${word}`),
+      meta: {
+        views: 0,
+        rating: 0,
+      },
+    });
+    return res.redirect("/");
+  } catch (error) {
+    console.log(error);
+    return res.render("upload", { pageTitle: "Upload Video" });
+  }
+};
+```
+
+위의 코드는 try/catch를 사용해서 에러가 발생했을 경우 콘솔에 에러를 출력하고, 페이지를 다시 불러온다. 그런데 여기서 에러를 다시 페이지로 보내는 방법도 있다. 그렇게 하려면 res.render를 수정해야 한다. 잠시 콘솔에 에러를 확인하면 에러 중에 _message라는 것이 있다. 여기에 에러가 발생한 이유를 적어주는데 우리는 이를 res.render에 포함시켜서 보내겠다. 그리고 upload 페이지를 수정해서 에러 메세지가 보이게 만든다.
+
+```
+// videoController.js
+...
+  } catch (error) {
+    console.log(error);
+    return res.render("upload", {
+      pageTitle: "Upload Video",
+      errorMessage: error._message,
+    });
+  }
+}
+```
+
+```
+// upload.pug
+extends base.pug
+
+block content
+    if errorMessage
+        span=errorMessage
+    form(method="POST")
+        input(placeholder="Title", required, type="text", name="title")
+        input(placeholder="Description", required, type="text", name="description")
+```
+
+다시 도큐먼트로 돌아가서 생각해보자. createdAt이나 meta 같은 것은 매번 만들때마다 동일한 코드로 만든다. 그렇다면 스키마에서 디폴트를 설정해서 입력이 있으면 입력 받은 값을 사용하고, 아니라면 디폴트 값을 사용하게 만들 수 있다.
+
+```
+// Video.js
+...
+  createdAt: { type: Date, required: true, default: Date.now },
+...
+```
+
+그런데 여기서 Date.now와 Date.now()라고 작성하는 것에는 차이가 있다. Date.now()라고 만들면 코드가 알아서 작동되기 때문에 날짜가 처음 모델을 불러온 순간으로 고정된다. 그렇지만 Date.now라고 적어주면 몽구스는 굉장히 똑똑하기 때문에, 도큐먼트를 만들 때 실행되고 시간을 만든 시간에 맞춰준다. meta에도 디폴트를 사용해서 값을 정하면 코드를 더 간결하게 만들 수 있다.
+
+```
+// Video.js
+import mongoose from "mongoose";
+
+const videoSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  createdAt: { type: Date, required: true, default: Date.now },
+  hashtags: [{ type: String }],
+  meta: {
+    views: { type: Number, default: 0, required: true },
+    rating: { type: Number, default: 0, required: true },
+  },
+});
+```
+
+```
+// videoController.js
+export const postUpload = async (req, res) => {
+  const { title, description, hashtags } = req.body;
+  try {
+    await Video.create({
+      title,
+      description,
+      hashtags: hashtags.split(",").map((word) => `#${word}`),
+    });
+    return res.redirect("/");
+  } catch (error) {
+    return res.render("upload", {
+      pageTitle: "Upload Video",
+      errorMessage: error._message,
+    });
+  }
+};
+```
 
 ### 6.18 More Schema
+[스키마타입](https://mongoosejs.com/docs/schematypes.html)에는 String, Number, Date, Boolean 등 여러가지 종류가 있다. 그리고 각 스키마타입은 옵션이 있다. 예를 들어서 String은 uppercase: true를 사용하면 글자가 uppercase로 저장된다.
+
+```
+// Video.js
+...
+  title: { type: String, required: true, uppercase: true };
+...
+```
+
+그 외에도 양옆의 빈 공간을 지우는 trim, 최대 길이를 제한하는 maxLength, 최소 길이를 제한하는 minLength 등이 있다. 다만 길이를 제한할 때는 upload.pug의 input에도 minlength, maxlength로 길이를 제한해야 새로운 비디오를 만들때 에러 없이 만들 수 있다. 그런데 웹 브라우저에서 길이를 제한하는 기능이 있는데도 왜 스키마에서도 설정해줘야 할까? 이는 HTML은 브라우저에서 쉽게 지울 수 있기 때문에, 해킹 등의 비정상적인 방법으로 잘못된 데이터가 들어올 수도 있기 때문이다. 그러므로 스키마에도 만들어주고 upload.pug에도 만들어줘야 한다.
+
+```
+// Video.js
+import mongoose from "mongoose";
+
+const videoSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true, maxLength: 80 },
+  description: { type: String, required: true, trim: true, minLength: 20 },
+  createdAt: { type: Date, required: true, default: Date.now },
+  hashtags: [{ type: String, trim: true }],
+  meta: {
+    views: { type: Number, default: 0, required: true },
+    rating: { type: Number, default: 0, required: true },
+```
+
+```
+// upload.pug
+...
+        input(placeholder="Title", required, type="text", name="title", maxlength=80)
+        input(placeholder="Description", required, type="text", name="description", minlength=20)
+...
+```
+
+마지막으로 video.pug를 조금 고쳐서 우리가 저장한 정보를 표현하도록 만들겠다.
+
+```
+// video.pug
+    div
+        h4
+            a(href=`/videos/${video.id}`)=video.title
+        p=video.description
+        small=video.createdAt
+        hr
+```
+
+그런데 페이지에서 비디오를 눌러보면 cannot GET 메세지가 나온다. 주소를 보면 비디오의 _id로 주소가 만들어져 있음을 알 수 있다. 그런데 우리는 라우터를 만들 때, 숫자만 받아들이도록 만들었으므로 string이 들어오면 cannot GET이 나오는 것이다. 이는 다음에 수정해보겠다.
 
 ### 6.19 Video Detail
+라우터 주소를 바꾸기 위해 정규 표현식을 고쳐줘야 한다. 도큐먼트의 _id는 24자리의 hexadecimal로 표현된다. 그러므로 0 ~ F까지의 수로 24자리를 표현하는 정규식을 만들어줘야 한다. 정규식은 간단하게 /[0-9a-f]{24}/로 표현된다. 이를 우리가 작성한 라우터에서 고쳐주자.
+
+```
+// videoRouter.js
+...
+videoRouter.get("/:id([0-9a-f]{24})", watch);
+videoRouter.route("/:id([0-9a-f]{24})/edit").get(getEdit).post(postEdit);
+...
+```
+
+하지만 아직도 watch에서 에러가 발생하는데 이는 watch.pug에서 views라는 없는 데이터를 가져오려고 하기 때문이다. 그러므로 이를 고쳐서 다음처럼 만들자.
+
+```
+// watch.pug
+extends base.pug
+
+block content
+    div
+        p=video.description
+        small=video.createdAt
+    a(href=`${video.id}/edit`) Edit Video &rarr;
+```
+
+마지막으로 컨트롤러를 수정해주자. findById는 id로 영상을 찾는 기능을 지원하고 findOne은 조건을 만족하는 영상을 찾아낸다. 우리는 findById로 영상을 찾아주겠다.
+
+```
+// videoController.js
+export const watch async (req, res) => {
+  const { id } = req.params;
+  const video = await Video.findById(id);
+  return res.render("watch", { pageTitle: video.title, video });
+}
+```
 
 ### 6.20 Edit Video part One
+존재하지 않는 비디오로 접근하면 어떻게 될까? 비디오가 없기 때문에 null이 반환되는데, 우리는 랜더링에서 video.title을 사용하고 있다. 그런데 video가 null이므로 에러가 발생한다. 그러므로 if else로 처리해줘야 한다. 비디오가 null일 경우 404페이지를 불러오도록 만들자.
+
+```
+// videoController.js
+...
+  if(!video) {
+    return res.render("404", { pageTitle: "Video not found."});
+  }
+  return res.render("watch", { pageTitle: video.title, video });)
+...
+```
+
+```
+// 404.pug
+extend base
+```
+
+그리고 base.pug의 a를 수정해서 home으로 가는 링크를 만들겠다.
+
+```
+// base.pug
+...
+    li
+      a(href="/") Home
+```
+
+마지막으로 같은 코드를 getEdit에도 만들어준다. 이때 edit에서 video가 필요하므로 변수로 넘겨준다. 그리고 edit에서는 description과 hashtags를 input에 넣어준다. 그런데 hashtags가 array이므로 그대로 출력하면 array가 나온다. array.join()을 사용하면 array를 string으로 바꿀 수 있다는 것을 이용해서 아래처럼 만든다.
+
+```
+// videoController.js
+...
+export const getEdit = async (req, res) => {
+  const { id } = req.params;
+  const video = await Video.findById(id);
+  if (!video) {
+    return res.render("404", { pageTitle: "Video not found." });
+  }
+  return res.render("edit", { pageTitle: `Edit: ${video.title}`, video });
+};
+```
+
+```
+// edit.pug
+...
+block content
+    h4 Update Video
+    form(method="POST")
+        input(name="title", placeholder="Video Title", value=video.title, required)
+        input(placeholder="Description", required, type="text", name="description", minlength=20, value=video.description)
+```
 
 ### 6.21 Edit Video part Two
+videos/_id/edit에서 save 버튼을 누르면 postEdit이 실행된다. postEdit이 실행되었을 때 비디오의 정보를 업데이트 하도록 만들어보겠다.
+
+```
+// videoController.js
+...
+export const postEdit = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, hashtags } = req.body;
+  const video = await Video.findById(id);
+  if(!video) {
+    return res.render("404", { pageTitle: "Page not found." });
+  }
+  video.title = title;
+  video.description = description;
+  video.hashtags = hashtags
+    .split(",")
+    .map((word) => (word.startsWith("#") ? word : `#${word}`));
+  await video.save();
+  return res.redirect(`/videos/${id}`);
+}
+```
+
+다른 부분은 이미 다뤘기에 별다른 문제 없이 이해하겠지만 hashtags를 바꿔주는 부분은 새로운 코드다. 이는 해시태그를 고칠때마다 #이 계속 붙어버리기 때문에 코드를 수정한 것이다. 삼항연산자와 startsWith를 사용해서, 제일 첫 글자가 #인지 아닌지를 판별하고 #이 아니라면 붙여주고 맞다면 그대로 둔다. 하지만 이렇게 바꿔줄 경우 같은 코드를 공유하는 곳을 다 다시 수정해줘야 한다. 우리 코드에서도 postUpload 속의 hashtags도 수정해줘야 한다. 하지만 이를 쉽게 해주는 기능이 있는데 다음 시간에 배워보겠다.
 
 ### 6.22 Edit Video part Three
+몽구스는 다양한 기능을 제공하는데 그 중 하나가 Model.findByIdAndUpdate([id] [,update] [,options] [,callback])다. findByIdAndUpdate는 id에 해당하는 데이터를 찾아서 update 속의 객체로 데이터를 바꿔준다. 이를 활용하면 위의 코드를 다음처럼 바꿀 수 있다.
+
+```
+// videoController.js
+...
+export const postEdit = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, hashtags } = req.body;
+  const video = await Video.findById(id);
+  if(!video) {
+    return res.render("404", { pageTitle: "Page not found." });
+  }
+  await Video.findByIdAndUpdate(id, {
+    title,
+    description,
+    hashtags: hashtags
+      .split(",")
+      .map((word) => (word.startsWith("#") ? word : `#${word}`)),
+  });
+  return res.redirect(`/videos/${id}`);
+};
+```
+
+그 외에도 몽구스는 Model.exists([filter] [,options] [,callback])이 있는데, 이는 filter 조건에 맞는 Model이 있는지 확인하고 있다면 true를 없다면 false를 반환한다. 위에서 우리는 `const video = await Video.findById(id)`를 사용하고 있는데 이 부분에서 찾아낸 video로 하는 것이 없다. 그렇다면 id가 존재하는지 여부만 필요하므로 Video.exists로 바꿔줘도 된다.
+
+```
+// videoController.js
+...
+  const video = await Video.exists({ _id: id });
+...
+```
+
+다음으로 해시태그를 처리하는 방법을 알아보겠다. 해시태그를 살펴보면 우리가 비디오를 저장하거나 생성하기 전에 해시태그를 처리하고 있다. 그런데 이 부분은 Model에 저장하기 전에 하는 것이다. 즉, 영상을 저장하기 전에 처리하는 일이 존재하는 것이다. 지금은 해시태그만 있지만, 앞으로는 더 많아질 것이다. 존재하는 이메일인지 확인하거나, 파일이 존재하는 등의 체크를 해야한다. 그렇기 때문에 몽구스는 모델을 만들거나 업데이트 하기전에 처리하는 함수를 제공한다. 이를 middleware라고 부르는데 express의 미들웨어와 동일하다. 우리가 영상을 생성하거나 업데이트 할 때, 중간에 실행하는 함수다. 다음에는 어떻게하면 미들웨어를 사용하는지 배워보겠다.
 
 ### 6.23 Middlewares
+몽구스를 사용하면 에러메세지가 나오는데 이를 해결하는 방법은 ds.js에 `useFindAndModify: false`를 사용하면 된다. 이는 몽구스가 오래된 것을 처리하는 방법이라 따라하는 것 외에 방법이 없다. 만약 몽구스가 6.x 이상의 버전이라면 userFindAndModify의 기본값이 false이므로 에러도 뜨지 않고 아무런 처리도 해주지 않아도 된다.
+
+몽구스에서 [미들웨어](https://mongoosejs.com/docs/middleware.html)를 살펴보기 전에 express에서의 미들웨어를 기억해보자. 익스프레스의 미들웨어는 req를 중간에 가로채서 일을 처리하고 다음 함수를 호출한다. 마찬가지로 몽구스에서는 도큐먼트에 무슨 일이 생기기 전이나 후에 미들웨어를 적용한다. 예를 들어서 save하기 전후에 미들웨어를 사용할 수 있다. 
+
+미들웨어의 형태는 `schema.pre('save', function(next) { next(); })`의 형태로 표현된다. 주의할 점은 반드시 model을 사용하기 전에 써야 한다. 여기서 중요한 것이 있다. this라는 키워드는 우리가 저장하고 있는 비디오의 정보를 담고 있다. 아래는 미들웨어를 이용해서 데이터가 저장될 때, 그 데이터를 콘솔에 출력시킨다.
+
+```
+// Video.js
+import mongoose from "mongoose";
+
+const videoSchema = new mongoose.Schema({
+    title: { type: String, required: true, trim: true, maxlength: 80 },
+    description: { type: String, required: true, trim: true, minlength: 20 },
+    createdAt: { type: Date, required: true, default: Date.now },
+    hashtags: [{ type: String, trim: true }],
+    meta: {
+        views: { type: Number, default: 0 },
+        rating: { type: Number, default: 0 },
+    },
+});
+
+videoSchema.pre("save", async function() {
+  console.log(this);
+});
+
+const Video = mongoose.model("Video", videoSchema);
+export default Video;
+```
+
+Upload Video에서 비디오를 저장시킨 후에 콘솔을 확인해보면, 저장한 비디오의 정보가 담겨있는 것을 볼 수 있다. 이때 hashtags가 처리되는 부분인 `hashtags.split.map`을 컨트롤러에서 지울경우 어떻게 될까? 입력값은 string인데 스키마에 따르면 array가 들어와야 한다. 그러므로 스키마는 이를 array의 첫 번째 원소라고 해석을 하고 받아들인다. 그래서 콘솔을 확인해보면 hashtags가 array지만 원소가 하나뿐인 것으로 나온다.
+
+그런데 save 미들웨어에서 hashtags를 처리할 수 있으면 다른 컨트롤러에서 hashtags를 다루는 부분을 아무런 처리 없이 사용할 수 있다. 그러므로 미들웨어에서 hashtags를 수정한다.
+
+```
+// Video.js
+...
+videoSchema.pre("save", async function () {
+  this.hashtags = this.hashtags[0]
+    .split(",")
+    .map((word) => word.startsWith("#") ? word : `#${word}`);
+});
+...
+```
+
+위와 같이 수정하면 저장할 때, 알아서 hashtags를 적절히 변환시켜준다. 그러므로 컨트롤러에서도 코드를 간단하게 만들 수 있다.
+
+```
+// videoController.js
+...
+  await Video.create({
+    title,
+    description,
+    hashtags,
+  });
+...
+```
+
+지금까지 수정한 것은 비디오를 upload 할 때만 된다. 다음에는 비디오를 edit할 경우에도 처리하도록 만들어보겠다.
 
 ### 6.24 Statics
+findByIdAndUpdate는 pre 미들웨어가 없다. 대신에 findByIdAndUpdate는 findOneAndUpdate를 호출하는데, findOneAndUpdate는 pre middleware가 있다. 그런데 findOneAndUpdate는 save hook을 호출하지 않고, 업데이트 하려면 도큐먼트에 접근할 수도 없다.
 
 ### 6.25 Delete Video
 
