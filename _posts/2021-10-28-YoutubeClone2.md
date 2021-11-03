@@ -999,12 +999,293 @@ videoSchema.pre("save", async function () {
 지금까지 수정한 것은 비디오를 upload 할 때만 된다. 다음에는 비디오를 edit할 경우에도 처리하도록 만들어보겠다.
 
 ### 6.24 Statics
-findByIdAndUpdate는 pre 미들웨어가 없다. 대신에 findByIdAndUpdate는 findOneAndUpdate를 호출하는데, findOneAndUpdate는 pre middleware가 있다. 그런데 findOneAndUpdate는 save hook을 호출하지 않고, 업데이트 하려면 도큐먼트에 접근할 수도 없다.
+
+#### Middleware
+몽구스의 미들웨어는 비동기 함수가 실행될 때, 실행 권한을 가져와서 그 작업이 실행되기 전/후에 실행되는 함수다. 그렇기 때문에 미들웨어는 pre/post hooks라고도 불리는데, [hook](https://ko.wikipedia.org/wiki/%ED%9B%84%ED%82%B9)의 뜻을 생각하면 적절한 별명이다. 미들웨어는 스키마를 만드는 파일에서 지정해줘야 하며, [플러그인](https://mongoosejs.com/docs/plugins.html)을 만드는데 유용하다.
+
+#### Types of Middleware
+몽구스는 document, model, aggregate, query middleware로 4종류의 미들웨어가 있다. 각 미들웨어는 pre/post hooks를 지원하는데, 각각이 어떻게 작동하는지는 각 문서를 참고해야 한다. 다음은 각 미들웨어가 지원하는 함수인데 각각 this가 다른 의미를 가진다.
+
+Document Middleware(this = document)
+- validate
+- save
+- remove
+- updateOne
+- deleteOne
+- init
+
+Query Middleware(this = query)
+- count
+- countDocuments
+- deleteMany
+- deleteOne
+- estimatedDocumentCount
+- find
+- findOne
+- findOneAndDelete
+- findOneAndRemove
+- findOneAndUpdate
+- remove
+- replaceOne
+- update
+- updateOne
+- updateMany
+
+Aggregate Middleware(this = aggregation object)
+- aggregate
+
+Model Middleware(this = model)
+- insertMany
+
+#### pre
+pre middleware 함수는 각 미들웨어가 next로 호출하면 차례대로 실행된다. 그런데 Node.js가 7.6.0 이상의 버전이라면 async/await를 사용해서 이를 대신할 수 있다.
+
+```
+const schema = new Schema(..);
+schema.pre("save", function(next) {
+  // do something
+  next();
+});
+
+// if Node.js >= 7.6.0 we can do like this
+
+schema.pre("save", async function() {
+  await doStuff();
+  await doMoreStuff();
+});
+```
+
+#### post
+post middleware 함수는 hook된 method가 종료되고, pre middleware가 모두 실행된 후에 작동한다.
+
+마지막으로 주의해야할 것은 pre(), post()는 model을 만든 다음에는 작동하지 않는다는 것이다. 예를 들어서 아래 pre("save")는 작동하지 않는다.
+
+```
+const schema = new mongoose.Schema({ name: String });
+
+const User = mongoose.model("User", schema);
+
+schema.pre("save", () => console.log("Hello from pre save"));
+
+new User({ name: "test" }).save();
+```
+
+그러므로 모든 미들웨어 함수와 플러그인은 mongoose.model()을 사용하기 전에 다 끝내야 한다. 위의 코드의 순서를 바꾸면 정삭적으로 작동한다.
+
+```
+const schema = new mongoose.Schema({ name: String });
+
+schema.pre("save", () => console.log("Hello from pre save"));
+
+const User = mongoose.model("User", schema);
+
+new User({ name: "test" }).save();
+
+```
+
+하지만 미들웨어로 모든 것을 해결할 수 있는 것은 아니다. 일례로 findByIdAndUpdate를 위해 쓰이는 미들웨어가 없다. 대신에 findByIdAndUpdate는 findOneAndUpdate를 호출하는데, findOneAndUpdate를 위한 middleware는 있다. 그런데 save() hook은 findOneAndUpdate()에서 쓸 수 없다. 게다가 업데이트 하려는 도큐먼트에도 접근할 수 없다. 몇 가지를 고쳐서 사용할 수도 있지만 save를 사용하는 것만큼 편하지는 않다.
+
+다시 본래 하려고 한던 일로 돌아가보자. 우리는 전에 postUpload에서 save()를 할 때, save() hook으로 해시태그를 처리하도록 만들었다. 그리고 이와 동일한 일을 postEdit에 있는 findByIdAndUpdate()에서 하려고 한다. 하지만 앞서 말했듯이 findByIdAndUpdate()에는 미들웨어가 존재하지 않아서 이 방법을 사용할 수 없다. 결국 우리가 필요한 것은 postUpload의 save()와 postEdit의 update()에 동시에 적용되는 것인데, 그런 것은 존재하지 않는다. 물론 홈페이지에서 제안한 몇 가지 수정을 가하면 어떻게든 사용은 가능하지만 그렇게 하기 보다 다른 방법은 선택하려고 한다.
+
+첫 번째 해결 방법은 Video.js에서 처리하는 함수를 하나 만들고 이를 export/import 해서 사용하는 것이다.
+
+```
+// Video.js
+
+export const formatHashtags = (hashtags) => 
+  hashtags.split(",").map((word) => word.startsWith("#") ? word : `#${word}`);
+```
+
+```
+// videoController.js
+...
+import Video, { formatHashtags } from "../models/Video";
+...
+export const postEdit = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, hashtags } = req.body;
+  const video = await Video.exists({ _id: id });
+  if(!video) {
+    return res.render("404", { pageTitle: "Page not found." });
+  }
+  await Video.findByIdAndUpdate(id, {
+    title,
+    description,
+    hashtags: formatHashtags(hashtags),
+  });
+  return res.redirect(`/videos/${id}`);
+};
+
+export
+```
+
+이것도 괜찮은 해결법이다. 하지만 statics를 사용한 다른 방법도 존재한다.
+
+#### Statics
+statics 함수를 만드는 법은 schema.statics("functionName", function()) 형태로 만든다. 앞의 해시태그를 처리하는 함수를 Video.js에 스태틱 함수로 만들면 다음과 같다.
+
+```
+// Video.js
+...
+
+videoSchema.static("formatHashtags", function (hashtags) {
+  return hashtags
+    .split(",")
+    .map((word) => word.startsWith("#") ? word : `#${word}`);
+});
+```
+
+그리고 이를 videoController.js에서 사용하면 다음처럼 된다.
+
+```
+// videoController.js
+export const postEdit = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, hashtags } = req.body;
+  const video = await Video.exists({ _id: id });
+  if(!video) {
+    return res.render("404", { pageTitle: "Page not found." });
+  }
+  await Video.findByIdAndUpdate(id, {
+    title,
+    description,
+    hashtags: Video.formatHashtags(hashtags),
+  });
+  return res.redirect(`/videos/${id}`);
+};
+```
+
+물론 스태틱 함수의 이름은 동일해야 한다. 이렇게 하면 별다른 export나 import 없이 사용가능하다. 2가지 방법 모두 괜찮은 방법이지만 스태틱 함수를 사용하는 것이 더 깔끔하다.
 
 ### 6.25 Delete Video
+이번에는 비디오를 지우는 기능을 추가해보겠다. 이 기능을 추가하려면 템플릿, 컨트롤러, 라우터를 모두 수정해야 하므로 좋은 연습이 된다. 우선 watch.pug 템플릿을 수정해보겠다. Edit Video 바로 아래에 Delete Video를 같은 모양으로 만들어준다.
+
+```
+// watch.pug
+...
+    a(href=`${video.id}/edit`) Edit Video &rarr;
+    br
+    a(href=`${video.id}/delete`) Delete Video &rarr;
+```
+
+다음으로 Delete을 누르면 가게될 라우터를 만들겠다. videoRouter.js에 delete 라우터를 만들고 deleteVideo라는 이름의 컨트롤러를 추가한다.
+
+```
+// videoRouter.js
+...
+import { 
+    ...,
+    deleteVideo,
+  } from "../controllers/videoController";
+...
+videoRouter.route("/:id([0-9a-f]{24})/delete").get(deleteVideo);
+```
+
+그리고 findByIdAndDelete()로 해당 아이디의 비디오를 지워주는 컨트롤러를 만들어준다.
+
+```
+// videoController.js
+...
+export const deleteVideo = async (req, res) => {
+  const { id } = req.params;
+  await Video.findByIdAndDelete(id);
+  return res.redirect("/");
+};
+```
 
 ### 6.26 Search part One
+Home에서 영상들이 정렬되는 순서를 보면 먼저 만든 영상이 위로 오게 되어있다. 이를 수정하는 방법은 sort를 사용하는 것이다. home 컨트롤러에 가서 `const videos = await Video.find({})`를 정렬해보자. 정렬하려는 기준을 sort안에 적어주면 되는데, 이때 ascending과 decending을 정할 수 있다. 우리는 만든 시간을 가지고 ascending으로 정렬해보자. `const videos = await Video.find({}).sort({ createdAt: "ascending" });`으로 하면 원하는대로 된 것을 확인할 수 있다. 이처럼 sort를 사용하면 간단하게 기준대로 정렬이 가능하다.
+
+다음으로 영상을 찾는 페이지를 만들어보겠다. 우선 globalRouter.js에서 `globalRouter.get("/search", search);`를 만들어준다. 그리고 그에 맞추서 `import { home, search } from "../controllers/videoController";`를 해준다. 그리고 videoController.js에서 search를 아래처럼 만들어준다.
+
+```
+// globalRouter.js
+...
+import { home, search } from "../controllers/videoController";
+...
+globalRouter.get("/search", search);
+...
+```
+
+```
+// videoController.js
+...
+export const search = (req, res) => {
+  res.render("search", { pageTitle: "Search" });
+}
+```
+
+그리고 여기에 맞추서 search.pug를 만들어줘야 한다. title을 입력받을 input을 하나 만들고 이를 제출할 버튼도 하나 만든다.
+
+```
+// search.pug
+extends base
+
+block content
+  form(method="GET")
+    input(placeholder="Search by title", name="keyword", type="text")
+    input(type="submit", value="Search now")
+```
+
+그리고 base.pug를 수정해서 Search로 가는 링크를 만들어준다.
+
+```
+// base.pug
+...
+  li
+    a(href="/search") Search
+```
+
+이렇게 하면 필요한 페이지는 완성했다. /search 페이지에서 title을 입력하고 제출해보면 ? 뒤에 우리가 보내준 값이 나온다. 하지만 아직은 이를 어떻게 사용해야 하는지 모른다. search 컨트롤러로 돌아와서 `console.log(req.query);`를 적어준 다음에 다시 검색을 해보자. 그렇게하면 우리가 보내준 검색어가 콘솔에 출력된다. 즉 req.query를 사용하면 우리가 검색한 단어를 가져올 수 있다. `const { keyword } = req.query`라고 적어주면 keyword를 받아올 수 있다. 그런데 search 페이지에 처음 들어왔을 때나, 아무것도 검색하지 않은 경우 keyword가 존재하지 않는 경우도 있다. 이를 고려해서 if(keyword)를 사용해서 keyword가 없는 경우에는 검색이 실행되지 않게 해준다.
 
 ### 6.27 Search part Two
+이어서 keyword로 페이지를 랜더링하도록 만들겠다. 이때 videos를 찾는 것은 Video.find를 사용해야하므로 search에 async를 사용해야 한다.
+
+```
+// videoController.js
+...
+export const search = async (req, res) => {
+  const { keyword } = req.query;
+  let videos = [];
+  if (keyword) {
+    videos = await Video.find({
+      title: keyword,
+    });
+  }
+  return res.render("search", { pageTitle: "Search" });
+}
+```
+
+그리고 그에 맞춰서 search.pug를 고쳐줘야 한다.
+
+```
+// search.pug
+extends base.pug
+include mixins/video
+
+block content
+  form(method="GET")
+    input(placeholder="Search by title",name="keyword", type="text")
+    input(type="submit", value="Search now")
+
+  div
+    each video in videos 
+      +video(video)
+```
+
+그런데 이렇게 만들경우 비디오 제목이 일치해야만 검색이 된다. 대부분의 검색은 그 단어를 포함하는 경우를 생각하기 때문에 코드를 수정해줘야 한다. 이를 위해서 정규 표현식을 사용하는데 [MongoDB regex](https://docs.mongodb.com/manual/reference/operator/query/regex/)에서 find로 찾는 예시가 있으므로 확인해보자. 그리고 정규 표현식을 만드는 함수 [RegExp](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/RegExp)로 필요한 표현식을 만들어준다. 정규 표현식을 만들 때 추가한 플래그에 따라서 검색 방법이 바뀌는데, i를 사용하면 대소문자를 무시하고, g를 사용하면 처음 일치한 곳에서 끝나는 것이 아니라 문자열 전체를 판멸하는 등의 플래그가 있다. 대소문자를 무시하고 검색하고 싶으니 i를 사용해줬다.
+
+```
+// videoController.js
+...
+  if (keyword) {
+    videos = await Video.find({
+      title: {
+        $regex: new RegExp(keyword, "i"),
+      },
+    });
+  }
+...
+```
 
 ### 6.28 Colclusions
