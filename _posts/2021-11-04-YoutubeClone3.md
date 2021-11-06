@@ -245,6 +245,7 @@ export const postJoin = async (req, res) => {
 Status code를 보내주는 것은 간단하다. `res.status().render()`형태로 보내주면 된다. 예를 들어서 404를 보내고 싶다면 `res.status(400).render()`로 적으면 된다.
 
 ### 7.5 Login part One
+지금까지 Join 페이지를 만들었다. 추가적으로 try/catch를 사용해서 postJoin에서 error가 발생할 경우의 코드를 만들어주었다.
 
 ```
 // userController.js
@@ -264,6 +265,27 @@ Status code를 보내주는 것은 간단하다. `res.status().render()`형태�
     });
   }
 };
+```
+
+이번에는 Join에서 만든 아이디로 로그인 하기 위해 login 페이지를 만들고 컨트롤러를 추가하겠다. 만들어야할 컨트롤러는 2개로, getLogin과 postLogin을 만들고 각각 라우터에 연결한다. getLogin은 별다른 내용을 받을 것이 없어 간단하지만, postLogin은 조금 복잡하다. 우선은 라우터를 만든다.
+
+```
+// rootRouet.js
+...
+import {
+  getJoin,
+  postJoin,
+  getLogin,
+  postLogin,
+} from "../controllers/userController";
+...
+rootRouter.route("/login").get(getLogin).post(postLogin);
+```
+
+다음으로 getLogin과 postLogin을 만든다. getLogin은 간단히 만들 수 있다. 반면 postLogin은 패스워드를 확인하는 것이 조금 어렵다. 지금은 패스워드를 만드는 부분을 주석으로 놓고 나머지 부분부터 만들어보겠다.
+
+```
+// userController.js
 export const getLogin = (req, res) =>
   res.render("login", { pageTitle: "Login" });
 
@@ -281,18 +303,7 @@ export const postLogin = async (req, res) => {
 };
 ```
 
-```
-// rootRouet.js
-...
-import {
-  getJoin,
-  postJoin,
-  getLogin,
-  postLogin,
-} from "../controllers/userController";
-...
-rootRouter.route("/login").get(getLogin).post(postLogin);
-```
+login 페이지를 만들기 전, join.pug를 수정해서 login 페이지로 가는 링크를 하나 만들겠다.
 
 ```
 // join.pug
@@ -303,6 +314,8 @@ rootRouter.route("/login").get(getLogin).post(postLogin);
         span Already have an account? 
         a(href="/login") Log in now &rarr; 
 ```
+
+그리고 login 페이지를 만들어준다.
 
 ```
 // login.pug
@@ -352,6 +365,7 @@ export const postLogin = async (req, res) => {
 ```
 
 ### 7.7 Sessions and Cookies part One
+
 ### 7.8 Sessions and Cookies part Two
 ### 7.9 Logged In User
 ### 7.10 Logged In User part Two
