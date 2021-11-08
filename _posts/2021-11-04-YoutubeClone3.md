@@ -498,6 +498,21 @@ app.get("/add-one", (req, res, next) => {
 하지만 아쉽게도 위의 코드는 작동하지 않는다. 이로인해 우리는 퍼그가 세션과 소통하지 못한다는 것을 알았다. 이를 수정하는 방법은 다음 시간에 배워보도록 하겠다.
 
 ### 7.10 Logged In User part Two
+이전에 우리는 퍼그가 세션과 소통하지 못하는 것을 알았다. 다행히도 퍼그는 locals로 소통이 가능하므로 세션의 정보를 locals로 옮겨서 로그인 여부를 확인하고 페이지를 랜더링하면 된다. 사용하기 전에 locals이 무엇인지 알아보자.
+
+`app.locals`는 자바스크립트 객체로 어플리케이션 안에서 지역 변수처럼 사용된다. 우리는 어플리케이션 안에서 계속 실행하기 때문에 사실상 글로벌이라 생각해도 된다. 어플리케이션이 실행되는 동안에는 계속 사용가능하므로 뷰에서 사용하고 싶은 모든 값을 넣어줘도 된다. req.app에 app에 관한 정보가 담겨 있으므로 req.app.locals를 사용하면 미들웨어에서도 사용 가능하다. 반면 `res.locals`는 요청에 응답하기 위한 데이터를 담고 있다. 예를 들어서 GET /something은 새로운 res.locals를 만들고, res.locals는 /something에 응답하는 모든 미들웨어를 거친다. 또한 요청에 응답하는 데이터를 담고 있기 때문에 뷰가 랜더링될 때만 사용되고, 응답이 끝나면 사라지게 된다. 요청/응답 사이클 안에서만 사용된다는 것을 제외하면 app.locals와 거의 똑같다. 어떤 단계까지 유효한지를 알기 위해선 locals이 만들어지는 다음 과정을 참고하자.
+
+- app is created
+- app.locals is created
+- request arrives
+- res.locals is created for that request
+- you add things to res.locals
+- you serve a response to the request(res.render('some view'))
+- res.locals for that request is gone
+- app.locals continues to exist as long as the app exists
+
+그런데 인증은 페이지가 랜더링 될 때만 필요하다. 우리가 보여주고 싶은 것은 로그인 되었을 경우에 다른 페이지를 보여주는 것이기 때문이다. 그러므로 우리는 res.locals를 사용해서 페이지를 로그인 여부를 확인하겠다.
+
 ### 7.11 Recap
 ### 7.12 MongoStore
 ### 7.13 Uninitialized Sessions
