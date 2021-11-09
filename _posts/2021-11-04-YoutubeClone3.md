@@ -371,7 +371,7 @@ HTTP는 2가지 특성을 가지고 있다. 하나는 비연결성(connectionles
 
 무상태는 서버가 클라이언트의 이전 상태를 보존하지 않는다는 의미다. 즉 이전의 요청이 기억되지 않으므로, 다음 요청에 영향을 끼치지 않는다. 그래서 같은 클라이언트의 요청에도 다른 서버가 응답해도 문제 없고, 요청이 대폭 증가해도 단순히 서버를 증설하는 것만으로 해결 가능하다. 이와 반대대는 개념은 stateful로 서버가 클라이언트의 이전 상태를 보존하므로, 항상 같은 서버를 사용해야 된다.
 
-요약하면 HTTP는 응답 이후에 연결을 끊어 버리고, 이전의 정보를 기억하지도 않는다. 그런데 데이터를 유지해야 하는 경우가 많은데, 예를 들어서 로그인, 언어 설정, 구매 정보 등이 있다. 하지만 HTTP 프로토콜 만으로는 매 페이지마다 다시 로그인 해줘야 하는 번거롭고, 새로 로딩을 해야하니 페이지가 느려진다. 이를 해결하기 위해 사용하는 것이 세션과 쿠키다. 즉, 클라이언트와 정보 유지를 위해 사용하는 것이 세션과 쿠키다.
+요약하면 HTTP는 응답 이후에 연결을 끊어 버리고, 이전의 정보를 기억하지도 않는다. 그런데 데이터를 유지해야 하는 경우가 많은데, 예를 들어서 로그인, 언어 설정, 구매 정보 등이 있다. 하지만 HTTP 프로토콜 만으로는 매 페이지마다 다시 로그인 해줘야 하니 번거롭고, 새로 로딩을 해야하니 페이지가 느려진다. 이를 해결하기 위해 사용하는 것이 세션과 쿠키다. 즉, 클라이언트와 정보 유지를 위해 사용하는 것이 세션과 쿠키다.
 
 #### Cookie?
 사용자가 어떤 웹 페이지에 접속할 때, 서버에서 **사용자의 컴퓨터**에 저장하는 기록 파일이다. 그리고 HTTP에서 해당 정보가 다시 필요하게 되면 쿠키 데이터를 재사용해준다. 쿠키는 이름, 값, 만료일, 경로 정보로 구성되어 있다. 만료일이 있기 때문에 쿠키 데이터는 너무 긴 시간이 지나면 쓸 수 없게 된다. 또한 클라이언트는 300개까지 쿠키를 저장 가능하고, 한 도메인 당 20개의 쿠키를 사용할 수 있다. 마지막으로 각 쿠키는 4kb이 최대 용량이다.
@@ -415,6 +415,8 @@ app.use(
 app.use("/", rootRouter);
 ...
 ```
+
+여기서 secret은 비밀키, resave는 같은 세션 정보를 다시 저장할지를 지정하는 옵션, saveUninitialized는 초기화되지 않은 세션도 저장되는지에 관한 옵션이다. 좀 더 자세히 설명하면 secret은 쿠키를 임의로 변조하는 것을 방지하기 위한 것으로, 해시는 이 값을 키로 사용해서 세션 ID를 암호화해서 쿠키로 사용한다. 쿠키는 클라이언트에 저장되기 때문에, 서버에서 쿠키를 돌려받을 때 이 쿠키가 올바르게 생성된 것인지 확인할 수 없다. 만약 클라이언트가 쿠키를 변경해서 보내줄 경우 서버는 이를 알아챌 수 없다는 것이다. 그렇기 때문에 secret을 사용하는데, 쿠키를 보내주기 전에 해시함수로 암호화해서 보내주는 것이다. 그렇게하면 변조를 했을 경우 서버에서 키를 사용해서 대조해서 변화를 확인할 수 있게 된다. resave는 세션이 변경되지 않도라도 저장 여부를 결정하는 것으로, true로 설정하면 매 request마다 세션의 변경여부에 상관없이 무조건 저장한다. 대부분의 경우 세션이 변화가 없을 때 저장되는 걸 막아 효율을 높이기 위해 false를 사용한다. uninitialized는 request가 들어오면 새로 생성된 세션에서 아무런 작업도 이뤄지지 않은 상태다. saveUninitialized는 새로 세션이 만들어질 때, uninitialized 상태로 세션을 저장한다. 따라서 내용이 없는 세션도 저장할 수 있게 된다. 이를 false로 하면 비어있는 세션이 저장되지 않으므로 서버 공간을 아낄 수 있다.
 
 브라우저로 가서 inspect -> Application -> Cookies를 확인하자. 페이지를 새로고침하면 session 미들웨어가 브라우저에게 텍스트를 전송한다. 쿠키가 생성되었다면 브라우저에 다시 접속할 때마다 쿠키가 서버로 전송된다. 어떤 내용이 보내지는지 확인하기 위해 app.use(session())아래에 다음 코드를 추가해주자.
 
@@ -479,7 +481,9 @@ app.get("/add-one", (req, res, next) => {
 };
 ```
 
-그리고 브라우저로 들어가서 로그인을 하면 콘솔에 세션 정보가 변경되었음을 볼 수 있다. 만약 다른 브라우저로 접속해서 다시 로그인해보면 브라우저마다 세션 ID가 다르기 때문에 새로운 세션이 생겨서 저장된다. 다음으로 우리가 로그인했으면 Join과 Login 링크가 나오지 않게 수정하려고 한다. 직관적으론 base.pug에서 if를 사용하면 간단히 해결될 것 같다. 아래 코드를 보자
+그리고 브라우저로 들어가서 로그인을 하면 콘솔에 세션 정보가 변경되었음을 볼 수 있다. 만약 다른 브라우저로 접속해서 다시 로그인해보면 브라우저마다 세션 ID가 다르기 때문에 새로운 세션이 생겨서 저장된다.
+
+다음으로 우리가 로그인했으면 Join과 Login 링크가 나오지 않게 수정하려고 한다. 직관적으론 base.pug에서 if를 사용하면 간단히 해결될 것 같다. 아래 코드를 보자
 
 ```
 // base.pug
@@ -513,8 +517,152 @@ app.get("/add-one", (req, res, next) => {
 
 그런데 인증은 페이지가 랜더링 될 때만 필요하다. 우리가 보여주고 싶은 것은 로그인 되었을 경우에 다른 페이지를 보여주는 것이기 때문이다. 그러므로 우리는 res.locals를 사용해서 페이지를 로그인 여부를 확인하겠다.
 
+server.js에서 라우터 위에 res.locals를 만들어주겠다. res.locals에 어떤 것을 입력하려면 res.locals.something에 값을 넣어주면 된다. 
+
+```
+// server.js
+...
+app.use((req, res, next) => {
+  res.locals.message = "local message";
+  req.sessionStore.all((error, sessions) => {
+    console.log(sessions);
+    next();
+  });
+});
+
+app.use("/", rootRouter);
+...
+```
+
+그리고 이 메세지를 base.pug에서 받아보겠다. 이때 req.locals.message가 아닌 message로 사용해주면 된다.
+
+```
+// base.pug
+...
+    body
+      header
+        h1 This is #{message}
+...
+```
+
+이렇게 res.locals에 저장한 것들을 뷰에서 사용가능함을 알아보았다. 이제는 미들웨어로 locals를 전달하면 되는데, 이는 서버와 관련된 코드가 아니다. 그러므로 따로 middlewares.js라는 파일은 만들어서 미들웨어를 따로 관리하고 server.js에 import해오도록 하겠다. src에 middlewares.js라는 파일을 만들고 아래처럼 적어준다.
+
+```
+// middlewares.js
+export const localsMiddleware = (req, res, next) => {
+  req.locals.siteName = "Wetube";
+  next();
+};
+```
+
+그리고 server.js로 돌아와서 이를 import해주고 라우터 위에 만들어준다. 주의할 것은 반드시 session을 사용하는 코드 아래에 적어줘야 한다. 왜냐하면 localMiddleware에서 session을 사용할 예정이기 때문이다.
+
+```
+// server.js
+import { localsMiddleware } from "./middlewares";
+...
+app.use(localsMiddleware);
+app.use("/", rootRouter);
+...
+```
+
+이렇게하면 앞으로 locals를 다룰때 middlewares.js 파일만 고쳐주면 된다. 다시 middlewares.js로 돌아가서 다음처럼 적는다.
+
+```
+export const localsMiddleware = (req, res, next) => {
+  res.locals.loggedIn = Boolean(req.session.loggedIn);
+  res.locals.siteName = "Wetube";
+  console.log(res.locals);
+  next();
+}
+```
+
+이때 Boolean을 사용한 이유는 res.session.loggedIn이 undefined일 수도 있기 때문이다. base.pug로 돌아가서 loggedIn에 따라 링크가 바뀌도록 만들자.
+
+```
+// base.pug
+...
+  nav
+    ul
+      li
+        a(href="/") Home
+        if loggedIn
+          li
+            a(href="/logout) Logout
+        else
+          li
+            a(href="/join") Join
+          li
+            a(href="/login") Login
+      li
+        a(href="/search") Search
+...
+```
+
+다시 middlewares.js로 돌아가서 req.session.user를 받아보자.
+
+```
+export const localsMiddleware = (req, res, next) => {
+  res.local.loggedIn = Boolean(req.session.loggedIn);
+  res.locals.siteName = "Wetube";
+  res.locals.loggedInUser = req.session.user;
+  next();
+}
+```
+
+로그인 전에는 res.session.user는 undefined다. 하지만 로그인을 하면 user이 생기게되고 뷰에서 사용가능하다.
+
+```
+// base.pug
+...
+  nav
+    ul
+      li
+        a(href="/") Home
+        if loggedIn
+          li
+            a(href="/logout) Logout
+          li
+            a(hfre="my-profile") #{loggedInUser.name}의 Profile
+        else
+          li
+            a(href="/join") Join
+...
+```
+
 ### 7.11 Recap
+
 ### 7.12 MongoStore
+지금까지 다뤄온 세션 정보는 메모리에 저장되기 때문에 서버를 종료하면 사라졌다. 하지만 실제 서버는 데이터를 계속 저장하고 있어야 한다. 이를 위해 사용할 것이 [connect-mongo](https://www.npmjs.com/package/connect-mongo)다. `npm install connect-mongo`로 설치하고 server.js에서 import해서 사용하면 된다.
+
+connect-mongo 페이지를 확인해보면 간단한 사용법을 알 수 있다. 페이지에서 제안하는 사용법은 아래와 같다.
+
+```
+// Basic usage
+app.use(session({
+  store: MongoStore.create({ mongoUrl: 'mongodb://localhost/test-app' })
+}));
+```
+
+app.use(session())에는 store라는 속성이 있는데 여기에 저장될 위치를 지정하는게 가능하다. `mongodb://localhost/test-app`대신에 들어가야 하는 것이 바로 우리가 사용하는 mongoDB의 위치다. 우리는 이를 이미 db.js에 적어놨다. db.js 파일에서 3번째 줄을 보면 `"mongodb://127.0.0.1:27017/wetube"` 가 우리가 찾던 위치다. 이를 사용해 app.use(session())에 적어주면 아래처럼 된다.
+
+```
+// server.js
+...
+import MongoStore from "connect-mongo";
+...
+
+app.use(
+  session({
+    secret: "Hello!",
+    resave: true,
+    saveUninitialized: true,
+    store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1:27017/wetube" }),
+  })
+);
+```
+
+이렇게 작성하고 페이지에 로그인 한 이후에 서버를 재시동하거나 새로고침을 해도 로그인이 유지되는 것을 확인할 수 있다. 터미널로 mongoDB에서 확인해보면 mongo -> show dbs -> use wetube -> show collections -> db.sessions.find({})로 확인 가능하다.
 ### 7.13 Uninitialized Sessions
 ### 7.14 Expiration and Secrets
 ### 7.15 Environment Variables
