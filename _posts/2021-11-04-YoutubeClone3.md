@@ -663,12 +663,324 @@ app.use(
 ```
 
 이렇게 작성하고 페이지에 로그인 한 이후에 서버를 재시동하거나 새로고침을 해도 로그인이 유지되는 것을 확인할 수 있다. 터미널로 mongoDB에서 확인해보면 mongo -> show dbs -> use wetube -> show collections -> db.sessions.find({})로 확인 가능하다.
-### 7.13 Uninitialized Sessions
+### 7.13 Uninitialized Sessionos
+현재 우리는 방문자가 생길 때 마다 세션을 만들고 저장하고 있다. 하지만 이는 좋은 생각이 아니다. 로그인한 사용자만 세션이 필요하기 때문에 그 외의 비용은 낭비다. 그렇기 때문에 옵션을 바꿔서 로그인한 경우에만 세션을 만들겠다.
+
+server.js에서 app.use(session)에서 resave와 saveUninitialized를 false로 수정한다. 앞서 설명했듯이 resave는 세션의 변화가 있을 때만 저장하는 것이고, saveUninitialized는 세션에 수정이 없는 이상 저장하지 않는 기능이다. 이 둘이 있기 때문에 단순한 방문자의 세션은 저장되지 않고, 로그인한 유저의 세션만 저장된다.
+
+다음으로 세션의 secret와 store의 url을 수정하겠다. 왜냐하면 이 둘은 웹 사이트에 배포할 때 보여주면 안 되기 때문이다. 그러므로 다음 시간에는 이 둘을 숨기는 방법을 알아보겠다.
+
 ### 7.14 Expiration and Secrets
+쿠키는 Name, Value, Domain, Path등의 값이 있다. 우선 secret은 쿠키가 sign할 때, 사용하는 string이다. 쿠키에 sign 하는 이유는 백엔드가 쿠키를 줬다는 것을 확인하기 위함이다. 왜냐하면 session hijack 이라는 해킹 기법 때문에, 누군가 쿠키를 훔쳐서 사용자인척 할 수 있기 때문이다. 그래서 secret은 랜덤한 string을 사용해야 한다. Domain을 보면 어떤 backend에서 쿠키를 만들었는지 알려준다. 브라우저는 Domain마다 생성되기 때문에 해당 Domain에 접속할 때만 쿠키를 보내준다. Expires는 만료일자로 지정하지 않으면 session cookie로 지정된다. session cookie는 브라우저가 닫히면 세션이 없어진다. Max-Age 역시 세션이 만료되는 시간인데, app.use(session())에서 수정할 수 있다. 아래 코드를 추가해서 확인해보자.
+
+```
+cookie: {
+  maxAge: 20000,
+},
+```
+
+위의 코드는 ms 단위로 실행되므로 20초 후에 쿠키가 삭제된다. 즉, 로그인 가능한 시간이 20초가 되게 해준다.
+
+다음으로 secret과 store의 url이 공개되어 있으므로 이를 수정해서 숨기도록 하겠다. 이를 위해서 최상위 층에 .env라는 파일을 만들어준다. 그리고 .gitignore에 .env를 추가해서 깃허브에 올라가지 않도록 만든다. env 파일에 추가하는 것은 관습적으로 대문자만을 사용한다. 다음 내용을 env 파일에 추가해주자.
+
+```
+// .env
+COOKIE_SECRET=jsdklflasjdfkljsaklfjklasgkl
+DB_URL=mongodb://127.0.0.1:27017/wetube
+```
+
+env 파일의 코드에 접근하는 법은 간단하다. process.env.something 형태로 적어주면 된다. 예를 들어 process.env.DB_URL로 적어주면 된다. 이에 맞추서 server.js와 db.js 파일을 수정한다.
+
+```
+// db.js
+...
+mongoose.connect(process.env.DB_URL, {
+...
+```
+
+```
+// server.js
+...
+app.use(
+  session({
+    secret: process.env.COOKIE_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.DB_URL }),
+  })
+);
+...
+```
+
+하지만 이렇게하면 에러가 발생하고 읽어오지 못한다. 다음 시간에는 이를 수정하는 법을 알아보겠다.
+
 ### 7.15 Environment Variables
+우리가 사용하고 싶은 것은 dotenv다. dotenv는 env 파일을 읽고 각각의 변수들을 process.env에 넣어준다. `npm i dotenv`로 설치해준다. 그리고 `require("dotenv").config();`를 적어주면 그 다음 부터는 env 파일의 변수를 사용할 수 있게 된다. 다시 말해 저 코드를 최대한 빠르게 사용해야 한다. 우리 코드의 작동 순서를 보면 init.js가 가장 먼저 실행되고 그 다음으로 db.js, models, server.js 순서로 실행된다. 그러므로 저 안에서 env의 변수를 사용하려면 init.js의 제일 위에 코드를 적어줘야 한다.
+
+하지만 이렇게 해도 작동하지 않는다. 해결법은 2가지가 있다. env를 사용하는 파일의 제일 위에 코드를 추가하는 것과 다른 하나는 import로 바꿔주는 것이다. import로 바꿔주려면 `import "dotenv/config";`로 바꿔주면 된다.
+
 ### 7.16 Github Login part One
-### 7.17 Github Login part Two 
+이번에는 웹사이트에 소셜 로그인을 구현하는 방법을 알아보겠다. 구현할 것은 깃허브 로그인이다. 깃허브는 좀 특이하지만 대부분의 소셜 로그인과 흐름은 동일하다. 작동 과정은 다음과 같다.
+
+1. 사용자는 깃허브로 보내져서 로그인을 확인 받는다.
+2. 확인되면 다시 웹사이트로 돌려보낸다.
+3. 토큰으로 웹사이트에 접근 가능해진다.
+
+이를 사용하기 위해선 깃허브에서 몇 가지 처리가 필요하다. 다음 단계를 따라가자.
+
+1. github.com/settings/applications에 접속한다.
+2. 좌측의 Developer settings에 들어간다.
+3. 좌측의 OAut Apps를 누른다.
+4. 오른쪽 위의 New OAut App을 누른다.
+5. Application name은 원하는 대로 적어주고, Homepage URL은 우리 웹사이트의 URL을 적어준다.(우리의 경우 http://localhost:4000/)
+6. Application descripttion은 적당히 적어주고, Authorization callback URL은 우선은 http://localhost:4000/users/github/finish 로 넣어준다. 아무거나 넣어줘도 되지만 코드에서 사용해야 하니 꼭 기억하자.
+7. Register application을 누른다.
+8. Client ID가 나오는 페이지가 보이는데 이 페이지는 추후에 써야하니 끄지 않고 그대로 둔다.
+
+깃허브에서 세팅은 끝났고 이제는 페이지에서 어떻게 정보를 보내줄 것인지를 알아보자. [Authorizing OAuth Apps](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps)를 보면 설명이 나온다. 우리가 해야할 것은 https://github.com/login/oauth/authorize로 보내주는 것이다. 그런데 뒤에 붙이는 parameter에 따라서 요청하는 정보가 달라진다.
+
+- client_id: **필수**적으로보내줘야 하는 값으로, 앞서 깃허브에서 만든 Client ID를 적어줘야 한다.
+- scope: 유저에게서 얼마나 많은 정보를 요청할지 정하는 것으로 어떤 것을 받을 수 있는지는 [scope](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps)를 참고하자. 우리가 필요한 것은 read:user과 user:email이다.
+- allow_signup: 깃허브로 보내줬을 때, 아이디가 있다면 로그인 하겠지만 없을 경우는 새로 만들게 될 것이다. 만약 allow_signup을 true로 지정하면 새로 아이디를 만드는 것을 허용하지만, false로 지정하면 아이디를 만드는 것을 제한한다.
+
+### 7.17 Github Login part Two
+앞의 내용을 가지고 링크를 만들어보겠다. 그전에 링크의 기본적인 원리를 알고 있어야 한다. 링크에 보면 ?와 &가 있는 것을 볼 수 있다. ?는 뒤에 오는 것들이 변수로 제공된다는 것을 의미한다. 예를 들어 구글에서 검색을하면 ?로 검색어가 입력되는 것을 볼 수 있다. 그리고 &는 변수를 여러 개 넣어줄 때, 사용하는데 ?a&b&c 처럼 사용하면 동시에 a, b, c 3개를 변수로 보내주는 것을 의미한다.
+
+다시 깃허브 로그인으로 돌아가서 우리가 변수를 보내줘야 하는 링크는 https://github.com/login/oauth/authorize다. 그리고 이 뒤에 우리가 보내주고 싶은 변수와 그 값을 적어주면 된다. 우선 client_id와 allow_singup을 넣어서 login.pug에 하나 만들어보겠다.
+
+```
+// login.pug
+        input(type="submit", value="Login")
+        br
+        a(href="https://github.com/login/oauth/authorize?client_id=9fac726866be2ff14f36&allow_signup=false") Continue with Github &rarr;
+    hr
+    div
+        span Don't have an account? 
+```
+
+위를 보면 ? 뒤에 client_id=9fac726866be2ff14f36로 client_id를 보내고, allow_signup=false로 보내준 것을 볼 수 있다. 여기다가 scope=user:email를 적어줄 수도 있다. 그런데 scope에 추가적으로 read:user를 적어줘야 하는데, scope는 space-delimited 즉, 스페이스로 구분한다. 그러므로 뒤에 한 칸 띄워주고 적어주면 된다. 최종적으로 url은 `"https://github.com/login/oauth/authorize?client_id=9fac726866be2ff14f36&allow_signup=false&scope=read:user user:email"`이 된다. 하지만 이렇게 계속 늘려가면 url이 계속 길어지게 된다. 그러므로 이를 정리해주겠다.
+
+login.pug로 돌아가서 링크를 아래처럼 바꿔준다.
+
+```
+// login.pug
+...
+        a(href="/users/github/start") Continue with Github &rarr;
+...
+```
+
+아직 users/github/start가 없기 때문에 라우터를 만들어줘야 한다. userRouter.js에 들어가서 라우터와 컨트롤러를 추가해준다.
+
+```
+// userRouter.js
+...
+userRouter.get("/remove", remove);
+userRouter.get("/github/start", startGithubLogin);
+userRouter.get(":id", see);
+```
+
+그리고 이에 맞춰서 userController.js에 컨트롤러를 만들어줘야 한다. 정보를 나눠서 적어줄 텐데, baseUrl을 만들고 추가적인 정보는 config에 적어준다.
+
+```
+// userController.js
+export const startGithubLogin = (req, res) => {
+  const baseUrl = "https://github.com/login/oauth/authorize";
+  const config = {
+    client_id: "9fac726866be2ff14f36",
+    allow_signup: false,
+    scope: "read:user user:email",
+  };
+};
+```
+
+그런데 문제는 config의 정보를 어떻게 하나로 모을 것인지다. 이는 [URLSearchParams](https://developer.mozilla.org/ko/docs/Web/API/URLSearchParams)를 사용하면 된다. URLSearchParams는 URL의 ? 뒷 부분을, 다시 말해 전달되는 변수 부분을 사용하게 해준다. 아래 예시를 보자.
+
+```
+// Retrieve params via url.search, passed into ctor
+var url = new URL('https://example.com?foo=1&bar=2');
+var params = new URLSearchParams(url.search);
+
+// Pass in a string literal
+var params2 = new URLSearchParams("foo=1&bar=2");
+var params2a = new URLSearchParams("?foo=1&bar=2");
+
+// Pass in a sequence of pairs
+var params3 = new URLSearchParams([["foo", "1"], ["bar", "2"]]);
+
+// Pass in a record
+var params4 = new URLSearchParams({"foo": "1", "bar": "2"});
+```
+
+위의 예시를 보면 `url = new URL()`을 하나 받아온 것을 볼 수 있다. URL을 사용하면 변수로 받아온 url을 분석해서 URL 객체를 만든다. 특히 그 안에는 search라는 것이 포함되는데 URL의 매개변수가 string 형태로 저장된다. 그러므로 url.search를 사용하면 해당 url의 매개변수 부분만 나오는 것이다.
+
+다음으로 URLSearchParams에 매개변수 string이 있는 구체적인 형태를 살펴보자.
+
+```
+const params = new URLSearchParams("q=first+second&value=1&person=Me");
+
+params.get("q") === "first second";
+params.get("value") === "1";
+params.get("person") === "Me";
+```
+
+위를 보면 params.get을 사용하면 매개변수의 값을 쉽게 가져오는 것을 볼 수 있다. 뿐 만아니라 set을 사용하면 아래처럼 값을 넣어주는 것도 가능하다.
+
+```
+params.set("value", 2);
+
+```
+
+만약 다른 값을 추가하고 싶다면 다음처럼 append를 사용하면 된다.
+
+```
+params.append("person", "You");
+params.getAll("person") === ["Me", "You"];
+```
+
+delete를 사용하면 지우는 것도 가능하다.
+
+```
+params.delete("person");
+```
+
+그리고 가장 중요한 기능으로 이를 다시 string으로 바꾸는 것이 가능하다.
+
+```
+const url = new URL("http://example.com?foo=1&bar=2");
+const params = new URLSearchParams(url.search);
+params.set("bar", 3);
+
+params.toString() === "foo=1&bar=3";
+```
+
+정리하면 URLSearchParams를 사용하면 URL의 매개변수 부분을 수정할 수 있고, 마지막에 toString()으로 다시 string으로 바꿀 수 있다.
+
+```
+const url = new URL("http://example.com?foo=1&bar=2");
+const params = new URLSearchParams(url.search);
+params.set("bar", 3);
+
+const newParams = params.toString();
+
+const modifiedUrl = `${url.origin}?${newParams}`
+```
+
+다시 하던 일로 돌아가보자. 우리가 하려던 것은 config에 적어준 것을 baseUrl 뒤에 붙여주는 것이다. 우선 config를 string으로 바꿔주려면 `const params = new URLSearchParams(config).toString();`을 해주면 된다. 그리고 백틱을 사용해서 두 주소를 하나로 합쳐준다. 마지막으로 이렇게 합쳐준 url로 ridirect 해주면 된다.
+
+```
+// userController.js
+...
+export const startGithubLogin = (req, res) => {
+  const baseUrl = "https://github.com/login/oauth/authorize";
+  const config = {
+    client_id: "9fac726866be2ff14f36",
+    allow_signup: false,
+    scope: "read:user user:email",
+  };
+  const params = new URLSearchParams(config).toString();
+  const finalUrl = `${baseUrl}?${params}`;
+  return res.redirect(finalUrl);
+};
+```
+
+이렇게 되면 finalUrl로 보내주는데, 이는 깃허브에 있는 페이지가 된다. 여기서 Authorize를 누르면 다른 페이지로 넘겨준다. 여기서 주소를 살펴보면 이전에 OAut App을 만들때, 적어준 callback의 주소임을 알 수 있다. 그러므로 사용자는 Authorize로 로그인이 확인되면, http://localhost:4000/users/github/finish로 돌아오게 된다. 이를 위한 라우터와 컨트롤러의 형태를 만들어 놓고 이번에는 마무리 하겠다.
+
+```
+// userRouter.js
+import {
+  edit,
+  remove,
+  logout,
+  see,
+  startGithubLogin,
+  finishGithubLogin,
+} from "../controllers/userController";
+...
+userRouter.get("/github/start", startGithubLogin);
+userRouter.get("/github/finish", finishGithubLogin);
+...
+```
+
+```
+// userControllser.js
+...
+export const startGithubLogin = (req, res) => {
+  ...
+};
+
+export const finishGithubLogin = (req, res) => {};
+```
+
 ### 7.18 Github Login part Three
+깃허브 페이지에서 리다이렉션을 받아서 다시 홈페이지로 돌아오는 것까지는 성공했다. 다음으로 해야할 것은 깃허브에서 받은 토큰을 Acess token으로 바꾸는 일이다. "https://github.com/login/oauth/access_token" 이 주소를 POST 방식으로 보내주는데, 뒤에 매개변수를 붙일 수 있다. 매개변수 중 필수적인 것은 다음과 같다.
+
+- client_id: 깃허브에서 받은 cliend ID로 필수적으로 적어줘야 한다.
+- client_secret: 깃허브에서 받은 client secret으로 코드에서 직접적으로 보여선 안 된다. 그러므로 env 파일에서 가져와야 한다.
+- code: 앞선 단계에서 돌려받은 code를 말하는데, 리다이렉션으로 받아온 것을 말한다.
+
+코드를 작성하기에 앞서 env 파일에 몇 가지 적어줘야 한다.
+
+```
+// .env
+COOKIE_SECRET=####
+DB_URL=####
+GH_CLIENT=####
+GH_SECRET=####
+```
+
+이때 깃허브에서 받은 client ID는 url에서 보이기 때문에 별도로 적어줄 필요는 없지만 편의를 위해 적어줬다. GH_SECRET에는 깃허브에서 만든 OAuth application 페이지에서 client secrets를 보면 찾을 수 있다. 주의할 것은 client secrets는 다시 볼 수 없으므로 꼭 복사해서 코드로 옮겨놔야 한다. 이를 가지고 finishGithubLogin 컨트롤러를 작성해보자.
+
+```
+export const finishGithubLogin = async (req, res) => {
+  const baseUrl = "https://github.com/login/oauth/access_token";
+  const config = {
+    client_id = process.env.GH_CLIENT,
+    client_secret = process.env.GH_SECRET,
+    code: req.query.code,
+  };
+  const params = new URLSearchParams(config).toString();
+  const finalUrl = `${baseUrl}?#{params}`;
+  const data = await fetch(finalUrl, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  const json = await data.json();
+  console.log(json);
+};
+```
+
+여기서 fetch를 볼 수 있는데, fetch는 자바스크립트에서 서버로 네트워크 요청을 보내고 응답을 받을 수 있게 해주는 매소드다. 기본 형태는 다음과 같다.
+
+```
+fetch(url [,option])
+  .then(res => {})
+  .catch(error => {});
+```
+
+url에는 요청을 보낼 url을 적어주고 .then에는 응답으로 할 일을 적어준다. 그리고 .catch에는 에러가 발생할 경우 처리하는 부분이다. 여기서 보면 [,option]이 있는데, 이는 fetch의 2번째 매개변수로 추가적인 정보를 입력할 수 있다.
+
+```
+fetch(url, {
+  method: something,
+  headers: {
+    sonething
+  },
+  body: something,
+})
+  .then(res => {})
+  .catch(error => {});
+```
+
+- method: HTTP method를 적어주는 곳으로 적지 않으면 GET을 디폴트 값으로 사용한다.
+- header: 요청의 header의 정보를 나타낸다.
+- body: 요청에 보내는 데이터를 의미한다.
+
+우리는 fetch로 POST method를 보내주고 있고, 파일을 json 형태로 받기 위해 headers에 Accept: "application/json"을 적어줬다. 그리고 이렇게 돌려받은 정보를 data에 저장했다. 마지막으로 이 정보를 data.json으로 json 형태로 바꿔준다.
+
+이 코드는 시간이 너무 지나면 작동하지 않는다. 왜냐하면 깃허브에서 준 토큰이 10분만 유지되어서 만료되기 때문이다. 또한 위의 코드에서 fetch가 NodeJs에 없기 때문에 에러가 나온다. 다음에는 이를 수정할 방법을 알아보겠다.
+
 ### 7.19 Github Login part Four
 ### 7.20 Github Login part Five
 ### 7.21 Github Login part Six 
