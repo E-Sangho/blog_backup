@@ -982,7 +982,260 @@ fetch(url, {
 이 코드는 시간이 너무 지나면 작동하지 않는다. 왜냐하면 깃허브에서 준 토큰이 10분만 유지되어서 만료되기 때문이다. 또한 위의 코드에서 fetch가 NodeJs에 없기 때문에 에러가 나온다. 다음에는 이를 수정할 방법을 알아보겠다.
 
 ### 7.19 Github Login part Four
+우린 fetch가 필요한데 NodsJs에는 fetch가 없다. 다행히도 [node-fetch](https://www.npmjs.com/package/node-fetch)를 설치하면 fetch를 사용할 수 있게 된다. `npm i node-fetch@2.6.1`으로 node-fetch를 설치해준다. 최신 버전이 아니라 구버전을 설치하는 이유는, 3.0 버전부터 ESM-only Module이 되면서 작동하지 않기 때문이다.
+
+설치를 완료하면 node-fetch를 import해서 다시 실행시켜보자. 토큰이 만료되서 에러가 날 수도 있지만, 코드가 정상적으로 작동한다. 우리가 작성한 json 파일을 보기 위해서 마지막 줄에 res.send(JSON.stringify(json)); 을 적어준다. 그리고 다시 깃허브 로그인을 누르면 json을 페이지에서 볼 수 있다.
+
+json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 지우고 다음을 적어준다.
+
+```
+//userController.js
+...
+  const data = await fetch(finalUrl, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  const json = await data.json();
+  res.send(JSON.stringify(json));
+};
+```
+
+이렇게하면 access_token, token_type, scope가 json 형태로 나온다.
+
+이제 마지막 단계를 해야 한다. 마지막 단계는 access_token을 가지고 사용자의 정보를 얻는 것이다. 먼저 json의 access_token을 가져오자. access_token이 없는 경우 login 페이지를 불러오고, 아니라면 access_token으로 코드를 처리하려고 한다. 그렇다면 코드의 형태는 아래처럼 될 것이다.
+
+```
+// userController.js
+...
+  const json = await data.json();
+  if("access_token" in json) {
+    // access api
+  } else {
+    return res.redirect("/login");
+  }
+};
+```
+
+마지막으로 해야할 것은 "https://api.github.com/user" 주소에 GET 메소드로 Authorization: token OAUTH-TOKEN를 보내주는 것이다. 여기서 OAUTH-TOKEN은 우리가 받은 access_token을 의미한다. 이를 fetch로 만들면 아래처럼 된다.
+
+```
+// userController.js
+...
+  const json = await data.json();
+  if("access_token" in json) {
+    const { access_token } = json;
+    const userRequest = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `token ${access_token}`,
+      },
+    });
+  } else {
+    return res.redirect("/login");
+  }
+};
+```
+
+그런데 우리는 data = await fetch();와 json = await data.json();을 사용하고 있다. 자바스크립트를 생각해보면 fetch().json()으로 간결하게 코드를 줄인 것을 기억할 것이다. 그러므로 이를 다음과 같이 줄일 수 있다.
+
+```
+// userController.js
+  const data = await (
+    await fetch(finalUrl, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+  ).json();
+```
+
+코드를 잘 살펴보면 알겠지만 안의 await을 실행한 다음에 결과로 나오는 프라미스를 .json()을 사용하기 위해 한 번 더 await을 썼다. 마지막으로 이름이 data로 되어있는데 tokenRequest가 더 적절하므로 이름을 바꿔주었고 그에 맞춰 밑에 data라고 적힌 이름을 바꿔줬다. 그리고 userRequest에도 같은 논리를 적용해서 아래처럼 작성했다.
+
+```
+// userController.js
+...
+  const tokenRequest = await (
+    await fetch(finalUrl, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+  ).json();
+  if ("access_token" in tokenRequest) {
+    const { access_token } = tokenRequest;
+    const userRequest = await (
+      await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    console.log(userRequest);
+  } else {
+    return res.redirect("/login");
+  }
+};
+...
+```
+
+여기까지 하고 uerRequest를 console.log로 출력해보면 email: null로 나온다. 이는 email이 private이기 때문이다. 다음에는 이를 고쳐보겠다.
+
 ### 7.20 Github Login part Five
+지금까지 작성한 코드를 실행하면 로그에는 email: null로 나온다. 그런데 우리는 user:email로 정보를 받아오기로 했었는데 정보가 없다. 이는 이메일 정보를 받아오기 위해 다른 url로 정보를 보내줘야 하기 때문이다.
+
+```
+// userControlelr.js
+  if ("access_token" in tokenRequest) {
+    const { access_token } = tokenRequest;
+    const apiUrl = "https://api.github.com";
+    const userData = await (
+      await fetch(`${apiUrl}/user`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    console.log(userData);
+    const emailData = await (
+      await fetch(`${apiUrl}/user/emails`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    const email = emailData.find(
+      (email) => email.primary === true && email.verified === true
+    );
+    if (!email) {
+      return res.redirect("/login");
+    }
+  } else {
+    return res.redirect("/login");
+  }
+```
+
 ### 7.21 Github Login part Six 
+
+```
+// userController.js
+    const emailData = await (
+      await fetch(`${apiUrl}/user/emails`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    const emailObj = emailData.find(
+      (email) => email.primary === true && email.verified === true
+    );
+    if (!emailObj) {
+      return res.redirect("/login");
+    }
+    const existingUser = await User.findOne({ email: emailObj.email });
+    if (existingUser) {
+      req.session.loggedIn = true;
+      req.session.user = existingUser;
+      return res.redirect("/");
+    } else {
+      const user = await User.create({
+        name: userData.name,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+      req.session.loggedIn = true;
+      req.session.user = user;
+      return res.redirect("/");
+    }
+  } else {
+    return res.redirect("/login");
+  }
+```
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  socialOnly: { type: Boolean, default: false },
+  username: { type: String, required: true, unique: true },
+  password: { type: String },
+  name: { type: String, required: true },
+  location: String,
+});
+```
+
 ### 7.22 Log Out
+
+```
+// userController.js
+...
+  const pageTitle = "Login";
+  const user = await User.findOne({ username, socialOnly: false });
+  if (!user) {
+...
+ if (!emailObj) {
+      return res.redirect("/login");
+    }
+    let user = await User.findOne({ email: emailObj.email });
+    if (!user) {
+      user = await User.create({
+        avatarUrl: userData.avatar_url,
+        name: userData.name,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+    }
+    req.session.loggedIn = true;
+    req.session.user = user;
+    return res.redirect("/");
+  } else {
+    return res.redirect("/login");
+  }
+};
+
+export const logout = (req, res) => {
+  req.session.destroy();
+  return res.redirect("/");
+};
+...
+```
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  avatarUrl: String,
+  socialOnly: { type: Boolean, default: false },
+  username: { type: String, required: true, unique: true },
+  password: { type: String },
+```
+
+```
+// userRouter.js
+import {
+  edit,
+  logout,
+  see,
+  startGithubLogin,
+...
+userRouter.get("/edit", edit);
+userRouter.get("/github/start", startGithubLogin);
+userRouter.get("/github/finish", finishGithubLogin);
+```
+
+```
+// base.pug
+      if loggedIn
+          li
+              a(href="/users/logout")  Log Out
+          li
+```
 ### 7.23 Recap
