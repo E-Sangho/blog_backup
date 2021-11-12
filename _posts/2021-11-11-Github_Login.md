@@ -319,6 +319,8 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
 코드를 실행하고 페이지를 보면 access_token, token_type, scope가 json 형태로 나온다.
 
 ### 3. Use the access token to access the API
+
+#### 3.1 User information
 지금까지 한 결과 json으로 access_token을 받아왔다. 마지막으로 해야 할 일은 이 access_token으로 사용자의 정보를 받아오는 일이다. 해야할 것은 "https://api.github.com/user"에다가 GET으로 받아오는데, headers에다가 Authorization: token OAUTH-TOKEN을 보내야 한다. 여기서 OAUTH-TOKEN은 앞서 우리가 받은 access_token을 의미한다.
 
 위의 일은 fetch를 사용하면 간단히 해결할 수 있다. 다만 access_token을 못 받아온 경우, 다시 말해서 실패한 경우가 있을 수 있으므로 이를 고려해서 if-else로 실패한 경우 login 페이지로 보내준다.
@@ -329,7 +331,7 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
     const json = await data.json();
     if("access_token" in json) {
         const { access_token } = json;
-        const userRequest = await fetch("https://api.github.com/user", {
+        const userData = await fetch("https://api.github.com/user", {
             headers: {
                 Authorization: `token ${access_token}`,
             },
@@ -356,7 +358,7 @@ export const finishGithubLogin = async (req, res) => {
     const json = await data.json();
     if("access_token" in json) {
         const { access_token } = json;
-        const userRequest = await fetch("https://api.github.com/user", {
+        const userData = await fetch("https://api.github.com/user", {
             headers: {
                 Authorization: `token ${access_token}`,
             },
@@ -389,7 +391,7 @@ export const finishGithubLogin = async (req, res) => {
 ...
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
-    const userRequest = await (
+    const userData = await (
       await fetch("https://api.github.com/user", {
         headers: {
           Authorization: `token ${access_token}`,
@@ -403,7 +405,7 @@ export const finishGithubLogin = async (req, res) => {
 ...
 ```
 
-마지막으로 여기까지 작성한 것이 제대로 나오는지 확인하기 위해 console.log(userRequest)로 확인해보자.
+마지막으로 여기까지 작성한 것이 제대로 나오는지 확인하기 위해 console.log(userData)로 확인해보자.
 
 
 ```
@@ -411,14 +413,14 @@ export const finishGithubLogin = async (req, res) => {
 ...
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
-    const userRequest = await (
+    const userData = await (
       await fetch("https://api.github.com/user", {
         headers: {
           Authorization: `token ${access_token}`,
-        },
+        }이
       })
     ).json();
-    console.log(userRequest);   // *
+    console.log(userData);   // *
   } else {
     return res.redirect("/login");
   }
@@ -426,3 +428,224 @@ export const finishGithubLogin = async (req, res) => {
 ...
 ```
 
+결과를 확인해보면 사용자 정보가 json 형태로 잘 나오는 것을 알 수 있다. 그런데 내용을 확인해보면 email: null인 것을 볼 수 있다. 즉, 이메일 정보는 받아오지 못한 것이다. 이전에 access_token을 만들 때, 우리는 scope에서 read:user과 user:email을 둘 다 적어줬으므로 이메일 정보도 들어오길 기대하지만, 둘은 별개의 일이라 들어오지 않는다. 다시 말해 access_token은 사용자 정보를 받아오고, 이메일을 받아오는데 사용할 수 있다. 그렇지만 둘은 별개의 과정이므로 사용자 정보를 받아오는 것과, 이메일을 받아오는 것 둘 다 만들어야 한다. 지금까지는 사용자 정보만을 받아왔고 다음으로 이메일을 받아오는 법을 알아보자.
+
+#### 3.2 email information
+[링크](https://docs.github.com/en/rest/reference/users#emails)를 확인하면 email을 설정하는 방법을 볼 수 있다. 우리가 원하는 항목은 "List public email addresses for the authenticated user"이다.
+
+우리가 해야할 일은 "https://api.github.com/user/emails"에 헤더파일을 GET으로 보내주는 것이다. 그런데 주소를 보면 공통되는 부분이 있으므로, apiurl = "https://api.github.com"로 지정하고, 그에 맞게 fetch 안의 내용을 수정하겠다.
+
+```
+// userController.js
+  if ("access_token" in tokenRequest) {
+    const { access_token } = tokenRequest;
+    const apiUrl = "https://api.github.com";
+    const userData = await (
+      await fetch(`${apiUrl}/user`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    console.log(userData);
+```
+
+그리고 여기에 이어서 emailData를 받아오는 fetch를 만들겠다. 우리가 보내줘야 하는 것은 GET으로 "https://api.github.com/user/emails"에 헤더를 보내줘야 한다. 그리고 마지막에 받아온 데이터를 확인하도록 console.log()를 사용했다.
+
+```
+// userController.js
+    ...
+    console.log(userData);
+    const emailData = await (
+      await fetch(`${apiUrl}/user/emails`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    console.log(emailData);
+  } else {
+    return res.redirect("/login");
+  }
+```
+
+이렇게하면 email 정보를 볼 수 있게 된다. 정보를 확인해보면 primary와 verified라는 정보를 볼 수 있는데, 우리는 이 둘이 true인 이메일만 사용한다. 왜냐하면 깃허브에 로그인 하더라도 둘이 false인 경우가 있을 수 있기 때문이다. 조건을 만족하는 email은 find()로 찾았고, 만약 조건에 맞는 email이 없다면 login 페이지로 보내준다.
+
+```
+// userController.js
+    console.log(userData);
+    const emailData = await (
+      await fetch(`${apiUrl}/user/emails`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    const emailObj = emailData.find(email => email.primary === true && email.verified === true);
+    if (!emailObj) {
+      return res.redirect("/login");
+    }
+    // ******
+  } else {
+    return res.redirect("/login");
+  }
+};
+```
+
+코드가 `// ******`에 도착하게 되면 primary, verified가 true인 이메일을 받은 것이니, 필요한 사용자 데이터는 모두 받은 것이다. 이를 사용해서 사용자를 로그인 시킬 수도 있지만, 이메일이 없다면 계정을 만들게 할 수도 있다. 그리고 이메일은 동일하지만 하나는 페이지에서 비밀번호로 로그인 하는 경우와, 다른 하나는 깃허브에서 로그인 하는 경우가 있을 수 있다. 간단히 말해서 로그인하려는 경우는 아래처럼 4경우의 수가 있다.
+
+- 사이트에 아이디가 없고, 깃허브에 아이디가 없다.
+- 사이트에 아이디가 있고, 깃허브에 아이디가 없다.
+- 사이트에 아이디가 없고, 깃허브에 아이디가 있다.
+- 사이트에 아이디가 있고, 깃허브에 아이디가 있다.
+
+이 중에서 둘 다 없는 경우나, 깃허브에 아이디가 없는 경우는 깃허브 로그인이 불가능하다. 그러므로 깃허브로 로그인을 하려고 하면 깃허브에서 아이디를 만들게 된다.
+
+다음으로 깃허브에 아이디가 있지만 사이트엔 아이디가 없는 경우다. 이 경우엔 깃허브 로그인을 한 것으로 계정을 만들어서 서버에 저장한다.
+
+제일 문제가 되는 경우는 둘 다 있는 경우다. 만약 두 사용자가 동일한 이메일을 사용할 경우 어떻게 해야할까? 둘을 동일한 사용자로 생각해서 계정을 하나로 합쳐서 관리할 수도 있지만, 따로 로그인 가능하게 만들 수도 있다. 아니면 에러를 보내면서 한쪽의 로그인이 불가능하게 만들 수도 있다.
+
+우리는 이메일이 동일하다면 로그인을 허용하는 방향으로 만들어보겠다. 실제로는 이렇게 하기 보다는 이메일을 연동시킨다거나 별개로 하는 경우가 많지만, 일단은 이대로 진행해보자.
+
+emailObj를 보면 안에 email이 들어있다. 이를 사용해서 같은 email을 쓰는 사용자를 찾아서 existingUser에 넣어줬다. 만약 사용자가 있다면 세션의 값을 바꿔서 로그인 시켜준다.
+
+```
+// userController.js
+    ...
+    const emailObj = emailData.find(
+      (email) => email.primary === true && email.verified === true
+    );
+    if (!emailObj) {
+      return res.redirect("/login");
+    }
+    const existingUser = await User.findOne({ email: emailObj.email });
+    if (existingUser) {
+      req.session.loggedIn = true;
+      req.session.user = existingUser;
+      return res.redirect("/");
+    } else {
+```
+
+그런데 이메일이 없다면, 이는 사용자가 깃허브 아이디만으로 로그인한다는 의미다. 그러므로 새로운 User를 만들어서 계정을 생성해야한다. 하지만 그에 앞서 스키마를 수정해줘야 한다. 왜냐하면 현재는 password가 required이므로 없어서는 안 된다. 덤으로 사용자가 소셜 로그인을 했는지 확인하기 위해서 socialOnly라는 속성을 더해주려고 한다. User.js에서 스키마를 수정해서 아래처럼 만들어주자.
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  socialOnly: { type: Boolean, default: false },  // ******
+  username: { type: String, required: true, unique: true },
+  password: { type: String }, // ******
+  name: { type: String, required: true },
+  location: String,
+});
+```
+
+그리고 거기에 맞추서 계정을 생성할 때, socialOnly: true,를 넣어서 만들어준다.
+
+```
+    ...
+    } else {
+      const user = await User.create({
+        name: userData.name,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+      req.session.loggedIn = true;
+      req.session.user = user;
+      return res.redirect("/");
+    }
+  } else {
+    return res.redirect("/login");
+  }
+```
+
+소셜 로그인을 할 때, socialOnly: true로 만들어줬다. 그런데 사이트에서 로그인을 할 때, 우리는 socialOnly의 값을 체크해주지 않고 있다. 그런데 소셜 로그인만 한 계정의 경우 비밀번호가 존재하지 않는다. 그러므로 사이트에서 로그인 할 때, 아이디만 알아내면 비밀번호와 관계 없이 로그인 할 수 있게 된다.
+
+이를 해결하기 위해 사이트에서 로그인 하는 경우에 socialOnly: false인 경우만 찾아보도록 만들어주겠다. postLogin으로 가서 아래처럼 수정해준다.
+```
+// userController.js
+...
+  const pageTitle = "Login";
+  const user = await User.findOne({ username, socialOnly: false });
+  if (!user) {
+...
+```
+
+다음으로 코드를 조금 정리해주겠다. 우린는 req.session() 부분을 2번 반복하고 있다. 이를 고치기 위해선 const를 let으로 바꾸고 if-else의 순서를 바꿔서 아래처럼 적어주면 된다.
+
+```
+// userController.js
+ if (!emailObj) {
+      return res.redirect("/login");
+    }
+    let user = await User.findOne({ email: emailObj.email });
+    if (!user) {
+      user = await User.create({
+        name: userData.name,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+    }
+    req.session.loggedIn = true;
+    req.session.user = user;
+    return res.redirect("/");
+  } else {
+    return res.redirect("/login");
+  }
+};
+```
+
+추가적으로 User.js를 수정해서 avatarURl을 추가하겠다. 이는 다음에 avatar를 다루기 위해 미리 수정하는 것이다.
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  avatarUrl: String,  // ******
+  socialOnly: { type: Boolean, default: false },
+  username: { type: String, required: true, unique: true },
+  password: { type: String },
+```
+
+그리고 그에 맞춰서 깃허브로 계정을 만들 때, avatarUrl을 받아오도록 만든다.
+
+```
+// userController.js
+    if (!user) {
+      user = await User.create({
+        avatarUrl: userData.avatar_url, // ******
+        name: userData.name,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+    }
+```
+
+마지막으로 로그아웃 페이지를 만들어보겠다. 로그아웃 하는 방법은 간단하다. `req.session.destroy();`로 세션을 없애주고 페이지를 다시 열어주면 된다.
+
+```
+export const logout = (req, res) => {
+  req.session.destroy();
+  return res.redirect("/");
+};
+...
+```
+
+그리고 코드에서 필요없는 remove 컨트롤러와 라우터를 삭제해줬다. 마지막으로 base.pug에서 logout 링크를 수정해주면 끝이다.
+
+```
+// base.pug
+      if loggedIn
+          li
+              a(href="/users/logout")  Log Out
+          li
+```

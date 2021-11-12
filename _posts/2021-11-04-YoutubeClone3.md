@@ -466,6 +466,16 @@ app.get("/add-one", (req, res, next) => {
 
 서로 다른 브라우저에서 /add-one에 접속하면 세션 ID에 따라 값이 따로 저장되는 것을 볼 수 있다.
 
+아래는 세션의 동작 순서다.
+
+1. 클라이언트가 서버에 처음으로 Request를 보냄 (첫 요청이기 때문에 session id가 존재하지 않음)
+2. 서버에서는 session id 쿠키 값이 없는 것을 확인하고 새로 발급해서 응답
+3. 이후 클라이언트는 전달받은 session id 값을 매 요청마다 헤더 쿠키에 넣어서 요청
+4. 서버는 session id를 확인하여 사용자를 식별
+5. 클라이언트가 로그인을 요청하면 서버는 session을 로그인한 사용자 정보로 갱신하고 새로운 session id를 발급하여 응답
+6. 이후 클라이언트는 로그인 사용자의 session id 쿠키를 요청과 함께 전달하고 서버에서도 로그인된 사용자로 식별 가능
+7. 클라이언트 종료 (브라우저 종료) 시 session id 제거, 서버에서도 세션 제거
+
 ### 7.9 Logged In User
 로그인을 하면 세션에서 로그인한 정보를 유지하도록 코드를 수정하겠다. 로그인정보를 보내는 컨트롤러가 postLogin에다가 다음처럼 작성한다.
 
@@ -1084,10 +1094,14 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
 여기까지 하고 uerRequest를 console.log로 출력해보면 email: null로 나온다. 이는 email이 private이기 때문이다. 다음에는 이를 고쳐보겠다.
 
 ### 7.20 Github Login part Five
-지금까지 작성한 코드를 실행하면 로그에는 email: null로 나온다. 그런데 우리는 user:email로 정보를 받아오기로 했었는데 정보가 없다. 이는 이메일 정보를 받아오기 위해 다른 url로 정보를 보내줘야 하기 때문이다.
+우리는 깃허브에서 준 code를 가지고 access_token으로 교환했다. 그리고 access_token으로 fetch를 사용해서 사용자의 정보를 받아왔다. 이게 가능했던 이유는 code를 요청할 때, scope에서 read:user로 사용자 정보를 받아오는 것을 지정했기 때문이다.
+
+그런데 우리는 user:email로 이메일 정보를 받아오게 했음에도, 로그에는 email: null로 나온다. 이는 우리가 read:user에 해당하는 정보만 가져왔을 뿐, 추가적으로 email을 받아오는 기능을 수행해야 하기 때문이다. [링크](https://docs.github.com/en/rest/reference/users#emails)를 확인하면 email을 설정하는 방법을 볼 수 있다. 우리가 원하는 항목은 "List public email addresses for the authenticated user"이다.
+
+우선 userRequest의 이름을 userData로 바꿔주겠다. 그리고 apiurl을 "https://api.github.com"로 수정하고, 그에 맞춰서 userData 안의 fetch의 주소를 바꿔준다. ```await fetch(`${apiUrl}/user`, {``` 
 
 ```
-// userControlelr.js
+// userController.js
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
     const apiUrl = "https://api.github.com";
@@ -1099,6 +1113,13 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
       })
     ).json();
     console.log(userData);
+```
+
+그리고 여기에 이어서 emailData를 받는 fetch를 만들어보겠다. 우리가 보내줘야 하는 것은 GET으로 "https://api.github.com/user/public_emails"에 헤더를 보내줘야 한다. 마지막으로 받아온 emailData를 console.log()로 보여준다.
+
+```
+// userController.js
+    console.log(userData);
     const emailData = await (
       await fetch(`${apiUrl}/user/emails`, {
         headers: {
@@ -1106,21 +1127,17 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
         },
       })
     ).json();
-    const email = emailData.find(
-      (email) => email.primary === true && email.verified === true
-    );
-    if (!email) {
-      return res.redirect("/login");
-    }
+    console.log(emailData);
   } else {
     return res.redirect("/login");
   }
 ```
 
-### 7.21 Github Login part Six 
+우리가 찾을 이메일은 primary와 verified가 true인 것들이다. 왜냐하면 깃허브에 로그인하더라도 primary나 verified가 안 되었을 수도 있기 때문이다. 조건을 만족하는 email을 찾으려면 find를 사용하면 된다. 만약 찾은 email이 없다면 login 페이지로 redirect한다.
 
 ```
 // userController.js
+    console.log(userData);
     const emailData = await (
       await fetch(`${apiUrl}/user/emails`, {
         headers: {
@@ -1128,6 +1145,69 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
         },
       })
     ).json();
+    const email = emailData.find(email => email.primary === true && email.verified === true);
+    if (!email) {
+      return res.redirect("/login");
+    }
+    // ******
+  } else {
+    return res.redirect("/login");
+  }
+};
+```
+
+코드가 `******`에 도착하게 되면 primary, verified가 true인 이메일을 받은 것이니, 필요한 사용자 데이터는 모두 받은 것이다. 이를 사용해서 사용자를 로그인 시킬 수도 있지만, 이메일이 없다면 계정을 만들게 할 수도 있다. 그리고 이메일은 동일하지만 하나는 페이지에서 비밀번호로 로그인 하는 경우와, 다른 하나는 깃허브에서 로그인 하는 경우가 있을 수 있다. 간단히 말해서 로그인하려는 경우는 아래처럼 4경우의 수가 있다.
+
+- 사이트에 아이디가 없고, 깃허브에 아이디가 없다.
+- 사이트에 아이디가 있고, 깃허브에 아이디가 없다.
+- 사이트에 아이디가 없고, 깃허브에 아이디가 있다.
+- 사이트에 아이디가 있고, 깃허브에 아이디가 있다.
+
+이 중에서 둘 다 없는 경우나, 깃허브에 아이디가 없는 경우는 깃허브 로그인이 불가능하다. 그러므로 깃허브로 로그인을 하려고 하면 깃허브에서 아이디를 만들게 된다.
+
+다음으로 깃허브에 아이디가 있지만 사이트엔 아이디가 없는 경우다. 이 경우엔 깃허브 로그인을 한 것으로 계정을 만들어서 서버에 저장한다.
+
+제일 문제가 되는 경우는 둘 다 있는 경우다. 만약 두 사용자가 동일한 이메일을 사용할 경우 어떻게 해야할까? 둘을 동일한 사용자로 생각해서 계정을 하나로 합쳐서 관리할 수도 있지만, 따로 로그인 가능하게 만들 수도 있다. 아니면 에러를 보내면서 한쪽의 로그인이 불가능하게 만들 수도 있다. 어떻게 이를 관리할지는 다음에 배워보겠다.
+
+마지막으로 fetch 부분이 ES6가 익숙하지 않다면 의아할 수도 있다. fetch를 사용한 부분은 아래 코드와 동일하다.
+
+```
+fetch(finalUrl, {
+  method: "POST",
+  headers: {
+    Accept: "application/json",
+  },
+})
+.then(response => response.json())
+.then(json => {
+  if ("access_token" in json) {
+    const { access_token } = json;
+    const apiUrl = "https://api.github.com";
+    fetch(`${apiUrl}/user`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+    })
+      .then(response => response.json()
+      .then(json => {
+        fetch(`${apiUrl}/user/emails`, {
+          headers: {
+            Authorization: `token ${access_token}`,
+          },
+        });
+    });
+  }
+});
+```
+
+보다시피 fetch를 사용하고 그 안에서 .then을 2번 사용하고, 또 그 안에서 다시 fetch를 사용하고 또 다시 안에서 .then을 2번 사용한다. 작성하면서도 어느부분의 코드를 작성하는지 혼란스러운데, 작성한 이후에 확인하는 것도 어렵다. 이렇게 작성하는 것 보다는 앞서 한 await fetch를 사용하는 방법이 더 쉽고, 이해하기도 편하다.
+
+### 7.21 Github Login part Six 
+이전에 우리가 만든 email은 사실 객체이므로 emailObj으로 이름을 바꿔준다. 그리고 emailObj.email에 있는 값으로 같은 email을 사용하는 사람을 찾아서 existingUser에 넣어준다. 만약 사용자가 있다면 세션의 값을 바꿔서 로그인 시켜준다.
+
+```
+// userController.js
+    ...
     const emailObj = emailData.find(
       (email) => email.primary === true && email.verified === true
     );
@@ -1139,6 +1219,27 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
       req.session.loggedIn = true;
       req.session.user = existingUser;
       return res.redirect("/");
+    } else {
+```
+
+그런데 이메일이 없다면, 이는 사용자가 깃허브 아이디만으로 로그인한다는 의미다. 그러므로 새로운 User를 만들어서 계정을 생성해야한다. 하지만 그에 앞서 스키마를 수정해줘야 한다. 왜냐하면 현재는 password가 required이므로 없어서는 안 된다. 덤으로 사용자가 소셜 로그인을 했는지 확인하기 위해서 socialOnly라는 속성을 더해주려고 한다. User.js에서 스키마를 수정해서 아래처럼 만들어주자.
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  socialOnly: { type: Boolean, default: false },  // ******
+  username: { type: String, required: true, unique: true },
+  password: { type: String }, // ******
+  name: { type: String, required: true },
+  location: String,
+});
+```
+
+그리고 거기에 맞추서 계정을 생성할 때, socialOnly: true,를 넣어서 만들어준다.
+
+```
+    ...
     } else {
       const user = await User.create({
         name: userData.name,
@@ -1157,20 +1258,10 @@ json이 정상적으로 돌아오는 것을 확인했으면 마지막 코드를 
   }
 ```
 
-```
-// User.js
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  socialOnly: { type: Boolean, default: false },
-  username: { type: String, required: true, unique: true },
-  password: { type: String },
-  name: { type: String, required: true },
-  location: String,
-});
-```
-
 ### 7.22 Log Out
+소셜 로그인을 할 때, socialOnly: true로 만들어줬다. 그런데 사이트에서 로그인을 할 때, 우리는 socialOnly의 값을 체크해주지 않고 있다. 그런데 소셜 로그인만 한 계정의 경우 비밀번호가 존재하지 않는다. 그러므로 사이트에서 로그인 할 때, 아이디만 알아내면 비밀번호와 관계 없이 로그인 할 수 있게 된다.
 
+이를 해결하기 위해 사이트에서 로그인 하는 경우에 socialOnly: false인 경우만 찾아보도록 만들어주겠다. postLogin으로 가서 아래처럼 수정해준다.
 ```
 // userController.js
 ...
@@ -1178,6 +1269,12 @@ const userSchema = new mongoose.Schema({
   const user = await User.findOne({ username, socialOnly: false });
   if (!user) {
 ...
+```
+
+다음으로 코드를 조금 정리해주겠다. 우린는 req.session() 부분을 2번 반복하고 있다. 이를 고치기 위해선 const를 let으로 바꾸고 if-else의 순서를 바꿔서 아래처럼 적어주면 된다.
+
+```
+// userController.js
  if (!emailObj) {
       return res.redirect("/login");
     }
@@ -1200,7 +1297,40 @@ const userSchema = new mongoose.Schema({
     return res.redirect("/login");
   }
 };
+```
 
+추가적으로 User.js를 수정해서 avatarURl을 추가하겠다. 이는 다음에 avatar를 다루기 위해 미리 수정하는 것이다.
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  avatarUrl: String,  // ******
+  socialOnly: { type: Boolean, default: false },
+  username: { type: String, required: true, unique: true },
+  password: { type: String },
+```
+
+그리고 그에 맞춰서 깃허브로 계정을 만들 때, avatarUrl을 받아오도록 만든다.
+
+```
+// userController.js
+    if (!user) {
+      user = await User.create({
+        avatarUrl: userData.avatar_url, // ******
+        name: userData.name,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+    }
+```
+
+마지막으로 로그아웃 페이지를 만들어보겠다. 로그아웃 하는 방법은 간단하다. `req.session.destroy();`로 세션을 없애주고 페이지를 다시 열어주면 된다.
+
+```
 export const logout = (req, res) => {
   req.session.destroy();
   return res.redirect("/");
@@ -1208,28 +1338,7 @@ export const logout = (req, res) => {
 ...
 ```
 
-```
-// User.js
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  avatarUrl: String,
-  socialOnly: { type: Boolean, default: false },
-  username: { type: String, required: true, unique: true },
-  password: { type: String },
-```
-
-```
-// userRouter.js
-import {
-  edit,
-  logout,
-  see,
-  startGithubLogin,
-...
-userRouter.get("/edit", edit);
-userRouter.get("/github/start", startGithubLogin);
-userRouter.get("/github/finish", finishGithubLogin);
-```
+그리고 코드에서 필요없는 remove 컨트롤러와 라우터를 삭제해줬다. 마지막으로 base.pug에서 logout 링크를 수정해주면 끝이다.
 
 ```
 // base.pug
@@ -1238,4 +1347,5 @@ userRouter.get("/github/finish", finishGithubLogin);
               a(href="/users/logout")  Log Out
           li
 ```
+
 ### 7.23 Recap
