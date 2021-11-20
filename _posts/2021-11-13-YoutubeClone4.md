@@ -289,7 +289,55 @@ export const postEdit = async (req, res) => {
 
 마지막으로 username과 email을 업데이트 할 때, 중복되는 값이 있는지 검사해야 한다. 이는 exists를 쓰면 존재 여부는 쉽게 알 수 있다. 우리는 이전에도 `const exists = await User.exitsts({ $or: [{ username }, { email }] });`로 username과 email이 있는지 확인했었다. 그런데 어떻게 사용자가 내용을 업데이트 하려는지 확인할 수 있을까? 만약 사용자가 아무것도 수정하지 않고 그대로 업데이트를 누르면, 이미 존재하는 사용자이므로 값을 업데이트 하지 않게 된다. 그러므로 우리는 사용자가 username이나 email을 변경시켰는지를 알아봐야 한다.
 
-이를 위해서 req.session.body의 내용과 form의 내용을 비교해서 차이가 있으면 업데이트 해주고, 없다면 아무런 일도 할 필요 없다.
+이를 위해서 _id로 사용자를 찾아주고, 사용자의 username, email과 입력받은 username, email에 차이가 있는지를 확인하고, 차이가 없다면 업데이트를 해줘야 한다. 먼저 `const findedUser = await User.findById({_id});`로 _id를 사용해서 사용차를 찾아준다. 그 후 email을 비교해서 서로 다르다면, 바꾸려는 email을 검색해서 존재하는지 확인해줘야 한다. 이는 `const findEmail = await User.findOne({ email });`로 가능하다. 그 후에 둘의 _id를 비교해서 다르다면 바꾸려는 이메일을 쓰는 사용자가 있다는 의미이므로 허용해서는 안 된다. 이때, 바꾸려는 이메일을 쓰는 사용자가 없을 수도 있기 때문에, findEmail이 null인지 확인해줘야 한다. 동일한 과정을 username에 적용하고, 이 둘을 통과했다면 username과 email을 변경해준다. 아래는 이를 코드로 적은 것이다.
+
+```
+export const postEdit = async (req, res) => {
+  const {
+    session: {
+      user: { _id },
+    },
+    body: { name, email, username, location },
+  } = req;
+  /*
+   * We need to check that username or email are already existed or not.
+   * First, we need to find user by _id.
+   */
+  const findedUser = await User.findById({ _id });
+  // Next, we check findedUser.email and email are equal 
+  if(findedUser.email !== email) {
+    // If they are different, find the owner of email
+    const findEmail = await User.findOne({ email });
+    // findEmail can be null, so we need to check it 
+    // and identify they have same _id
+    if(findEmail !== null && findedUser._id !== findEmail._id) {
+        // If _id are different, it means that the users are different
+        // So, we shouldn't allow to change email
+        console.log("This email already exists");
+        return res.redirect("/users/edit");
+    }
+  }
+  if(findedUser.username !== username) {
+    const findName = await User.findOne({ username });
+    if(findName !== null && findedUser._id !== findName._id) {
+      console.log("This username already exists");
+      return res.redirect("/users/edit");
+    }
+  } 
+  const updatedUser = await User.findByIdAndUpdate(
+    _id,
+    {
+      name,
+      email,
+      username,
+      location,
+    },
+    { returnDocument: "after" }
+  );
+  req.session.user = updatedUser; 
+  return res.redirect("/users/edit");
+};
+```
 ### 8.4 Change Password par One
 ### 8.5 Change Password par Two
 ### 8.6 File Uploads par One
