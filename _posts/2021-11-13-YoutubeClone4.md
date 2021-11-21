@@ -339,6 +339,100 @@ export const postEdit = async (req, res) => {
 };
 ```
 ### 8.4 Change Password par One
+비밀번호를 바꾸는 페이지를 만들어보겠다. edit-profile.pug에서 비밀번호를 바꿀 수 있는 페이지로 가는 링크를 만들어주겠다.
+```
+// edit-profile.pug
+...
+block content
+    form(method="POST")
+        ...
+        input(type="submit", value="Update Profile")
+        // add link to go to change-password page
+        hr
+        a(href="change-password") Change Password &rarr;
+```
+
+물론 아직 라우터도 컨트롤러도 없기 때문에 change-password로 가더라도 아무런 일도 일어나지 않는다. 먼저 컨르롤러부터 만들어줘야 한다. 그런데 지금까지 우리는 굉장히 많은 view 파일을 만들었기 때문에, 정리되지 않은 채로 계속 늘어가고 있다. 앞으로는 사용자와 관련된 것은 users 폴더에, 비디오와 관련된 것은 videos 폴더에 만들어줄 것이다. 그러므로 컨트롤러에서 view를 랜더링할 때, users 폴더에서 불러와야 한다. 이를 가지고 userController.js에 getChangePassword와 postChangePassword를 만들어준다.
+
+```
+// userController.js
+...
+export const getChangePassword = (req, res) => {
+    // We need to organize views for future.
+    // So, we will make users folder and put change-password file inside of it.
+    return res.render("users/change-password", { pageTitle: "Change Password"});
+};
+
+export const postChangePassword = (req, res) => {
+    return res.redirect("/");
+};
+```
+
+다음으로 라우터를 만들어준다.
+
+```
+// userRouter.js
+...
+// import get/postChangePassword from userController
+import {
+    ...
+    getChangePassword,
+    postChangePassword,
+} from "../controllers/userController";
+...
+userRouter.route("/edit").all(protectorMiddleware).get(getEdit).post(postEdit);
+// add a change-password router
+userRouter
+    .route("/change-password")
+    .all(protectorMiddleware)
+    .get(getChangePassword)
+    .post(postChangePassword);
+...
+```
+
+마지막으로 change-password view 파일을 만들어줘야 한다. 앞서 말했듯이 분류를 위해, views 폴더 안에 users라는 폴더를 하나 만들어서 그 안에 change-password.pug 파일을 만들어주려고 한다. 문제는 이전처럼 `extends base`를 하면 안 된다. base 파일이 폴더 밖에 있으므로 `extends ../base`로 적어줘야 한다.
+
+```
+// change-password.pug
+extends ../base
+
+block content
+   form(method="POST")
+    input(placeholder="Old Passwrod")
+    input(placeholder="New Password")
+    input(placeholder="New Password Confirm")
+    input(type="submit", value=")
+```
+
+그 밖에도 한 가지 문제가 더 있다. 깃허브로 로그인 한 경우에는 비밀번호를 우리 사이트에서 바꿀 수가 없다. 그러므로 깃허브 로그인한 경우 비밀번호 변경 페이지가 보여서는 안 된다. 이 경우 3가지 방법이 있다. 첫 번째는 컨트롤러에서 소셜 로그인인 경우를 확인해서 홈으로 돌려보내는 것이다. 두 번째 방법은 비밀번호 변경 폼은 보이되 사용할 수는 없게 만드는 것이다. 세 번째는 아예 edit-profile 페이지에서 비밀번호 변경 버튼이 안 보이게 해서 누를 수 없게 하는 것이다. 아래는 첫 번째나, 두 번째 방법을 선택할 경우 코드를 삽입해야 할 위치다.
+
+```
+...
+export const getChangePassword = (req, res) => {
+    // First, if use is logged in social authentication, redirect to home
+    if (req.session.user.socialOnly === true) {
+        return res.redirect("/");
+        // or we can show alert and go back to the page
+    }
+    return res.render("users/change-password", { pageTitle: "Change Password"});
+};
+...
+```
+
+하지만 제일 좋은 것은 기능하지 않는 것은 숨기는 방법이므로, 소셜 로그인한 경우엔 비밀번호를 바꾸는 버튼이 없도록 만들어주자. edit-profile.pug 파일에서 소셜 로그인인 경우 Change Password가 보이지 않게 만든다.
+
+```
+// edit-profile.pug
+...
+block content
+    ...
+    input(type="submit", value="Update Profile")
+    // If user is logged in social authentication, Change Password anchor must be hidden.
+    if !loggedInUser.socialOnly
+        hr
+        a(href="change-password") Change Password &rarr;
+```
+
 ### 8.5 Change Password par Two
 ### 8.6 File Uploads par One
 ### 8.7 File Uploads par Two
