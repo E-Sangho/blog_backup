@@ -338,7 +338,7 @@ export const postEdit = async (req, res) => {
   return res.redirect("/users/edit");
 };
 ```
-### 8.4 Change Password par One
+### 8.4 Change Password part One
 비밀번호를 바꾸는 페이지를 만들어보겠다. edit-profile.pug에서 비밀번호를 바꿀 수 있는 페이지로 가는 링크를 만들어주겠다.
 ```
 // edit-profile.pug
@@ -398,10 +398,10 @@ extends ../base
 
 block content
    form(method="POST")
-    input(placeholder="Old Passwrod")
-    input(placeholder="New Password")
-    input(placeholder="New Password Confirm")
-    input(type="submit", value=")
+    input(placeholder="Old Passwrod", type="password", name="oldPassword")
+    input(placeholder="New Password", type="password", name="newPassword")
+    input(placeholder="New Password Confirmation", type="password",  name="newPasswordConfirmation")
+    input(type="submit", value="Change Password")
 ```
 
 그 밖에도 한 가지 문제가 더 있다. 깃허브로 로그인 한 경우에는 비밀번호를 우리 사이트에서 바꿀 수가 없다. 그러므로 깃허브 로그인한 경우 비밀번호 변경 페이지가 보여서는 안 된다. 이 경우 3가지 방법이 있다. 첫 번째는 컨트롤러에서 소셜 로그인인 경우를 확인해서 홈으로 돌려보내는 것이다. 두 번째 방법은 비밀번호 변경 폼은 보이되 사용할 수는 없게 만드는 것이다. 세 번째는 아예 edit-profile 페이지에서 비밀번호 변경 버튼이 안 보이게 해서 누를 수 없게 하는 것이다. 아래는 첫 번째나, 두 번째 방법을 선택할 경우 코드를 삽입해야 할 위치다.
@@ -433,14 +433,411 @@ block content
         a(href="change-password") Change Password &rarr;
 ```
 
-### 8.5 Change Password par Two
-### 8.6 File Uploads par One
-### 8.7 File Uploads par Two
+### 8.5 Change Password part Two
+현재 우리는 소셜 로그인한 정보가 DB에 남아 있으므로, 몽고의 데이터를 모두 지워주도록 한다. `mongo`로 접속한 `use wetube`로 wetube를 사용하는 데이터로 지정한다. 그 다음에 `db.sessions.remove({})`를 입력하면 세션 데이터를 모두 지울 수 있다. 같은 방법으로 `db.users.remove({})`로 사용자 정보도 모두 지워준다.
+
+그리고 새로 회원가입을 해 준 다음, edit-profile에 들어가면 소셜 로그인 때는 볼 수 없었던 Change Password를 볼 수 있다. 그런데 앞으로도 소셜 로그인과, 일반 로그인을 나눠야 하는 경우가 많을 수도 있다. 이 경우엔 소셜 로그인 한 경우와 아닌 경우를 나눠주는 미들웨어를 만들어주면 더욱 편할 것이다. 우리는 아직은 필요하지 않으므로 추가하지는 않겠다. 만약 만든다면 passwordOnly 같이 비밀번호가 있는 경우에만 사용할 수 있도록 하는 미들웨어를 추가하면 된다.
+
+다음으로 postChangePassword를 완성시켜야 한다. 우선은 form에서 보내주는 정보를 받아주고, 현재 로그인한 사용자가 누구인지를 알아내야 한다. _id는 req.session.user에 있고, form에서 보내준 정보는 req.body에 들어 있다. 이전에 postEdit에서 한 것처럼 작성하면 간단하게 데이터를 받아 온다.
+
+```
+// userController.js
+...
+export const postChangePassword = async (req, res) => {
+    const {
+        session: {
+            user: { _id },
+        },
+        body: { oldPassword, newPassword, newPasswordConfirmation },
+    } = req;
+    return res.redirect("/");
+};
+```
+
+다음으로 해야 할 일은 새로 만들 비밀번호가 같은지를 확인하는 것이다. 만약 비밀번호가 다르다면 errorMessage를 전송하게 만들어야 한다. 또한 인증에 실패했으므로 status(400)으로 브라우저가 실패했음을 인지하게 만들어야 한다. 그리고 view 파일도 수정해서 errorMessage를 출력하게 만들어주자.
+
+```
+// userController.js
+    ...
+    const {
+        ...
+    } = req;
+    if (newPassword !== newPasswordConfirmation) {
+        return res.status(400).render("users/change-password", {
+            pageTitle: "Change Password",
+            errorMessage: "The password does not match the confirmation",
+        });
+    }
+    ...
+```
+
+```
+// change-password.pug
+block content
+    if errorMessage
+        span #{errorMessage}
+    ...
+```
+
+다음으로 oldPassword가 일치했는지를 확인해야 한다. 이는 이전에 bcrypt로 해결한 적이 있다. 같은 방식을 사용하기 위해선 req.session.user.password가 필요하므로 받아와주고, bcrypt.compare()로 비교해준다. 그 후 비밀번호가 일치하지 않는다면 위와 동일하게 하되, 에러 메세지만 수정해주면 된다.
+
+```
+// userController.js
+...
+export const postChangePassword = async (req, res) => {
+    const {
+        session: {
+            // get password
+            user: { _id, password },
+        },
+        body: { oldPassword, newPassword, newPasswordConfirmation },
+    } = req;
+    // use bcrypt to check password
+    const ok = await bcrypt.compare(oldPassword, password);
+    // and, if !ok show errorMessage
+    if (!ok) {
+        return res.status(400).render("users/change-password", {
+            pageTitle: "Change Password",
+            errorMessage: "The current password is incorrect",
+        });
+    }
+    if (newPassword !== newPasswordConfirmation) {
+        return res.status(400).render("users/change-password", {
+            pageTitle: "Change Password",
+            errorMessage: "The password does not match the confirmation",
+        });
+    }
+    return res.redirect("/");
+};
+```
+
+다음으로 모든 것이 일치한다면 비밀번호를 변경해줘야 한다. 이전에 우리는 User 스키마를 만들 때, pre로 저장하기 전에 해시함수로 암호화 하는 과정을 추가해줬다. 그러므로 우리가 `user.save();`만 사용하더라도 알아서 현재 비밀번호를 암호화 한다. 그런데 우리는 아직 사용자의 비밀번호를 바꿔주지 않았으므로, 비밀번호를 바꿔준 다음에 저장해야 한다. 그러므로 사용자를 _id로 찾아와서 password를 newPassword로 바꿔준 다음에 저장하도록 만들어준다.
+
+```
+// userController.js
+export const postChangePassword = async (req, res) => {
+    ...
+    const user = await User.findById(_id);
+    user.password = newPassword;
+    await user.save();
+    return res.redirect("/");
+};
+```
+
+마지막으로 비밀번호를 바꿀 경우 강제로 로그아웃 시키고 다시 로그인 하도록 만들어보자. 이 경우는 간단하다. `return res.redirect("/users/logout");`으로 보내주기만 하면 된다. 이렇게하면 완성이다.
+
+그런데 비밀번호를 여러 번 바꾸려고 하면 The current password is incorrect라는 문구가 나온다. 다시 말해서 oldPassword와 password가 다르다는 것이다. 왜 이런 일이 발생하는 것일까?
+
+이는 우리가 oldPassword와 세션의 비밀번호를 비교하기 때문에 발생한다. 우리는 세션에서 비밀번호를 받아와서 검증하는데 사용하지만, 정작 세션은 업데이트 하지 않았다. 그러므로 비밀번호를 비교할 때, 세션에 있느 이전의 비밀번호로 비교하게 되고, 에러 메세지가 나오는 것이다. 이를 해결하기 위해 세션을 업데이트 해줘야 한다.
+
+```
+// userController.js
+    ...
+    await user.save();
+    // update session's password
+    req.session.user.password = user.password;
+    ...
+```
+
+다른 방법으로는 _id로 사용자를 찾는 부분을 패스워드 검증하는 곳 보다 먼저 사용한 다음, password 대신에 user.password를 사용해도 된다. 이렇게 하면 세션에서 값을 가져오는 것이 아니라 DB에서 가져오기 때문에, 세션을 업데이트해줄 필요가 없다.
+
+```
+// userController.js
+export const postChangePassword = async (req, res) => {
+  const {
+    session: {
+      user: { _id },
+    },
+    body: { oldPassword, newPassword, newPasswordConfirmation },
+  } = req;
+  // find user by _id 
+  const user = await User.findById(_id);
+  // We can use user.password to confirm oldPassword.
+  const ok = await bcrypt.compare(oldPassword, user.password);
+  if (!ok) {
+    return res.status(400).render("users/change-password", {
+      pageTitle: "Change Password",
+      errorMessage: "The current password is incorrect",
+    });
+  }
+  if (newPassword !== newPasswordConfirmation) {
+    return res.status(400).render("users/change-password", {
+      pageTitle: "Change Password",
+      errorMessage: "The password does not match the confirmation",
+    });
+  }
+  // We don't need to find _id here.
+  user.password = newPassword;
+  await user.save();
+  return res.redirect("/users/logout");
+};
+```
+
+### 8.6 File Uploads part One
+어떻게 파일을 업로드 하는지 알아보자. 사용자의 아바타용 사진을 업로드하는 기능을 추가하려고 한다. 우선 당연히 로그인 한 경우에 edit-profile에 파일을 업로드하는 칸을 만들어주자. 그러기 위해서는 input에 속성으로 type="file"로 지정해서 만들면 된다. 다만 우리는 이미지 파일만 추가하기를 원하므로 accept="image/*"를 추가해주도록 하자.
+
+```
+// edit-profile.pug
+block content
+    form(method="POST")
+        label(for="avatar") Avatar
+        input(type="file", name="avatar", id="avatar", accept="image/*")
+        ...
+```
+
+그리고 우리는 [multer](https://www.npmjs.com/package/multer)이라는 미들웨어를 사용한다. multer은 파일을 업로드 하도록 도와준다. `npm i multer`로 패키지를 설치해준다. multer를 사용하려면 form을 **multipart/form-data**로 만들어줘야 한다. 위의 form으로 돌아가서 enctype="multipart/form-data"를 추가해준다. 이 속성은 form의 인코딩 방법을 바꿔주기 때문에 잊어버려서는 안 된다.
+
+다음으로 우리는 미들웨어를 만들어야 한다. middlewares.js에 가서 미들웨어를 만들어야 하는데 uploadFiles라는 이름으로 만들자. 그런데 이 미들웨어는 req, res를 사용하지 않는다. 대신 dest, fileFilter, limits, preservePath를 사용한다. dest는 말 그대로 파일을 어디에 저장시킬지를 지정하는 것이다. 추후에 자세히 설명하겠지만 하드에 직접 저장하는 것은 그리 좋은 방법이 아니다. 하지만 지금은 하드에 저장시키고 나중에 바꿔주도록 하자.
+
+```
+// middlewares.js
+import multer from "multer";
+...
+export const uploadFiles = multer({
+   dest: "uploads/"
+});
+```
+
+나는 위의 폴더가 자동으로 생겨서 아무런 문제 없었지만, 혹시라도 생기지 않는다면 직접 만들어준다.
+
+다음으로 미들웨어를 사용해보겠다. 우리가 사용하고 싶은 곳은 edit-profile이 post되는 곳이다. 사용되는 순서는 `app.post("/profile", upload.single("avatar"), function (req, res, next){})` 형태가 되면 된다. 다시 말해 url, 미들웨어, 컨트롤러 순으로 작성해야 한다. 우리는 url을 앞에 route에 적어줬기 때문에 post 안에 미들웨어, 컨트롤러만 적어주면 된다. 미들웨어를 적어줄 때, single, array, fields를 지정할 수 있는데, 각각 하나의 파일, array 파일, object 파일이다. 우리는 이미지 파일 하나만 올릴 것이기 때문에 uploadFiles.single()을 사용한다. 이때, single 안에 들어가는 문자는 form에서 받아오는 input의 name이다. 그러므로 아래처럼 적어줘야 한다.
+
+```
+// userRouter.js
+...
+userRouter
+  .route("/edit")
+  .all(protectorMiddleware)
+  .get(getEdit)
+  .post(uploadFiles.single("avatar"), postEdit);
+...
+```
+
+여기서 multer 미들웨어의 작동 방법을 설명해야 한다. multer은 form에서 파일을 받아오고 uploadFiles를 실행시켜서 그 파일을 폴더에 저장한다. 그 후 저장한 정보를 postEdit에 전달해준다. 이렇게 추가한 정보는 req.file에서 찾을 수 있다. postEdit에서 console.log(req.file)을 적어주고, 파일을 업로드 했을 때 콘솔에 적히는 것을 확인해보자. 그 중에서 path가 중요한데, 우리가 User 스키마를 만들 때, 아바타 url을 만들었다. 여기에다가 콘솔에 나온 path를 적어주면 해당 사용자와 파일이 연결되게 된다. 이에 관한 것은 다음에 계속하겠다.
+
+### 8.7 File Uploads part Two
+어떻게 하면 파일을 사용자와 연결 시킬 수 있을끼? 처음 드는 생각은 req.file.path를 가져와서 findByIdAndUpdate를 사용할 때, 같이 넣어서 업데이트 해주면 될 것 같다. 그런데 사용자가 아바타를 사용하지 않으면 어떻게 될까? 아바타를 사용하지 않았다면 file이 undefined이므로 path가 존재하지 않아서 에러가 발생한다. 그러므로 req.file.path를 가져오는 것이 아니라 req.file을 가져와야 한다. 하지만 여전히 file이 undefined인 경우엔 업데이트 해주는 것이 불가능하다. 그러므로 세션의 user 정보를 활용해야 한다.
+
+우선 req.session.user에서 avatarUrl을 받아온다. 그리고 findByInAndUpdate 안에서 avatarUrl을 업데이트 하되, 삼항 연산자를 사용해서 file이 undefined인 경우엔 avatarUrl을 그대로 넣어준다.
+
+```
+// userController.js
+export const postEdit = async (req, res) => {
+  const {
+    session: {
+        // get avatarUrl
+        user: { _id, avatarUrl },
+    },
+    body: { name, email, username, location },
+    file,
+  } = req;
+  const updatedUser = await User.findByIdAndUpdate(
+    _id,
+    {
+        // use ternary operator to update avatarUrl
+        avatarUrl: file ? file.path : avatarUrl,
+      ...
+    }
+```
+
+마지막으로 commit 하기 전에 .gitignore에 /uploads 폴더를 추가해서 파일이 커밋 되는 것을 막아야 한다.
+
+```
+// .gitignore
+/node_modules
+.env
+/uploads
+```
+
+이렇게 파일을 업로드하는 것을 완료했다. 이렇게 하면 우리는 파일을 DB에 저장하지 않는다. 대신에 파일의 위치를 DB에 저장하고, 파일은 따로 uploads에 저장한다. 다시 말해 DB에는 파일을 저장하지 않고 오직 그 위치만을 저장해야 한다. DB는 파일을 저장하기 위한 공간이 아니기 때문이다.
+
+이제 업로드한 이미지가 보이도록 edit-profile을 수정해주자. 그런데 img의 src 속성을 사용할 때, loggedInUser.avatarUrl을 그대로 사용하면 상대 url로 판단해서 users/uploads에서 파일을 찾게 된다. 그런데 uploads 폴더는 /uploads에 있으므로, 절대 url을 사용해야 한다.
+
+```
+// edit-profile.pug
+...
+block content
+    img(src="/" + loggedInUser.avatarUrl, width="100", height="100")
+    ...
+```
+
+하지만 이렇게 작성해줘도 제대로 작동하지 않는다. 그 이유는 이미지를 받아와야할 url을 라우터나 사용해야 할 폴더로 지정한 적도 없기 때문에 익스프레스가 처리하지 못하기 때문이다.
+
 ### 8.8 Static Fiels and Recap
+이제 브라우저가 uploads 폴더에 있는 파일에 접근할 수 있어야 한다. 왜 이런 일을 해야 하냐면, 만약 브라우저가 어떤 폴더든 갈 수 있다고 하면, 보안상 좋지 못하다. 그러므로 사용하는 폴더를 따로 지정해주도록 만들어져있다. 그러기 위해서 static files serving이라는 것을 활성화 시킨다. 이는 폴더 전체를 브라우저에게 노출 시키는 기능이다.
+
+우선 /upload 라우터를 만들어야 한다. 그리고 폴더를 노출시키기 위해 express.static()을 사용한다. static에는 노출시키고 싶은 폴더를 적어주면 된다.
+
+```
+// server.js
+...
+app.use(localsMiddleware);
+app.use("uploads", express.static("uploads"));
+app.use("/", rootRouter);
+...
+```
+
+이렇게 하고 다시 edit-profile을 확인해보면 아바타가 나오는 것을 확인할 수 있다. 
+
+요약하면 우리가 원하던 것은 파일을 업로드 하는 것이었다. 그래서 multer을 사용해 파일을 받아오게 만들었다. 다음으로 form을 만들어서 이미지를 받아오고 서버에 저장했다. multer 미들웨어는 받아온 파일의 정보를 다음 컨트롤러의 req에 넣어서 사용할 수 있게 해준다. 우리는 req에서 file을 받아왔다. 이 file은 사용자가 업로드 했을 수도 안 했을 수도 있으므로 삼항 연산자를 사용해서 undefined인 경우에도 에러가 발생하지 않도록 만들었다. 그리고 avartarUrl을 받아왔지만 아직 브라우저는 이 파일이 존재하는지 모른다. 그러므로 express.static()으로 폴더를 사용할 수 있게 만들어줬다. 그 결과 edit-profile에서 업로드한 이미지를 볼 수 있게 되었다.
+
+그런데 문제가 있다. 우리가 새로 파일을 업로드할 때마다 새로 파일이 생기고, 이전의 파일은 삭제되지 않으므로 파일이 계속 쌓이게 된다. 또한 파일이 서버에 저장되고 있다는 점도 문제다. 서버는 계속 종료되고 다시 시작되기 때문에, 업로드하면 그 전 서버의 저장된 파일들이 사라지게 된다. 또한 여러 서버를 사용하고 있으면 한 서버가 다운되었을 때, 그 서버에 저장된 파일을 사용할 수 없게 된다. 나중에 이 방법을 고쳐서 서버가 다시 시작돼도 파일은 그대로 남아있게 만들겠다.
+
 ### 8.9 Video Upload
+이번에는 비디오를 업로드 하는 것을 추가해보겠다. 앞서 이미지에서 했던 것을 그대로 비디오로 한다고 보면 된다. 우선 샘플 비디오가 하나 필요하다. 샘플 비디오는 [sample-video](https://sample-videos.com/)에서 원하는 사양으로 받을 수 있으니 하나 준비하자.
+
+upload.pug에 들어가서 비디오를 업로드하는 것을 추가한다.
+
+```
+// upload.pug
+block content
+    if errorMessage
+        span=errorMessage
+    form(method="POST", enctype="multipart/form-data")
+        label(for="video") Video File
+        input(type="file", accept="video/*", required, id="video", name="video")
+        ...
+```
+
+다음으로 videoRouter.js에 들어가서 /upload의 post에 uploadFiles 미들웨어를 추가해준다.
+
+```
+import {
+    ...
+    avatarUpload,
+} from "../middlewares";
+
+...
+userRouter
+  .route("/edit")
+  .all(protectorMiddleware)
+  .get(getEdit)
+  // add avatarUpload middleware
+  .post(UploadFile.single("avatar"), postEdit);
+```
+
+여기서 multer의 옵션을 소개해야 한다. multer는 파일의 크기를 제한할 수 있다. fileSize라는 옵션인데, 이를 사용해서 이미지는 3MB이하로, 비디오는 10MB 이하로 제한하겠다. 그래서 미들웨어를 나눠서 용량을 제한하는 미들웨어 2개로 만들겠다.
+
+```
+// middlewares.js
+
+expot const avatarUpload = multer({
+    dest: "uploads/avatars/",
+    limits: {
+        fileSize: 300000,
+    },
+});
+
+export const videoUpload = multer({
+    dest: "uploads/videos/",
+    limits: {
+        fileSize: 10000000,
+    },
+});
+```
+
+미들웨어의 이름을 바꿨으므로 그에 맞추어 이름을 바꿔줘야 한다.
+
+```
+// userRouter.js
+import {
+    ...
+    avatarUpload,
+} from "../middlewares";
+...
+userRouter
+    .route("/edit")
+    .all(protectorMiddleware)
+    .get(getEdit)
+    // change middleware's name
+    .post(avatarUpload.single("avatar"), postEdit);
+...
+```
+
+```
+// videoRouter.js
+import {
+    ...
+    videoUpload
+} from "../middlewares";
+...
+videoRouter
+  .route("/upload")
+  .all(protectorMiddleware)
+  .get(getUpload)
+  .post(videoUpload.single("video"), postUpload);
+...
+```
+
+파일의 크기에 따라 숫자를 바꿔가며 파일이 업로드 되는지 아닌지 테스트 해보자. 만약 파일이 너무 크다면 에러가 발생해서 페이지가 랜더링 되지 않는다. 우리는 에러만 보내고 페이지는 랜더링 되게 하고 싶기 때문에 나중에 이 문제를 수정해보겠다.
+
+우선은 postUpload에서 비디오를 추가하는 것을 만들어주려고 한다. 그 전에 videoSchema를 보면 우리는 비디오의 url을 속성으로 넣어주지 않았다. 그러므로 스키마를 수정해서 fileUrl을 속성으로 가지도록 만든다.
+
+```
+// Video.js
+const videoSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true, maxLength: 80 },
+  fileUrl: { type: String, required: true },
+  description: { type: String, required: true, trim: true, minLength: 20 },
+  ...
+```
+
+```
+// videoController.js
+
+export const postUpload = async (req, res) => {
+    // get fileUrl from req.file.path
+    const file = req.file;
+    const { title, description, hashtags } = req.body;
+    try {
+        await Video.create({
+        title,
+        description,
+        // We add fileUrl on the videoSchema.
+        // So, we can create video with fileUrl
+        fileUrl: file.path,
+        hashtags: Video.formatHashtags(hashtags),
+        });
+        return res.redirect("/");
+    } catch (error) {
+        console.log(error);
+        return res.status(400).render("upload", {
+        pageTitle: "Upload Video",
+        errorMessage: error._message,
+        });
+    }
+};
+```
+
+다음으로 비디오가 나오도록 watch.pug에 만들어준다. video에 src를 추가해주면 비디오가 생성된다. 여기다가 controls를 추가해서 재생 가능하게 만들어준다.
+
+```
+// watch.pug
+block content
+    video(src="/" + video.fileUrl, controls)
+    ...
+```
+
+마지막으로 postUpload 컨트롤러를 조금 수정하겠다. file을 받아오는 대신에 `{ path } = req.file`을 사용하면 `fileUrl: path,`로 줄일 수 있다. 아니면 ES6를 사용해서 아래처럼 줄일 수도 있다.
+
+```
+// videoController.js
+
+export const postUpload = async (req, res) => {
+    // We can make a path to fileUrl
+    const { path: fileUrl } = req.file;
+    ...
+    try {
+        // We can shortcut fileUrl: path, to fileUrl.
+        fileUrl, 
+    }
+    ...
+};
+```
+
 ### 8.10 User Profile
 ### 8.11 Video Owner
-### 8.12 Video Owner par Two
+### 8.12 Video Owner part Two
 ### 8.13 User's Videos
 ### 8.14 Bugfix
 ### 8.15 Conclusions
