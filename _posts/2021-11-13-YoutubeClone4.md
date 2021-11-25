@@ -836,8 +836,350 @@ export const postUpload = async (req, res) => {
 ```
 
 ### 8.10 User Profile
+이번에는 프로파일 페이지를 만들어보겠다. 프로파일 페이지에서는 이름과 아바타 같은 기본적인 정보 뿐만 아니라, 업로드한 비디오도 볼 수 있게 만들겠다. 그리고 영상을 틀면 누가 그 영상을 올렸는지 알려주고, 해당 동영상의 소유자가 아니라면 edit, delete 기능을 쓸 수 없도록 만들겠다.
+
+우리가 만든 비디오를 보면 소유자 정보가 없다. 또한 사용자도 어떤 비디오를 올렸는지 정보가 없다. 그러므로 비디오에 소유자를 한 명 만들고, 사용자는 업로드한 비디오를 여러 개 가지도록 만들어야 한다. 이를 위해 우리 모델을 수정해야 한다.
+
+모델을 수정하기 앞서 모델을 보여주는 페이지를 만들어야 확인하기 쉽다. 그러므로 base.pug에서 프로파일 페이지로 가는 링크를 만들어 주자.
+
+```
+// base.pug
+    if loddgeIn
+        li
+            ...
+        li
+            a(href=`/users/${loggedInUser._id}`) My Profile
+        ...
+```
+
+그리고 userRouter.js의 라우터도 수정해줘야 한다.
+
+```
+// userRouter.js
+...
+userRotuer.get("/:id", see);
+...
+```
+
+그리고 see 컨트롤러를 수정해야 한다. 우선은 id를 가져와야 한다. 이때, id는 user session으로 받아오면 안 된다. 왜냐하면 추후에는 프로파일을 누구나 볼 수 있게 만들어 줄 것이기 때문이다. 그래서 지금은 req.params에서 id를 받아온다. 그리고 id로 사용자를 찾은 다음에 랜더링 하는 페이지에 사용자 정보를 보내서 프로파일 페이지를 불러오게 한다. 이때, 사용자가 없을 수도 있는데, 그 경우 404 페이지가 나오도록 만들어준다.
+
+```
+// userController.js
+...
+export const see = (req, res) => {
+    const { id } = req.params;
+    cosnt user = User.findByIn(id);
+    if(!user) {
+        return res.status(404).render("404", { pageTitle: "User not found." });
+    }
+    return res.render("users/profile", { pageTitle: user.name, user });
+};
+```
+
+그리고 profile view를 만들어준다.
+
+```
+// profile.pug
+extends base
+
+block contetn
+    h1 hello
+```
+
+이렇게 프로파일을 보여주는 페이지 형태는 만들었다. 문제는 비디오와 사용자가 전혀 연결되어 있지 않다는 점이다. 이는 모델을 업데이트 해야 해결되기 때문에 현재 정보를 모두 지워줘야 한다. 터미널을 열어서 mongo -> use wetube -> db.videos.remove({}) -> db.users.remove({})로 모든 비디오와 사용자 정보를 없애준다.
+
 ### 8.11 Video Owner
+우리는 이번에 비디오와 사용자를 연결하는 일을 해보겠다. 연결을 위해 사용하는 것은 물론 _id다. _id는 서로 달라서 하나 뿐인데다가, 랜덤한 숫자라 비디오나 사용자를 구분하기 가장 좋기 때문이다. user에는 user가 업로드한 video의 id를 저장하고, video에는 영상을 올린 user의 id를 적어준다.
+
+먼저 videoSchema에 owner를 추가해주겠다. 그런데 스키마를 수정할 때, owner의 타입이 문제가 된다. ObjectId라는 타입은 자바스크립트에 없기 때문이다. 그래서 타입은 mongoose.Schema.Types.ObjectId를 사용해줘야 하는데, 이는 몽구스에서 사용하는 타입으로 DB의 다른 데이터의 Id를 가져올 때는 이를 사용한다고 기억하자. 다음으로 id를 가져오더라도 어떤 자료에서 가져와야 할지 모른다. 예를 들어 우리가 20개 정도의 모델이 있다고 하면, 타입만으로는 id를 가져올 수 없다. 그러므로 어떤 모델에서 가져오는지 추가하는 ref라는 속성이 있다. 여기에 가져오고 싶은 모델의 이름을 적어주면 된다. 최종적으로 코드는 아래처럼 된다.
+
+```
+// Video.js
+const videoSchema = new mongoose.Schema({
+    ...
+    owner: {type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+});
+```
+
+다음으로 비디오를 업로드할 때, 사용자 id를 모델에 넣어줘야 한다. 그러므로 userController.js에서 postUpload에 사용자 _if를 추가하는 코드를 만들었다.
+
+```
+// videoController.js
+const {
+    user: { _id },
+} = req.session;
+...
+try {
+    await Video.create({
+        ...
+        owner: _id,
+    });
+    ...
+}
+```
+
+이렇게 하고 비디오를 업로드 한 다음에, 몽구스에서 비디오를 확인해보면 owner가 추가된 것을 볼 수 있다. 여기서 우리는 동영상을 수정, 삭제하는 일은 그 동영상의 소유자만 가능하게 하려고 했다. 우리는 누가 로그인 되었는지 알고 있으므로 로그인 된 사람의 id와 owner의 id가 일치하면, 그 동영상의 소유자가 로그인 했다고 생각할 수 있다. watch.pug에서 코드를 수정해서 소유자인 경우에만 수정, 삭제 버튼이 보이도록 만들자. if문을 사용하고 `video.owner === loggedInUser._id`를 비교하면 될 것 같다. 그런데 이렇게 하면 작동하지 않는다. 그 이유는 video.owner는 ObjectId고 _id는 string이기 때문이다. 그러므로 양쪽에 String()을 씌워서 서로가 스트링이 되게 만든 다음 비교해야 한다.
+
+```
+// watch.pug
+...
+block content
+    ...
+    if String(video.owner) === String(loggedInUser._id)
+        a(href=`${video.id}/edit`) Edit Video &rarr;
+        br
+        a(href=`${video.id}/delete`) Delete Video &rarr;
+```
+
+추가적으로 비디오 소유자가 동영상 아래에 나오도록 만들어 주려고 한다. 컨트롤러로 돌아가서 생각해보면, 우리는 비디오 정보를 가지고 있다. 다시 말해 우리는 비디오 안의 owner도 찾을 수 있다. owner에 있는 id로 사용자를 찾아준 다음, 페이지를 랜더링 할 때, 사용자를 받아와서 이름을 보여주면 된다.
+
+```
+// videoController.js
+...
+import User from "../models/user";
+...
+export const watch = async (req, res) => {
+    ...
+    const owner = await User.findById(video.owner);
+    ...
+    return res.render("watch", { pageTitle: video.title, video, owner});
+};
+```
+
+```
+// watch.pug
+...
+block content
+    ...
+    div
+        small Uploaded by #{owner.name}
+    if String(video.owner) === String(loggedInUser._id)
+        a(href=`${video.id}/edit`) Edit Video &rarr;
+        br
+        a(href=`${video.id}/delete`) Delete Video &rarr;
+```
+
 ### 8.12 Video Owner part Two
-### 8.13 User's Videos
+앞서 우리는 owner를 따로 찾아와서 보여줬다. 그런데 몽구스에서 이를 대신할 수 있다. 다시 말해 video의 owner만으로도 앞서 했던 것과 동일한 것이 가능하다. 이는 우리가 모델을 만들 때, ref를 적어줬기 때문에 가능한 것이다. 먼저 아래 두 코드를 실행해서 video의 차이 보자.
+
+```
+// videoController.js
+export const watch = async (req, res) => {
+    ...
+    const video = await Vide.findById(id);
+    console.log(video)
+}
+```
+
+```
+// videoController.js
+export const watch = async (req, res) => {
+    ...
+    const video = await Vide.findById(id).populate("owner");
+    console.log(video)
+}
+```
+
+코드를 확인하면 video의 owner에 id가 아니라 user 정보가 담겨 있다. 이는 populate의 기능으로 "owner"에 해당하는 ObjectId로 user를 찾아준다. 이는 이전에 우리가 모델에서 ref에 User를 적었기 때문에, ObjectId만으로 user를 찾은 것이다.
+
+이제 템플릿과 컨트롤러를 이에 맞춰서 조금 수정하면 된다.
+
+```
+// videoController.js
+export const watch = async (req, res) => {
+    ...
+    return res.render("watch", { pageTitle: video.title, video });
+};
+```
+
+```
+// watch.pug
+block content
+    ...
+        small Uploaded by #{video.owner.name}
+    if String(video.owner._id) === String(loggedInUser._id)
+    ...
+```
+
+이렇게 비디오에 사용자 정보를 추가하는 것은 끝이 났다. 다음으로 할 일은 특정 사용자가 업로드한 모든 비디오를 볼 수 있게 만드는 것이다. 비디오 아래 이름을 누르면, 소유자의 모든 비디오를 보여주는 페이지로 가도록 링크를 수정하겠다.
+
+```
+// watch.pug
+block content
+    ...
+        small Uploaded by 
+            a(href=`/users/${video.owner._id}`)=video.owner.name
+    if String(video.owner._id) === String(loggedInUser._id)
+    ...
+```
+
+이제 프로파일로 가도록 만들어줬다. 그런데 지금까지 한 것만 해도 사용자가 올린 비디오를 모두 보여주는 것이 가능하다. 방법은 see 컨트롤러에서 Video.find()를 사용해서 owner가 _id인 것을 찾으면 된다. 그 후 이를 랜더링 하는 페이지로 보내서 보여주면 된다.
+
+```
+export const see = async (req, res) => {
+    ...
+    const videos = await Video.find({ owner: user._id });
+    return res.render(
+        ..., {
+            ...
+            videos,
+        });
+};
+```
+
+```
+// profile.pug
+extends ../base
+include ../mixins/video
+
+
+block content
+    each video in videos
+        +video(video)
+    else
+        li Sorry nothing found.
+```
+
+이렇게 해결해도 되지만 더 간결하게 코드를 작성하는 법이 있다. 대신에 User 모델에 비디오 _id를 넣어줘야 하므로 DB를 초기화 시킨 후에 진행해야 한다. 이는 다음에 알아보겠다.
+
+### 8.13 User's Video
+User에 추가하는 Video는 여러 개가 있을 수 있다. 그러므로 모델을 수정할 때, array로 추가해주겠다. 기본적으로 Video에 User를 추가하는 것과 동일하지만, required일 필요가 없고, ref에 Video를 적어주면 된다.
+
+```
+// User.js
+const userSchema = new mongoose.Schema({
+    ...
+      videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
+});
+```
+
+다음으로 videoController의 postUpload를 수정해줘야 한다. 왜냐하면 비디오를 업로드 할 때, User에게 Video의 _id를 추가해야 하기 때문이다. Video.create는 새로 만든 Video를 반환한다. 이를 가져와서 _id로 찾은 사용자에게 비디오를 추가해주도록 한다.
+
+```
+// videoController.js
+export const postUpload = async (req, res) => {
+    ...
+    try {
+        const newVideo = await Video.create({
+          ...  
+        });
+        const user = await User.findById(_id);
+        user.videos.push(newVideo._id);
+        user.save();
+        ...
+    } ...
+};
+```
+
+이제 랜더링 되는 페이지와, 정보를 전달하는 컨트롤러만 수정하면 된다. userController.js에서 see를 보면 id로 사용자를 찾고 있다. 여기다가 populate("videos")를 쓰면, 해당 사용자의 videos에 비디오 정보가 들어가게 된다. 그리고 이를 가지고 랜더링 하는 페이지에서는 videos 대신에 user.videos를 사용하면 모든게 해결 된다.
+
+```
+// userController.js
+export const see = async (req, res) => {
+    ...
+    const user = await User.findById(id).populate("videos");
+    ...
+};
+```
+
+```
+// profile.pug
+block content
+    each video in user.videos
+        ...
+```
+
+여기까지 하면 드디어 사용자와 비디오를 모두 연결하는데 성공했다. 하지만 아직 문제가 남아 있다. 우리는 비디오 페이지에서 소유자가 아니면 Edit, Delete 링크를 보이지 않게 만들었다. 그렇지만 아직도 url 자체로 들어가서 수정, 삭제가 가능하다. 당연히도 소유자가 아니면 수정, 삭제 할 수 없도록 만들어야 한다.
+
+그리고 한 가지 문제가 더 있다. 우리는 앞서 postUpload에서 User의 videos를 찾아서 넣어주었다. 그리고 `user.save()`로 저장해주었다. 문제는 우리가 User 모델을 만들 때, pre를 사용해서 저장할 때마다 해싱하도록 만들었다. 그러므로 영상을 업로드 할 때마다 비밀번호가 바뀌게 되고 로그인 할 수 없게 된다. 이를 해결하기 위해서 특정한 경우에만 해싱이 일어나도록 이를 수정해줘야 한다.
+
+다음에는 위의 두 문제를 수정해보겠다.
+
 ### 8.14 Bugfix
+해싱이 반복적으로 일어나는 것을 고치는 일은 간단하다. 저장할 때마다 해싱하는 것이 아니라, 비밀번호가 수정될 때마다 해싱하면 해결된다. userSchema.pre()로 돌아가서 말해보자. 여기서 this는 user과 동일하다고 말 했었다. 그러므로 this.을 입력하면 여러 선택지가 나온다. 여기서 isModified()를 사용하면 어떤 것이 변화가 있었을 경우에 true가 반환된다. 우리는 비밀번호가 바뀌었는지 확인하고 싶으므로, isModified("password")라고 적어주면 된다.
+
+```
+// User.js
+userSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 5);
+  }
+});
+```
+
+다음으로 getEdit을 수정해서 영상 주인에게만 edit 페이지가 나오도록 하겠다. 컨트롤러를 보면 video가 있으므로 여기서 소유자를 찾을 수 있다. 그리고 우리는 세션으로 현재 로그인 한 사람을 확인할 수 있으므로, 이 둘을 비교해서 서로 다르다면 edit 페이지를 랜더링 하지 않으면 된다. edit을 랜더링 하는 대신에 홈으로 보내줄 텐데, 이 때 status(403)을 적어준다. 403은 Forbidden을 의미하기 때문이다.
+
+```
+// videoController.js
+export const getEdit = async (req, res) => {
+    ...
+    const {
+        user: { _id },
+    } = req.session;
+    const video = await Video.findById(id);
+        ...
+    if (video.owner !== _id) {
+        return res.status(403).redirect("/");
+    }
+    return res.render("edit", { pageTitle: `Edit: ${video.title}`, video });
+};
+```
+
+그런데 이렇게 하고 실행하면 소유자가 동일함에도 불구하고 인식하지 못 한다. 그 이유는 video.owner과 _id가 type이 다르기 때문이다. `console.log(typeof video.owner, typeof _id)`를 확인해보면 video.owner은 object고 _id는 string이다. 그러므로 둘에 String()을 사용해서 타입을 바꿔줘야 한다. 이는 이전에 watch.pugd에서 동일한 방법으로 해결해주었다. 이처럼 생긴 것은 같지만 타입이 다른 경우 서로 다른 것으로 인식하기 때문에 주의해야 한다.
+
+```
+// videoController.js
+export const getEdit = async (req, res) => {
+    ...
+    const {
+        user: { _id },
+    } = req.session;
+    const video = await Video.findById(id);
+        ...
+    if (String(video.owner) !== String(_id)) {
+        return res.status(403).redirect("/");
+    }
+    return res.render("edit", { pageTitle: `Edit: ${video.title}`, video });
+};
+```
+
+동일한 방법으로 postEdit에도 같은 처리를 해준다.
+
+```
+// videoController.js
+export const postEdit = async (req, res) => {
+    const {
+        user: { _id },
+    } = req.session;
+        ...
+    if (String(video.owner) !== String(_id)) {
+        return res.status(403).redirect("/");
+    }
+    ...
+};
+```
+
+백엔드에서는 이와 같은 일이 중요하다. 링크만을 숨기는 것이 아니라, 허락되는 사람이 아니면 반드시 막아야 한다. 그래야 url로 접근해서 허락되지 않은 일이 생기는 것을 방지할 수 있다.
+
+같은 이유로 deleteVideo에도 동일한 일을 해줘야 한다. 그런데 video가 없기 때문에 id로 찾아줘야 하고, 동시에 세션에서 user._id를 받아온다. video가 없을 경우 404를 보여주고, 소유주가 아닌 경우 403으로 forbidden을 표시하면 된다.
+
+```
+export const deleteVideo = async (req, res) => {
+    const { id } = req.params;
+    const {
+        user: { _id },
+    } = req.session;
+    const video = await Video.findById(id);
+    if (!video) {
+        return res.status(404).render("404", { pageTitle: "Video not found." });
+    }
+    if (String(video.owner) !== String(_id)) {
+        return res.status(403).redirect("/");
+    }
+        ...
+};
+```
+
+여기서 우리는 video를 받아올 때, populate를 사용하지 않았다. 이는 우리가 id만 필요하기 때문이다. populate는 모든 정보를 받아오기 때문에 DB를 혹사시킨다. 만약 populate를 사용하지 않고 해결할 수 있다면, 굳이 사용할 필요가 없다.
+
 ### 8.15 Conclusions

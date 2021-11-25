@@ -560,7 +560,7 @@ app.use("/", rootRouter);
 ```
 // middlewares.js
 export const localsMiddleware = (req, res, next) => {
-  req.locals.siteName = "Wetube";
+  res.locals.siteName = "Wetube";
   next();
 };
 ```
