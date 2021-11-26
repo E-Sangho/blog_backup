@@ -585,7 +585,7 @@ block content
         ...
 ```
 
-그리고 우리는 [multer](https://www.npmjs.com/package/multer)이라는 미들웨어를 사용한다. multer은 파일을 업로드 하도록 도와준다. `npm i multer`로 패키지를 설치해준다. multer를 사용하려면 form을 **multipart/form-data**로 만들어줘야 한다. 위의 form으로 돌아가서 enctype="multipart/form-data"를 추가해준다. 이 속성은 form의 인코딩 방법을 바꿔주기 때문에 잊어버려서는 안 된다.
+그리고 우리는 [multer](https://www.npmjs.com/package/multer)이라는 미들웨어를 사용한다. multer은 파일을 업로드 하도록 도와주는데, form으로 제출한 파일을 req에 file 또는 files에 넣어준다. multer를 사용하기 위해 `npm i multer`로 패키지를 설치해준다. multer를 사용하려면 form을 **multipart/form-data**로 만들어줘야 한다. 위의 form으로 돌아가서 enctype="multipart/form-data"를 추가해준다. 이 속성은 form의 인코딩 방법을 바꿔주기 때문에 잊어버려서는 안 된다.
 
 다음으로 우리는 미들웨어를 만들어야 한다. middlewares.js에 가서 미들웨어를 만들어야 하는데 uploadFiles라는 이름으로 만들자. 그런데 이 미들웨어는 req, res를 사용하지 않는다. 대신 dest, fileFilter, limits, preservePath를 사용한다. dest는 말 그대로 파일을 어디에 저장시킬지를 지정하는 것이다. 추후에 자세히 설명하겠지만 하드에 직접 저장하는 것은 그리 좋은 방법이 아니다. 하지만 지금은 하드에 저장시키고 나중에 바꿔주도록 하자.
 
@@ -629,12 +629,17 @@ export const postEdit = async (req, res) => {
         user: { _id, avatarUrl },
     },
     body: { name, email, username, location },
+    // get file
     file,
   } = req;
+  ...
   const updatedUser = await User.findByIdAndUpdate(
     _id,
     {
+        ...
         // use ternary operator to update avatarUrl
+        // if file exists then update url
+        // else it uses same avatarurl
         avatarUrl: file ? file.path : avatarUrl,
       ...
     }
@@ -672,7 +677,7 @@ block content
 // server.js
 ...
 app.use(localsMiddleware);
-app.use("uploads", express.static("uploads"));
+app.use("/uploads", express.static("uploads"));
 app.use("/", rootRouter);
 ...
 ```
@@ -704,16 +709,16 @@ block content
 ```
 import {
     ...
-    avatarUpload,
+    uploadFiles,
 } from "../middlewares";
 
 ...
 userRouter
-  .route("/edit")
+  .route("/upload")
   .all(protectorMiddleware)
-  .get(getEdit)
-  // add avatarUpload middleware
-  .post(UploadFile.single("avatar"), postEdit);
+  .get(getUpload)
+  // add uploadFiles middleware
+  .post(uploadFiles.single("video"), postUpload);
 ```
 
 여기서 multer의 옵션을 소개해야 한다. multer는 파일의 크기를 제한할 수 있다. fileSize라는 옵션인데, 이를 사용해서 이미지는 3MB이하로, 비디오는 10MB 이하로 제한하겠다. 그래서 미들웨어를 나눠서 용량을 제한하는 미들웨어 2개로 만들겠다.
@@ -836,7 +841,7 @@ export const postUpload = async (req, res) => {
 ```
 
 ### 8.10 User Profile
-이번에는 프로파일 페이지를 만들어보겠다. 프로파일 페이지에서는 이름과 아바타 같은 기본적인 정보 뿐만 아니라, 업로드한 비디오도 볼 수 있게 만들겠다. 그리고 영상을 틀면 누가 그 영상을 올렸는지 알려주고, 해당 동영상의 소유자가 아니라면 edit, delete 기능을 쓸 수 없도록 만들겠다.
+이번에는 프로필 페이지를 만들어보겠다. 프로필 페이지에서는 이름과 아바타 같은 기본적인 정보 뿐만 아니라, 업로드한 비디오도 볼 수 있게 만들겠다. 그리고 영상을 틀면 누가 그 영상을 올렸는지 알려주고, 해당 동영상의 소유자가 아니라면 edit, delete 기능을 쓸 수 없도록 만들겠다.
 
 우리가 만든 비디오를 보면 소유자 정보가 없다. 또한 사용자도 어떤 비디오를 올렸는지 정보가 없다. 그러므로 비디오에 소유자를 한 명 만들고, 사용자는 업로드한 비디오를 여러 개 가지도록 만들어야 한다. 이를 위해 우리 모델을 수정해야 한다.
 
@@ -868,7 +873,7 @@ userRotuer.get("/:id", see);
 ...
 export const see = (req, res) => {
     const { id } = req.params;
-    cosnt user = User.findByIn(id);
+    cosnt user = User.findById(id);
     if(!user) {
         return res.status(404).render("404", { pageTitle: "User not found." });
     }
@@ -880,9 +885,9 @@ export const see = (req, res) => {
 
 ```
 // profile.pug
-extends base
+extends ../base
 
-block contetn
+block content
     h1 hello
 ```
 
@@ -891,7 +896,7 @@ block contetn
 ### 8.11 Video Owner
 우리는 이번에 비디오와 사용자를 연결하는 일을 해보겠다. 연결을 위해 사용하는 것은 물론 _id다. _id는 서로 달라서 하나 뿐인데다가, 랜덤한 숫자라 비디오나 사용자를 구분하기 가장 좋기 때문이다. user에는 user가 업로드한 video의 id를 저장하고, video에는 영상을 올린 user의 id를 적어준다.
 
-먼저 videoSchema에 owner를 추가해주겠다. 그런데 스키마를 수정할 때, owner의 타입이 문제가 된다. ObjectId라는 타입은 자바스크립트에 없기 때문이다. 그래서 타입은 mongoose.Schema.Types.ObjectId를 사용해줘야 하는데, 이는 몽구스에서 사용하는 타입으로 DB의 다른 데이터의 Id를 가져올 때는 이를 사용한다고 기억하자. 다음으로 id를 가져오더라도 어떤 자료에서 가져와야 할지 모른다. 예를 들어 우리가 20개 정도의 모델이 있다고 하면, 타입만으로는 id를 가져올 수 없다. 그러므로 어떤 모델에서 가져오는지 추가하는 ref라는 속성이 있다. 여기에 가져오고 싶은 모델의 이름을 적어주면 된다. 최종적으로 코드는 아래처럼 된다.
+먼저 videoSchema에 owner를 추가해주겠다. 그런데 스키마를 수정할 때, owner의 타입이 문제가 된다. 우리가 사용하고 싶은 기능은 [populate()](https://mongoosejs.com/docs/populate.html)라는 기능인데, 이를 사용하기 위해서는 Schema.Types.ObjectId라는 타입을 사용해야 한다. 그런데 ObjectId라는 타입은 자바스크립트에 없다. 그래서 타입은 mongoose.Schema.Types.ObjectId를 사용해줘야 하는데, 이는 몽구스에서 사용하는 타입으로 DB의 다른 데이터의 Id를 가져올 때는 이를 사용한다고 기억하자. 다음으로 id를 가져오더라도 어떤 자료에서 가져와야 할지 모른다. 예를 들어 우리가 20개 정도의 모델이 있다고 하면, 타입만으로는 id를 가져올 수 없다. 그러므로 어떤 모델에서 가져오는지 추가하는 ref라는 속성이 있다. 여기에 가져오고 싶은 모델의 이름을 적어주면 된다. 최종적으로 코드는 아래처럼 된다.
 
 ```
 // Video.js
@@ -901,7 +906,7 @@ const videoSchema = new mongoose.Schema({
 });
 ```
 
-다음으로 비디오를 업로드할 때, 사용자 id를 모델에 넣어줘야 한다. 그러므로 userController.js에서 postUpload에 사용자 _if를 추가하는 코드를 만들었다.
+다음으로 비디오를 업로드할 때, 사용자 id를 모델에 넣어줘야 한다. 그러므로 userController.js에서 postUpload에 사용자 _id를 추가하는 코드를 만들었다.
 
 ```
 // videoController.js
@@ -953,7 +958,7 @@ block content
     ...
     div
         small Uploaded by #{owner.name}
-    if String(video.owner) === String(loggedInUser._id)
+    if String(owner._id) === String(loggedInUser._id)
         a(href=`${video.id}/edit`) Edit Video &rarr;
         br
         a(href=`${video.id}/delete`) Delete Video &rarr;
@@ -1084,9 +1089,14 @@ export const see = async (req, res) => {
 
 ```
 // profile.pug
+extends ../base
+include ../mixins/video
+
 block content
     each video in user.videos
-        ...
+        +video(video)
+    else
+        li Sorry nothing found.
 ```
 
 여기까지 하면 드디어 사용자와 비디오를 모두 연결하는데 성공했다. 하지만 아직 문제가 남아 있다. 우리는 비디오 페이지에서 소유자가 아니면 Edit, Delete 링크를 보이지 않게 만들었다. 그렇지만 아직도 url 자체로 들어가서 수정, 삭제가 가능하다. 당연히도 소유자가 아니면 수정, 삭제 할 수 없도록 만들어야 한다.
