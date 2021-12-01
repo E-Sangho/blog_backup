@@ -62,7 +62,7 @@ module.exports = {
 };
 ```
 
-이제 코드를 실행시켜서 어떤 변화가 생겼는지 보자. 코드를 실행하기 전에는 없던, assets 폴더가 생긴 것을 볼 수 있다. 그리고 콘솔을 보면 `The 'mode' option has not been set`이란 에러가 나온다. 이는 나중에 확인하기로 하고, 다시 assets 폴더를 보면, js 폴더와 main.js 파일이 생겼다. 그리고 내용을 보면 Webpack이 코드를 전환시켜 브라우저도 이해하도록 만들어 놓았다.
+이제 코드를 실행시켜서 어떤 변화가 생겼는지 보자. 코드를 실행하기 전에는 없던, assets 폴더가 생긴 것을 볼 수 있다. 그리고 콘솔을 보면 `The 'mode' option has not been set`이란 에러가 나온다. 이는 나중에 확인하기로 하고, 다시 assets 폴더를 보면, js 폴더와 main.js 파일이 생겼다. 그리고 내용을 보면 Webpack이 코드를 전환시켜 브라우저도 이해하도록 만들어 놓았다. 현재는 별다른 처리를 하지 않았기 때문에 단순히 압축한 코드만 적혀있다.
 
 우리는 백엔드의 자바스크립트를 Babel로 처리했었다. 마찬가지로 프론트엔드에서도 Babel로 처리할 수 있다. 이는 package.json에서는 불가능하고 webpack.config.js에서 해야 한다. 그러기 위해 rules를 사용하는데, rules는 각 파일의 종류에 따라 어떤 전환을 할지 결정하는 것이다. 예를 들어서 css 파일을 변환시키는 방법은 아래와 같다.
 
@@ -130,7 +130,7 @@ module.exports = {
 그리고 다시 `npm run assets`를 실행하고 main.js를 보면 좀 더 보기 쉽게 바뀌었다. 개발중에는 mode를 development로 유지하고 완료되면 production으로 바꿔주면 된다.
 
 ### 9.3 Webpack Configuration part Three
-client 폴더는 우리가 코드를 작성할 폴더고, assets는 브라우저가 읽어낼 파일이 있는 폴더다. 그런데 Express에게는 assets 폴더나, main.js 파일이 존재하는지 모른다. 그러므로 Express에서 저 폴더들을 읽을 수 있게 만들어줘야 한다. 이전에 이와 동일한 일을 uploads 폴더에 진행했었는데, server.js에서 고쳐줬었다. server.js로 이동해서 `app.user("/static", express.static("assets"));`로 assets 폴더를 사용할 수 있게 설정한다. 여기서 /assets이 아니라 /static을 사용하는데, 이유는 모르지만 /assets는 경로에 적으면 브라우저가 이상하게 인식한다. 그러므로 /static을 사용하자.
+client 폴더는 우리가 코드를 작성할 폴더고, assets는 브라우저가 읽어낼 파일이 있는 폴더다. 그런데 Express에게는 assets 폴더나, main.js 파일이 존재하는지 모른다. 그러므로 Express에서 저 폴더들을 읽을 수 있게 만들어줘야 한다. 이전에 이와 동일한 일을 uploads 폴더에 진행했었는데, server.js에서 고쳐줬었다. server.js로 이동해서 `app.use("/assets", express.static("assets"));`로 assets 폴더를 사용할 수 있게 설정한다. 
 
 ```
 server.js
@@ -141,7 +141,7 @@ app.use("/static", express.static("assets"));
 app.use("/", rootRouter);
 ...
 ```
-이제 clint 폴더의 main.js로 이동해서 코드를 `alert("hi")`로 고쳐보자. 그리고 `npm run assets`로 코드를 만든다. 다음으로 이 코드가 실행되도록, base.pug로 이동해서 제일 아래에 `script(src="/static/js/main.js")`를 입력하자. 그리고 서버를 실행해서 화면에 들어가면 코드가 실행되는 것을 볼 수 있다.
+이제 clint 폴더의 main.js로 이동해서 코드를 `alert("hi")`로 고쳐보자. 그리고 `npm run assets`로 코드를 만든다. 다음으로 이 코드가 실행되도록, base.pug로 이동해서 제일 아래에 `script(src="/assets/js/main.js")`를 입력하자. 그리고 서버를 실행해서 화면에 들어가면 코드가 실행되는 것을 볼 수 있다.
 
 ```
 // base.pug
@@ -162,23 +162,23 @@ app.use("/", rootRouter);
 module.exports = {
     module: {
         rules: [
-        {
-            ...
-        },
-        {
-            test: /\.scss$/,
-            use: ["style-loader", "css-loader", "sass-loader"],
-        },
+            {
+                ...
+            },
+            {
+                test: /\.scss$/,
+                use: ["style-loader", "css-loader", "sass-loader"],
+            },
         ],
     },
 };
 ```
 
-css가 잘 적용되는지 보기 위해 간단히 파일을 만든다. client 폴더 안에 scss라는 폴더를 만들고, 그 안에 style.scss, _variables.sess 파일을 만들어준다. 그리고 다음처럼 만든다.
+css가 잘 적용되는지 보기 위해 간단히 파일을 만든다. client 폴더 안에 scss라는 폴더를 만들고, 그 안에 style.scss, _variables.scss 파일을 만들어준다. 그리고 다음처럼 만든다.
 
 ```
-@import "./_variables";
 // style.scss
+@import "./_variables.scss";
 body {
     background-color: $red;
     color: white;
@@ -319,7 +319,7 @@ doctype html
 html(lang="ko")
     head
         ...
-        link(rel="stylesheet" href="/static/css/style.css")
+        link(rel="stylesheet" href="/assets/css/style.css")
     ...
 ```
 
@@ -355,7 +355,7 @@ nodemon은 다행히도 설정 파일을 지원한다. nodemon.json 파일에 �
 ```
 // nodemon.json
 {
-    "ignore": ["webpack.config.js", "src/client/*", "assets/*],
+    "ignore": ["webpack.config.js", "src/client/*", "assets/*"],
     "exec": "babel-node src/init.js"
 
 }
@@ -376,7 +376,7 @@ nodemon은 다행히도 설정 파일을 지원한다. nodemon.json 파일에 �
 
 이렇게 설정하고 webpack.config.js 파일을 저장하더라도 서버가 재시작되지 않는다.
 
-추가로 scripts의 "assets"도 수정해보자. `"assets": "webpack --config webpack.config.js"`에서 뒷 부분을 지워서 `"assets": "webpack",`로 만든 다음 다시 `npm run assets`로 webpack을 실행해보자. 신기하게도 코드가 그대로 동작한다. 이는 nodemon과 마찬가지로 webpack.config.js 역시 Webpack이 실행될 때, 기본적으로 찾는 설정 파일이기 때문이다. 추가적으로 명령어를 아래처럼 수정하고 끝을 내겠다.
+추가로 scripts의 "assets"도 수정해보자. `"assets": "webpack --config webpack.config.js"`에서 뒷 부분을 지워서 `"assets": "webpack"`로 만든 다음 다시 `npm run assets`로 webpack을 실행해보자. 신기하게도 코드가 그대로 동작한다. 이는 nodemon과 마찬가지로 webpack.config.js 역시 Webpack이 실행될 때, 기본적으로 찾는 설정 파일이기 때문이다. 추가적으로 명령어를 아래처럼 수정하고 끝을 내겠다.
 
 ```
 // package.json
