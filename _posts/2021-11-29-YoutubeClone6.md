@@ -18,6 +18,7 @@ base.pug의 MVP를 스타일은 이제 필요가 없으니 지워주자. 다음�
     head
         title #{pageTitle} | #{siteName}
         link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css")
+        link(rel="stylesheet", href="/assets/css/style.css")
         ...
 ```
 
@@ -26,7 +27,7 @@ base.pug의 MVP를 스타일은 이제 필요가 없으니 지워주자. 다음�
 ```
 // _variables.scss
 $red: #ff1300;
-$bg; #191919;
+$bg: #191919;
 ```
 
 다음으로 styles.scss를 간단하게 작성해보자. 그런데 Config 파일을 한데 모으고 싶으므로 config 폴더를 만들고 _variables 파일도 그 안으로 옮겨준다. 또 css를 초기화 시켜야 하니 _reset.scss를 config 안에 만들어준다.
@@ -111,95 +112,13 @@ table {
 
 이제 pug도 정렬해주자. partials 폴더 안에 header.pug 파일을 만들어서 이 안에 header 내용을 옮겨준다. 그리고 base.pug에는 include로 header.pug를 포함시켜준다.
 
-그리고 scss를 작성할 때, pug 파일과 동일한 이름을 가지도록 하는 것이 편하다. 예를 들어 header.pug라는 partials이 있으므로, header.scss라는 것을 component 안에 만들어서 관리하는 것이 편하다.
-
-scss에 관해서는 이미 설명한 것이 있으므로 생략하겠다.
-
-### 10.1 Styles part One
-
-이제부터 scss 파일을 만들텐데, vscode를 좌우로 나눠서 pug 파일을 보면서 하는 것이 편하다. 아래에는 scss 파일을과 pug 파일을 순서대로 적었다.
-
-```
-// styles.scss
-// styles.scss
-// Config
-@import "./config/_variables.scss";
-@import "./config/_reset.scss";
-
-// Components
-@import "./components/header.scss";
-@import "./components/footer.scss";
-@import "./components/video.scss";
-@import "./components/shared.scss";
-
-// Screens
-@import "./screens/home.scss";
-
-// Defaults
-
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
-body {
-    font-family: -apple-system;
-    background-color: $bg;
-    color: white;
-}
-
-main {
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-    margin-top: 50px;
-}
-```
-
 ```
 // header.scss
-header {
-    padding: 20px 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    .header__logo {
-        color: $red;
-        font-size: 38px;
-    }
-    ul {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        li {
-            margin-left: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        i {
-            font-size: 16px;
-        }
-    }
-    .header__btn {
-        background-color: white;
-        color: $bg;
-        padding: 5px 10px;
-        border-radius: 5px;
-    }
-}
-```
-
-```
-// header.pug
 header
-    a(href="/").header__logo
+    a(href="/")
         i.fab.fa-youtube
     nav
         ul
-            li
-                a(href="/search")
-                    i.fas.fa-search
             if loggedIn
                 li
                     a(href="/videos/upload") Upload Video
@@ -211,104 +130,39 @@ header
                     a(href="/users/logout")  Log Out
             else
                 li
-                    a(href="/login") Login                        
+                    a(href="/join")  Join
                 li
-                    a(href="/join").header__btn  Join
+                    a(href="/login")  Login                        
             li
                 a(href="/search") Search
 ```
 
-```
-// screens/home.scss
-.video-grid {
-    display: grid;
-    gap: 50px;
-    grid-template-rows: repeat(4, 1fr);
-}
-```
+그리고 scss를 작성할 때, pug 파일과 동일한 이름을 가지도록 하는 것이 편하다. 예를 들어 header.pug라는 partials이 있으므로, header.scss라는 것을 component 안에 만들어서 관리하는 것이 편하다.
 
-```
-// home.pug
-include mixins/video
+scss에 관해서는 이미 설명한 것이 있으므로 생략하겠다.
 
-block content
-    div.video-grid
-        each video in videos
-            +video(video)
-        else
-            span.empty__message No videos found
-```
+### 10.1 Styles part One
 
-```
-// footer.scss
-footer {
-    text-align: center;
-    font-size: 12px;
-    opacity: 0.8;
-    margin-top: 50px;
-}
-```
+#### fontawesome
+fontawesome을 사용할 때, 아이콘을 넣기 위해 찾아봐야 하는 경우가 많다. 이때, 아이콘을 직접 찾아보지 않아도 어느정도 유추할 수 있는 방법이 있다. [fontawesome Basie use](https://fontawesome.com/v5.15/how-to-use/on-the-web/referencing-icons/basic-use)를 보면 Style에 따라 Example이 적혀있다. 이를 보면 카메라 이미지를 가져올 때, 개략적인 형태가 `<i class="fas fa-camera"></i>` 형태이고 여기서 fas만 다른 것들로 바뀜을 볼 수 있다. 선택지는 각각 solid, regular, light, duotone, brands가 있다. 예를 들어 brands 아이콘을 사용하고 싶으면 `<i class="fab fa-font-awesome"></i>`가 된다.
 
-```
-// video.scss
-.video-mixin {
-    .video-mixin__thumb {
-        height: 140px;
-        border-radius: 50px;
-        width: 100%;
-        background-color: ivory;
-    }
-    .video-mixin__data {
-        padding: 0px 15px;
-        .video-mixin__title {
-            font-size: 16px;
-            display: block;
-            margin-top: 10px;
-        }
-    }
-    .video-mixin__meta {
-        margin-top: 5px;
-        font-size: 12px;
-    }
-}
-```
+그런데 pug에서 class 이름을 줄 때, 띄워쓰기는 어떻게 해야 할까? 이는 .을 쓰면 된다. .을 쓰면 뒤의 글자가 class에 추가되기 때문에 위의 경우 `i.fas.fa-camera`로 적어주면 `<i class="fas fa-camera"></i>`로 만들어주게 된다.
 
-```
-// video.pug
-mixin video(video)
-    a(href=`/videos/${video.id}`).video-mixin
-        div.video-mixin__thumb
-        div.video-mixin__data
-            span.video-mixin__title=video.title
-            div.video-mixin__meta
-                span #{video.owner.name} •
-                span #{video.meta.views} 회
-```
+#### grid-template-column: repeat(4, 1fr) vs repeat(4, minmax(0, 1fr))
+grid를 사용하다보면 폭을 줄였을 때, 각 grid가 폭에 맞춰서 줄어들기를 기대한다. 그런데 grid 크기가 컨텐츠 크기 까지만 줄어들어서, 가로폭 밖으로 컨텐츠가 나아는 경우가 생긴다. 이는 1fr과 minmax(0, 1fr)의 차이를 모르기 때문에 생기는 문제점이다.
 
-```
-// videoController.js
-export const search = async (req, res) => {
-    ...
-      title: {
-        $regex: new RegExp(`${keyword}$`, "i"),
-      },
-    }).populate("owner");
-  }
-}
-```
+1fr은 minmax(auto, 1fr)과 동일하다. 그렇기 때문에 가로폭을 줄여도 auto의 크기, 다시 말해 컨텐츠의 크기에 맞춰지게 된다. 그래서 컨텐츠 크기보다 줄어들 수 없게 되어서, container 안에 grid가 다 표현되지 못한다.
 
-```
-// shared.scss
-.empty__message {
-    margin-bottom: 50px;
-    font-size: 18px;
-}
-.video__grid {
-    display: grid;
-    gap: 50px;
-    grid-template-rows: repeat(4, repeat(0, 1fr));
-}
-```
+1fr 대신에 minmax(0, 1fr)을 사용하면 폭의 min이 auto가 아니라 0이 되기 때문에, grid가 container 밖으로 벗어나는 일이 없다. 그렇지만 grid 크기가 줄어들더라고 컨텐츠의 크기가 줄어들지는 않기 때문에, 내용이 겹쳐서 보이게 된다.
+
+결론은 1fr을 사용하면 컨텐츠가 겹치지 않고 오른쪽으로 밀려나게 되지만, minmax(0, 1fr)을 사용하면 모두 표현되는 대신에 컨텐츠가 겹치게 된다.
+
+#### button vs input(type="submit")
+
+#### all: unset;
+
+#### pug에서 여러 줄 입력하기
+|를 사용하면 여러 줄 입력할 수 있다.
 
 ### 10.2 Styles part Two
 ### 10.3 Styles Conclusions
