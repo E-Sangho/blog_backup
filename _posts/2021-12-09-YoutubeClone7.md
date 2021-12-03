@@ -90,11 +90,15 @@ block content
     div
         button#play Play
         button#mute Mute
+        input(type="range", step="0.1", value=0.5, min="0", max = "1")#volume
         div
             span#currentTime 00:00
             span  / 
             span#totalTime 00:00
-        input(type="range", step="0.1", value=0.5, min="0", max = "1")#volume
+        div
+            input(type="range", step="1", value=0, min="0")#timeline
+        div
+            button#fullscreen Enter Full Screen
 ```
 
 그런데 css 때문에 input이 지나치게 크게 나온다. 그래서 forms.scss도 조금 수정해줘야 한다.
@@ -223,8 +227,8 @@ const handleMute = (e) => {
     } else {
         video.muted = true;
     }
-    muteBtn.innerText = video.muted ? : "Unmute" : "Mute";
-    volumeRange.value = video.muted ? 0 : 0.5;
+    muteBtn.innerText = video.muted ? : "Mute" : "Unmute";
+    volumeRange.value = video.muted ? 0.5 : 0;
 };
 ```
 
@@ -299,14 +303,577 @@ const handleVolumeChange = (event) => {
 ```
 
 ### 11.4 Duration and Current Time
-[HTMLMediaElement](https://developer.mozilla.org/ko/docs/Web/API/HTMLMediaElement)를 확인하면 loadedmetadata가 있다. 이름 그대로 비디오의 메타 데이터가 로드 될 때, 실행되는 이벤트다. 이를 사용해 시간이 바뀔때, 업데이트 하는 함수를 만들 수 있다.
+[HTMLMediaElement](https://developer.mozilla.org/ko/docs/Web/API/HTMLMediaElement)를 확인하면 loadedmetadata가 있다. 이름 그대로 비디오의 메타 데이터가 로드 될 때, 실행되는 이벤트다. addEventListener과 함께 사용하면 메타 데이터가 불러와질 때마다 함수가 작동되도록 할 수 있다. 다음으로 .duration은 미디어의 전체 길이를 초 단위로 double 값으로 반환한다. 이 둘을 같이 사용하면 페이지가 불러와질 때, 다시 말해 메타 데이터가 호출될 때, 미디어의 길이를 불러오게 된다. 코드로 작성하면 아래처럼 된다.
 
 ```
 // videoPlayer.js
 
-const handleLoadedMetadata (e) => {
-    
+const handleLoadedMetadata = (e) => {
+    totalTime.innerText = video.duration;
+};
+...
+video.addEventListener("loadedmetadata", handleLoadedMetadata);
+```
+
+그런데 앞서 말했듯이 .duration 속성은 double로 값을 반환한다. 그러므로 floor를 사용해서 초 단위로 만들어준다.
+
+```
+// videoPlayer.js
+
+const handleLoadedMetadata = (e) => {
+    totalTime.innerText = Math.floor(video.duration);
+};
+...
+video.addEventListener("loadedmetadata", handleLoadedMetadata);
+```
+
+다음으로 재생 시간을 만들어보자. 재생 시간은 비디오가 1초 재생될 때마다 업데이트 되어야 한다. 그리고 다른 시간을 눌렀을 때도 재생 시간이 바뀌어야 한다. 이벤트를 보면 timeupdate가 있는데, .currentTime 속성이 바뀔 때마다 실행된다. 여기서 .currentTime 속성은 현재 재생 시점을 double로 표현한 값으로, 앞의 .duration과 달리 재생 시점을 변경하는데도 사용할 수 있다. handleTimeUpdate 함수를 timeupdate 이벤트로 만들어주자.
+
+```
+// videoPlayer.js
+
+const handleLoadedMetadata = (e) => {
+    totalTime.innerText = Math.floor(video.duration);
 };
 
+const handleTimeUpdate = (e) => {
+    currentTime.innerText = Math.floor(video.currentTime);
+};
+...
 video.addEventListener("loadedmetadata", handleLoadedMetadata);
+video.addEventListener("timeupdate", handleTimeUpdate);
+```
+
+### 11.5 Time Formatting
+우리가 만든 비디오 시간은 단순히 숫자일 뿐, 시간을 표현하는 형태가 아니다. 그러므로 숫자를 시간을 표시하도록 형태를 바꿔줘야 한다. 예를 들어서 25를 00:00:25로 바꿔줘야 한다.
+
+우선 간단한 방법을 알아보자. Date()는 함수로 사용하면 현재 시간을 나타내고, new Date()로 사용하면 객체의 인스턴스를 만든다. 둘의 차이는 Date는 변수를 무시하고 무조건 현재 시간을 만든다면, new Date()는 변수를 받아서 1970년도부터 세는 시간을 만들어 준다. 둘의 차이를 확인하려면 아래 코드를 실행시켜보자.
+
+```
+console.log(Date());
+console.log(Date(2));
+console.log(new Date());
+console.log(new Date(2));
+```
+
+new Date()가 현재 시간을 출력하기 때문에 결국 Date() = new Date().toISOstring()이다. 그런데 만약 여기다가 우리 비디오의 시간을 넣어주게 되면 시간의 형태로 출력되게 된다. 예를 들어서 `new Date(25 * 1000).toISOstring()`은 '1970-01-01T00:00:25.000Z'을 결과값으로 내놓는다. 이는 string이므로 substr로 우리가 필요한 부분만 사용할 수 있다. 그러므로 `new Date(time * 1000).toISOstring().substr(11, 8)`을 쓰면 '00:00:25'의 형태의 시간을 얻을 수 있다. 이를 이용해 코드를 작성하면 아래와 같다.
+
+```
+// videoPlayer.js
+const formatTime = (seconds) =>
+    new Date(seconds * 1000).toISOstring().substr(11, 8);
+
+const handleLoadedMetadata = (e) => {
+    totalTime.innerText = formatTime(Math.floor(video.duration));
+};
+
+const handleTimeUpdate = (e) => {
+    currentTime.innerText = formatTime(Math.floor(video.currentTime));
+};
+...
+video.addEventListener("loadedmetadata", handleLoadedMetadata);
+video.addEventListener("timeupdate", handleTimeUpdate);
+```
+
+이는 굉장히 간단한 형태지만 24시간을 넘어가면 표현하지 못하는 문제가 생긴다. 이 경우는 입력받은 시간으로, hours, minutes, seconds를 구한 다음에 숫자가 10보다 작은지 아닌지 구해서 일일이 합쳐줘야 한다.
+
+```
+const secondsToTime = (seconds) => {
+    let remainedSeconds = Math.floor(seconds);
+    let hh = Math.floor(remainedSeconds / 3600);
+    remainedSeconds %= 3600;
+
+    let mm = Math.floor(remainedSeconds / 60);
+    remainedSeconds %= 60;
+
+    let ss = remainedSeconds;
+
+    if(hh < 10) hh = "0" + hh;
+    if(mm < 10) mm = "0" + mm;
+    if(ss < 10) ss = "0" + ss;
+
+    const result = hh + ":" + mm + ":" + ss;
+    return result;
+}
+```
+
+하지만 대부분 비디오 시간이 24시간을 넘어갈 일이 없으므로 위의 간단한 방법을 사용해도 큰 문제는 없다.
+
+### 11.6 Timeline
+다음으로 바를 움직이면 재생 시간을 바꿔주는 기능을 만들겠다. 앞서 만들었던 #timeline을 기억해보면 step="1", value=0, min="0"으로 설정했다. 여기서 max를 설정하지 않은 이유는 비디오의 길이를 모르기 때문이다. 그래서 우선은 비디오의 길이를 줘야 하는데, 이는 비디오가 불러와질 때 결정 되어야 한다. 그러므로 handelLoadedMetadata에 코드를 추가하면 된다.
+
+```
+// videoPlayer.js
+
+const timeline = document.getElementById("timeline");
+...
+const handleLoadedMetadata = () => {
+    totalTime.innerText = formatTime(Math.floor(video.duration));
+    timeline.max = Math.floor(video.duration);
+};
+```
+
+비디오의 현재 재생 시간이 바뀌면 바의 위치를 바꿔주려고 한다. 이 역시 앞서 했던 timeupdate 이벤트로 가능하다. 그래서 handleTimeUpdate에 바뀐 시간에 따라 바의 위치를 바꿔주는 코드를 추가한다.
+
+```
+// videoPlayer.js
+const handleTimeUpdate = () => {
+    ...
+    timeline.value = Math.floor(video.currentTime);
+};
+```
+
+이제 바를 움직이면 현재 재생 시간도 바뀌도록 만들어줘야 한다. 앞서 볼륨바를 만들 때, input 이벤트로 바가 움직일 때마다 음량이 바뀌도록 만들었다. 똑같은 일을 timeline에 해주면 된다.
+
+```
+// videoPlayer.js
+const handleTinelineChange = (event) => {
+    const {
+        target: { value }
+    } = event;
+    video.currentTime = value;
+};
+
+timeline.addEventListener("input", handleTimelineChange);
+```
+
+이렇게 우리가 직접 비디오 컨트롤러를 만들었다. 이제는 watch.pug의 비디오에 컨트롤러가 필요 없으므로 지워주자.
+
+```
+// watch.pug
+block content
+    video(src="/" + video.fileUrl)
+```
+
+### 11.7 Fullscreen
+풀스크린을 만드는 버튼을 만들어보자. 풀스크린을 적용하는 법은 간단하다. element.requestFullscreen()을 사용하면 된다.
+
+```
+// videoPlayer.js
+const fullScreenBtn = document.getElementById("fullscreen");
+
+const handleFullscreen = () => {
+    video.requestFullscreen();
+};
+
+fullScreenBtn.addEventListener("click", handleFullscreen);
+```
+
+그런데 이렇게하면 문제가 생긴다. 비디오만 풀 스크린이 되고 우리가 만든 버튼은 나오지 않는다. 그러므로 pug 파일을 수정해줘야 한다. 지금까지 만든 비디오와 버튼을 모두 #videoContainer에 넣어준다.
+
+```
+// watch.pug
+extends base
+
+block content
+    div#videoContainer
+        video(src="/" + video.fileUrl)
+        div
+            button#play Play
+            button#mute Mute
+            input(type="range",step="0.1", value=0.5, min="0", max="1")#volume
+            div
+                span#currenTime 00:00
+                span  / 
+                span#totalTime 00:00
+            div
+                input(type="range",step="1", value="0", min="0")#timeline
+            div
+                button#fullScreen Enter Full Screen
+    //-
+        div
+            p=video.description
+            small=video.createdAt
+        div
+            small Uploaded by 
+                a(href=`/users/${video.owner._id}`)=video.owner.name
+        if String(video.owner._id) === String(loggedInUser._id)
+            a(href=`${video.id}/edit`) Edit Video &rarr;
+            br
+            a(href=`${video.id}/delete`) Delete Video &rarr;
+block scripts
+    script(src="/static/js/videoPlayer.js") 
+```
+
+이렇게하면 videoContainer를 풀스크린으로 만들면 모든 것이 같이 보인다. 물론 아무런 스타일이 없어서, 빈 공간이 생기긴 하지만 나중에 바꿔주면 된다.
+
+```
+// videoPlayer.js
+const fullScreenBtn = document.getElementById("fullscreen");
+const videoContainer = document.getElementById("videoContainer")
+
+const handleFullscreen = () => {
+    videoContainer.requestFullscreen();
+};
+
+fullScreenBtn.addEventListener("click", handleFullscreen);
+```
+
+이제 풀스크린을 나가는 버튼만 만들어주면 된다. 버튼을 눌렀을 때, 글자를 바꿔주고 버튼을 누르면 풀스크린이 끝나게 해줘야 한다. 그러러면 풀스크린인지 아닌지 확인하는 과정이 필요하다. document.fullscreenElement를 사용하면 풀스크린이 없을 경우 null을 반환하고 있다면 해당 html을 반환한다. 이를 이용해서 만들면 된다.
+
+```
+// videoPlayer.js
+const fullScreenBtn = document.getElementById("fullscreen");
+const videoContainer = document.getElementById("videoContainer")
+
+const handleFullscreen = () => {
+    const fullscreen = document.fullscreenElement;
+    if (fullscreen) {
+        document.exitFullscreen();
+        fullScreenBtn.innerText = "Enter Fullscreen"
+    } else {
+        videoContainer.requestFullscreen();
+        fullScreenBtn.innerText = "Exit Fullscreen"
+    }
+};
+
+fullScreenBtn.addEventListener("click", handleFullscreen);
+```
+
+하지만 esc키를 눌러서 나갈 경우는 아직 해결되지 않았다.
+
+### 11.8 Controls Events part One
+마우스가 움직이면 컨트롤러가 보이도록 만들어주고 싶다. mousemove 이벤트를 사용하면 마우스의 움직일 경우 함수를 실행시킬 수 있다. 그리고 컨트롤러를 자바스크립트에서 사용하기 위해서 #videoControls를 지정해줬다. 이제 마우스가 움직이면 videoControls에 showing class가 추가되도록 만들겠다. 나중에 css에서 showing에 따라 보이도록 만들어주면 되기 때문이다.
+
+```
+//watch.pug
+block content
+    div#videoContainer
+        ...
+        div#videoControls
+            ...
+```
+
+```
+// videoPlayer.js
+const videoControls = document.getElementById("videoControls");
+
+const handleMouseMove = () => {
+    videoControls.classList.add("showing");
+};
+
+const video.addEventListener("mousemove", handleMouseMove);
+```
+
+이번에는 마우스가 비디오 밖으로 나갈 경우, showing 클래스가 없어지도록 만들어준다.
+
+```
+// videoPlayer.js
+const videoControls = document.getElementById("videoControls");
+
+const handleMouseMove = () => {
+    videoControls.classList.add("showing");
+};
+
+const handleMouseLeave = () => {
+    videoControls.classList.remove("showing");
+};
+
+const video.addEventListener("mousemove", handleMouseMove);
+const video.addEventListener("mouseleave", handelMouseLeave);
+```
+
+그런데 마우스가 나가더라도 바로 컨트롤러가 없어지지 않는 경우가 있다. 이를 구현하기 위해선 setTimeout()을 사용한다.
+
+```
+// videoPlayer.js
+const handleMouseLeave = () => {
+    setTimeout(() => {
+        videoControls.classList.remove("showing");
+    }, 3000);
+};
+```
+
+그런데 마우스가 밖으로 나갔다가 다시 들어올 경우, 컨트롤러가 유지되지 않고 3초 후에 사라지게 된다. 이는 setTimeout이 무조건 3초후에 실행되기 때문에 생기는 문제로, 컨트롤러가 다시 들어오면 timeout이 취소되도록 만들어줘야 한다. clearTimeout()을 사용하면 timeout이 작동하지 않도록 만들 수 있는데, 대상을 지정해줘야 한다. 예를 들어서 아래처럼 하면 id로 대상을 지정할 수 있다.
+
+```
+// videoPlayer.js
+const handleMouseLeave = () => {
+    const id = setTimeout(() => {
+        videoControls.classList.remove("showing");
+    }, 3000);
+    clearTimeout(id);
+};
+```
+
+문제는 이 clearTimeout이 handleMouseLeave가 아니라 handleMouseMove에서 실행되어야 한다는 것이다. 그런데 id는 handleMouseLeave 안에서 선언되면 밖에서 사용할 수 없으므로, 밖에서 global로 선언해줘야 한다. 그리고 그 id로 handleMouseMove 안에 clearTimeout()을 사용한다.
+
+```
+// videoPlayer.js
+let controlsTimeout = null;
+
+const handleMouseMove = () => {
+    if(controlsTimeout) {
+        clearTimeout(controlsTimeout);
+        controlsTimeout = null;
+    }
+    videoControls.classList.add("showing");
+};
+
+const handleMouseLeave = () => {
+    controlsTimeout = setTimeout(() => {
+        videoControls.classList.remove("showing");
+    }, 3000);
+};
+```
+
+### 11.9 Controls Events part Two
+마우스가 움직이면 컨트롤러가 보이게 만들어줬다. 그런데 마우스를 멈출 경우 시간이 조금 지나면 컨트롤러가 보이지 않도록 만들어야 한다. 아쉽게도 마우스가 정지함을 인식하는 이벤트는 없다. 그래서 setTimeout과 clearTimeout을 사용해야 한다. handleMouseMove에서 마우스가 움직이면 setTimeout과 clearTimeout이 실행되게 해준다. 그러다가 마우스가 멈추면 setTimeout이 실행되면 된다. 아래 코드에서 showing 클래스를 지우는 코드가 반복되어서 따로 hideControls 함수로 만들어서 작성했다.
+
+```
+// videoPlayer.js
+let controlsMovementTime = null;
+
+const hideControls = () => videoControls.classList.remove("showing");
+
+const handleMouseMove = () => {
+    if(controlsTimeout) {
+        clearTimeout(controlsTimeout);
+        controlsTimeout = null;
+    }
+    videoControls.classList.add("showing");
+    if(controlsMovementTime) {
+        clearTimeout(controlsMovementTimeout);
+        controlsMovementTime = null;
+    }
+    controlsMovementTime = setTimeout(hideControls, 3000);
+};
+
+const handleMouseLeave = () => {
+    controlsTimeout = setTimeout(hideControls, 3000);
+};
+```
+
+### 11.10 Recap
+
+### 11.11 Style Recap
+우리가 바꿔줘야 할 것은 텍스트로 된 것을 아이콘으로 바꿔주는 일이다. watch.pug에서 각각에 fontawesome으로 아이콘으로 바꿔준다. 그리고 videoPlayer.js에서 querySelector("i")로 해당 아이콘을 선택해준 다음, 텍스트를 바꾸는 대신에 아이콘을 바꿔줘야 한다. 이는 .classList를 바꿔주는 것으로 가능하다.
+
+그리고 현재 비디오 컨트롤러에 마우스를 오래 올려 놓으면 컨트롤러가 사라지는 버그가 있다. 이는 비디오에 마우스를 올리고 있을 경우에만 handleMouseMove, handleMouseLeave가 실행되기 때문에 생기는 문제점으로, video가 아니라 videoContainer에 이벤트를 주면 간단히 해결된다.
+
+그리고 이에 맞춰서 css를 업데이트 해줬다.
+
+아직 완성 못 한 것이 2가지 있다. 우선은 비디오를 누르면 비디오가 재생되고 멈추는 기능이 없다. 이는 video.addEventListener("click")으로 간단히 구현할 수 있다.
+
+다음으로 키를 누르면 비디오가 컨트롤되는 기능이 없다. 이는 [Keyboard Event](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)에서 찾을 수 있다. document.addEventListener('keydown', callback)으로 만들 수 있으니 확인해보자. 키가 여러개일 경우 switch로 해결할 수 있다.
+
+```
+// videoPlayer.js
+const video = document.querySelector("video");
+const playBtn = document.getElementById("play");
+const playBtnIcon = playBtn.querySelector("i");
+const muteBtn = document.getElementById("mute");
+const muteBtnIcon = muteBtn.querySelector("i");
+const volumeRange = document.getElementById("volume");
+const currenTime = document.getElementById("currenTime");
+const totalTime = document.getElementById("totalTime");
+const timeline = document.getElementById("timeline");
+const fullScreenBtn = document.getElementById("fullScreen");
+const fullScreenIcon = fullScreenBtn.querySelector("i");
+const videoContainer = document.getElementById("videoContainer");
+const videoControls = document.getElementById("videoControls");
+
+let controlsTimeout = null;
+let controlsMovementTimeout = null;
+let volumeValue = 0.5;
+video.volume = volumeValue;
+
+const handlePlayClick = (e) => {
+  if (video.paused) {
+    video.play();
+  } else {
+    video.pause();
+  }
+  playBtnIcon.classList = video.paused ? "fas fa-play" : "fas fa-pause";
+};
+
+const handleMuteClick = (e) => {
+  if (video.muted) {
+    video.muted = false;
+  } else {
+    video.muted = true;
+  }
+  muteBtnIcon.classList = video.muted
+    ? "fas fa-volume-mute"
+    : "fas fa-volume-up";
+  volumeRange.value = video.muted ? 0 : volumeValue;
+};
+
+const handleVolumeChange = (event) => {
+  const {
+    target: { value },
+  } = event;
+  if (video.muted) {
+    video.muted = false;
+    muteBtn.innerText = "Mute";
+  }
+  volumeValue = value;
+  video.volume = value;
+};
+
+const formatTime = (seconds) =>
+  new Date(seconds * 1000).toISOString().substr(14, 5);
+
+const handleLoadedMetadata = () => {
+  totalTime.innerText = formatTime(Math.floor(video.duration));
+  timeline.max = Math.floor(video.duration);
+};
+
+const handleTimeUpdate = () => {
+  currenTime.innerText = formatTime(Math.floor(video.currentTime));
+  timeline.value = Math.floor(video.currentTime);
+};
+
+const handleTimelineChange = (event) => {
+  const {
+    target: { value },
+  } = event;
+  video.currentTime = value;
+};
+
+const handleFullscreen = () => {
+  const fullscreen = document.fullscreenElement;
+  if (fullscreen) {
+    document.exitFullscreen();
+    fullScreenIcon.classList = "fas fa-expand";
+  } else {
+    videoContainer.requestFullscreen();
+    fullScreenIcon.classList = "fas fa-compress";
+  }
+};
+
+const hideControls = () => videoControls.classList.remove("showing");
+
+const handleMouseMove = () => {
+  if (controlsTimeout) {
+    clearTimeout(controlsTimeout);
+    controlsTimeout = null;
+  }
+  if (controlsMovementTimeout) {
+    clearTimeout(controlsMovementTimeout);
+    controlsMovementTimeout = null;
+  }
+  videoControls.classList.add("showing");
+  controlsMovementTimeout = setTimeout(hideControls, 3000);
+};
+
+const handleMouseLeave = () => {
+  controlsTimeout = setTimeout(hideControls, 3000);
+};
+
+playBtn.addEventListener("click", handlePlayClick);
+muteBtn.addEventListener("click", handleMuteClick);
+volumeRange.addEventListener("input", handleVolumeChange);
+video.addEventListener("loadeddata", handleLoadedMetadata);
+video.addEventListener("timeupdate", handleTimeUpdate);
+videoContainer.addEventListener("mousemove", handleMouseMove);
+videoContainer.addEventListener("mouseleave", handleMouseLeave);
+timeline.addEventListener("input", handleTimelineChange);
+fullScreenBtn.addEventListener("click", handleFullscreen);
+```
+
+```
+// client/scss/components/video-player.scss
+#videoContainer {
+  width: 100%;
+  position: relative;
+  video {
+    width: 100%;
+  }
+  .videoControls {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    &.showing {
+      opacity: 1;
+    }
+    align-items: center;
+    border-radius: 10px;
+    position: absolute;
+    bottom: 10px;
+    width: 95%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 4fr 1fr auto;
+    gap: 10px;
+    justify-content: space-between;
+    background-color: #0f1117;
+    padding: 10px;
+    left: 0;
+    box-sizing: border-box;
+    .videoControls__play {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      .videoControls__playBtn {
+        margin: 0px 15px;
+      }
+      .videoControls__time {
+        font-size: 12px;
+      }
+    }
+    .videoControls__volume {
+      display: flex;
+      align-items: center;
+      span {
+        margin-left: 10px;
+        i {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}
+```
+
+```
+style.scss
+// Components
+
+@import "./components/header.scss";
+@import "./components/footer.scss";
+@import "./components/video.scss";
+@import "./components/shared.scss";
+@import "./components/forms.scss";
+@import "./components/social-login.scss";
+@import "./components/video-player.scss";
+```
+
+```
+// watch.pug
+extends base
+
+block content
+    div#videoContainer
+        video(src="/" + video.fileUrl)
+        div#videoControls.videoControls
+            div.videoControls__play
+                span#play.videoControls__playBtn
+                    i.fas.fa-play
+                div.videoControls__time
+                    span#currenTime 00:00
+                    span  / 
+                    span#totalTime 00:00
+            input(type="range",step="1", value="0", min="0")#timeline.videoControls__timeline
+            div.videoControls__volume
+                input(type="range",step="0.1", value=0.5, min="0", max="1")#volume
+                span#mute
+                    i.fas.fa-volume-up
+            div
+                span#fullScreen
+                    i.fas.fa-expand
+    //-
+        div
+            p=video.description
+            small=video.createdAt
+        div
+            small Uploaded by 
+                a(href=`/users/${video.owner._id}`)=video.owner.name
+        if String(video.owner._id) === String(loggedInUser._id)
+            a(href=`${video.id}/edit`) Edit Video &rarr;
+            br
+            a(href=`${video.id}/delete`) Delete Video &rarr;
+block scripts
+    script(src="/static/js/videoPlayer.js") 
 ```
