@@ -532,6 +532,8 @@ fullScreenBtn.addEventListener("click", handleFullscreen);
 
 하지만 esc키를 눌러서 나갈 경우는 아직 해결되지 않았다.
 
+이를 해결하기 위해선 자바스크립트에서 키 입력을 받는 법을 알아야 한다. 키 입력을 받는 이벤트는 keypress, keydown, keyup인데 이중 keydown과 keyup은 키를 눌렀을 때 반응 할 것인지, 아니면 key를 누르고 들었을 때 반응할 것인지에 따라 갈린다. 그리고 keypress와 keydown은 키를 눌렀을 때 반응한다. 그런데 keypresse와 keydown은 비슷해 보이는 둘은 차이가 있다. 우선 keydown은 어떤 키든지 눌러지면 반응하게 된다. 예를 들어 a키를 눌렀을 때, 반응하게 하고 싶다고 하자. 그런데 keydown은 이를 A로 인식하고 받아들인다 정확히는 아스키 코드인 65로 인식한다. 반면 keypress는 a와 A를 다르게 인식해서 a를 97 그리고 A를 65로 인식한다. 하지만 keypress는 문제점이 있는데 글자로 표현되지 않는 키 입력은 읽지 않는다. 예를 들어서 ctrl, alt, esc, shift 등은 keypress에서 인식할 수 없다. keydown은 어떤 키든지 간에 아스키코드로 인식하기 때문에 키 입력을 사용할 때 무조건 keydown을 사용하면 된다.
+
 ### 11.8 Controls Events part One
 마우스가 움직이면 컨트롤러가 보이도록 만들어주고 싶다. mousemove 이벤트를 사용하면 마우스의 움직일 경우 함수를 실행시킬 수 있다. 그리고 컨트롤러를 자바스크립트에서 사용하기 위해서 #videoControls를 지정해줬다. 이제 마우스가 움직이면 videoControls에 showing class가 추가되도록 만들겠다. 나중에 css에서 showing에 따라 보이도록 만들어주면 되기 때문이다.
 
