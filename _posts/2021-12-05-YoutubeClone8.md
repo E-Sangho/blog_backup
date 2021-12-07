@@ -351,3 +351,34 @@ const handleDownload = () => {
 ```
 
 ### 13.5 Recap
+
+
+## 14 WEBASSEMBLY VIDEO TRANSCODE
+
+### 14.0 Introduction
+영상을 녹화하고 다눙로드해서 webm 파일로 다운로드하는 기능까지는 구현했다. 문제는 영상을 보면 움직이지도 않고, 시간도 없다. 그래서 FFmpeg를 사용해서 mp4로 변환하는 방법과, 썸네일을 만드는 방법을 알아보겠다.
+
+FFmpeg는 인코딩과 디코딩에서 거의 표준으로 사용되는 오픈 소스 프로젝트로, 우리가 아는 대부분의 비디오 관련 프로그램이 사용하고 있다. FFmpeg를 사용하려면 콘솔에서 ffmpeg로 사용할 수 있다. 이를 사용하면 유튜브 처럼 하나의 영상을 인코딩해서 여러 화질로 만들고, 사용자들이 화질을 선택할 수 있다. 문제는 비용이 너무 많이 든다는 점이다. 예를 들어 100개의 1GB 용량의 비디오를 인코딩하려면 이를 위한 메모리와, 연산 능력은 우리가 부담하기에 너무 비싸다. 
+
+이 문제를 해결할 방법이 WebAssembly다. 웹어셈블리는 프론트엔드에서 굉장히 빠른 코드를 실행시킨다. 물론 웹어셈블리를 직접 만들지는 않고, 대부분은 c, c++, RUST로 만들게 된다. 우리의 경우 웹어셈블리를 직접 만드는 것이 아니라 다른 사람이 만든 것을 이용한다.
+
+우리가 할 것은 [ffmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm)을 사용하는 것이다. `npm install @ffmpeg/ffmpeg @ffmpeg/core`로 ffmpeg.wasm을 설치해주자.
+
+### 14.1 Transcode Video
+
+### 14.2 Download Transcoded Video
+
+### 14.3 Thumbnail
+
+### 14.4 Recap
+
+### 14.5 Thumbnail Upload part One
+
+### 14.6 Thumbnail Upload part Two
+
+## 15 FLASH MEDDAGES
+
+### 15.0 Installation
+express-flash
+
+### 15.1 Sending Messages
