@@ -1,12 +1,14 @@
 ---
 layout: post
 title: Youtube Clone4
-date:Sat Nov 13 14:34:30 JST 2021
+date: Sat Nov 13 14:34:30 JST 2021
 categories: NodeJs Clone
 tag: NodeJs Clone
 toc: true
 ---
+
 ### 8.0 Edit Profile GET
+
 로그인 했을 때, 프로필을 바꾸는 페이지를 만들어보겠다. userRouter.js에서 /edit 라우터를 수정해서 GET, POST에 맞는 컨트롤러를 만든다.
 
 ```
@@ -76,6 +78,7 @@ export const localsMiddleware = (req, res, next) => {
 이렇게하면 req.session이 비어있는 경우 {}로 사용하고 아닐 경우 그대로 사용하므로 아무런 문제 없다. 주의할 것은 a || b 가 a를 먼저 실행하고 a가 false인 경우에만 b를 실행한다는 것이다. 그러므로 순서를 바꿔서 {} || req.session.user로 적어주면, loggedInUser이 항상 비게 되므로 순서를 바꿔서는 안 된다.
 
 ### 8.1 Protector and Public Middlewares
+
 우리는 이전에 주소를 통한 페이지 이전으로 생기는, 프로필 수정 페이지의 오류를 해결해줬다. 그런데 이는 여기서만 해당되는 이야기가 아니다. 로그인한 경우에 로그인 페이지 링크가 보이지 않게 만들었지만, 사용자가 직접 입력할 경우 접속할 수 있다. 로그아웃한 경우에도 로그아웃 페이지에 접속할 수 있고, 프로필 수정 페이지에 접근할 수 있다. 이처럼 현재 로그인 여부와 상관 없이 페이지를 오갈 수 있다는 문제가 있다.
 
 이번에는 이를 수정하기 위해 미들웨어를 만들어주겠다. 사용할 미들웨어는 2가지로 protectorMiddleware, publicOnlyMiddleware다. 우선 protectorMiddleware는 사용자가 로그인 한 경우 그대로 통과하고, 로그인 하지 않은 경우는 로그인 페이지로 보내준다. publicOnlyMiddleware는 로그인하지 않은 경우 통과하고, 로그인 한 경우 홈으로 보내준다.
@@ -137,6 +140,7 @@ userRouter.get("/github/finish", publicOnlyMiddleware, finishGithubLogin);
 ```
 
 ### 8.2 Edit Profile Post part One
+
 비디오 컨트롤러도 보호해줘야 한다. 비디오를 edit, delete, upload는 로그인 한 경우에만 가능해야 한다. 그러므로 videoRouter.js로 이동해서 아래처럼 protectorMiddleware를 추가해주자.
 
 ```
@@ -190,7 +194,7 @@ export const postEdit = (req, res) => {
 }
 ```
 
-그리고 받아온 정보를 가지고 업데이트를 해줘야 한다. 그렇게 하려면 findByIdAndUpdate()를 사용하면 된다. 여기서 우리는 id가 필요한데, 이는 req.session.user._id에 있다. 그러므로 우선은 _id를 받아와야 한다. `const _id = req.session.user._id;`로 적어줘도 _id를 받아올 수 있지만 아래 방법이 더 효과적이다.
+그리고 받아온 정보를 가지고 업데이트를 해줘야 한다. 그렇게 하려면 findByIdAndUpdate()를 사용하면 된다. 여기서 우리는 id가 필요한데, 이는 req.session.user.\_id에 있다. 그러므로 우선은 \_id를 받아와야 한다. `const _id = req.session.user._id;`로 적어줘도 \_id를 받아올 수 있지만 아래 방법이 더 효과적이다.
 
 ```
 const {
@@ -200,7 +204,7 @@ const {
 } = req;
 ```
 
-왜 이 방식이 더 효과적인가 하면 한 번에 여러 곳에서 정보를 받아올 수 있기 때문이다. 우리의 경우 req.session.user._id를 받아옴과 동시에, req.body에서 name, email, username, location을 받아오고 있다. 아래 방식을 사용하면 이를 동시에 가져올 수 있고, 코드를 작성하기 더 편해진다.
+왜 이 방식이 더 효과적인가 하면 한 번에 여러 곳에서 정보를 받아올 수 있기 때문이다. 우리의 경우 req.session.user.\_id를 받아옴과 동시에, req.body에서 name, email, username, location을 받아오고 있다. 아래 방식을 사용하면 이를 동시에 가져올 수 있고, 코드를 작성하기 더 편해진다.
 
 ```
 const {
@@ -211,7 +215,7 @@ const {
 } = req;
 ```
 
-이제 이렇게 찾은 정보들로 데이터를 업데이트 해보자. 정보를 찾고 업데이트 하기위해선 `findByIdAndUpdate(_id, [update] [,options])`를 사용하면 된다. 여기서 _id에 _id를 넣어주고, update에 변경하고 싶은 내용을 적어주면 된다. 
+이제 이렇게 찾은 정보들로 데이터를 업데이트 해보자. 정보를 찾고 업데이트 하기위해선 `findByIdAndUpdate(_id, [update] [,options])`를 사용하면 된다. 여기서 \_id에 \_id를 넣어주고, update에 변경하고 싶은 내용을 적어주면 된다.
 findByIdAndUpdate로 새로 받아온 자료로 업데이트 해주자.
 
 ```
@@ -243,13 +247,14 @@ export const postEdit = async (req, res) => {
 5. 세션 미들웨어가 종료된다.
 6. request 객체에 세션 정보가 추가되었으므로, 이후 익스프레스에서 일어나는 과정에서 세션을 사용할 수 있게 된다.
 
-우리가 지금까지 req.session을 사용할 수 있었던 이유가, 세션 미들웨어가 실행되면서 DB에 있던 세션 객체가 request에 추가되었기 때문이다. 그리고 우리는 위에서 이 세션 정보에서 _id를 찾아와서 DB를 수정해주었을 뿐이다.
+우리가 지금까지 req.session을 사용할 수 있었던 이유가, 세션 미들웨어가 실행되면서 DB에 있던 세션 객체가 request에 추가되었기 때문이다. 그리고 우리는 위에서 이 세션 정보에서 \_id를 찾아와서 DB를 수정해주었을 뿐이다.
 
 다시 돌아가서 view를 보면 locals의 자료를 우리에게 보여준다. 이 locals이 나온 곳은, middlewares.js의 localMiddleware에서 session을 locals에 넣어주고 있다. 그리고 세션은 로그인 할 때, `req.session.loggedIn = true`와 `req.session.user = user`을 추가해서 만들어준 것이다. 여기서 세션은 DB와 별개의 것으로 우리는 세션을 업데이트 해줬을 뿐이다. 그래서 우리의 DB에는 loggedIn 같은 속성이 생기지 않는 것이다.
 
 우리가 상요한 findByIdAndUpdate는 DB를 업데이트 하는 함수다. 그래서 DB는 업데이트 되었지만, 세션을 바꿔주는 것이 아니라 세션은 그대로인 것이다. 그래서 우리에게 보이는 페이지는 이전의 세션을 그대로 보여주고 아무런 변화가 없는 것이다.
 
 ### 8.3 Edit Profile Post part Two
+
 우리는 DB를 업데이트 해줬지만, 페이지에 아무런 변화도 없었다. 이는 프론트엔트는 session으로부터 정보를 얻기 때문이다. 여기서 session은 로그인 할 때만 사용되고 있는데, 결국 사용자가 로그인 한 경우에만 바뀐다. 그래서 DB를 업데이트 해도 session이 바뀌질 않는다. 이를 해결하는 방법은 2가지가 있다.
 
 첫 번째, session에 직접 넣어주는 것이다. 앞서 DB를 업데이트 한 postEdit에서 `res.session.user = {name, email, username, locaion}`으로 직접 업데이트 해주는 것이다. 그런데 session은 저 외에도 다양한 정보를 담고 있다. 위와 같이 작성하면 저 이외의 정보는 없어지게 될 것이다. 그러므로 나머지 정보도 넣어줘야 한다. 이는 `...req.session.user`를 사용하면 된다. 여기서 ...은 안의 내용을 밖으로 꺼내준다는 의미로, req.session.user 안의 내용을 {}을 제거하고 꺼내준다는 뜻이다. 그러므로 아래처럼 작성하면 session의 내용을 모두 꺼내주고, name, email, username, location을 덮어써준다.
@@ -267,7 +272,7 @@ export const postEdit = async (req, res) => {
     return res.redirect("/user/edit");
 ```
 
-두 번째, findByIdAndUpdate를 이용하는 것이다. `findByIdAndUpdate(_id, [update], [options]))`는 찾으려는 _id, 업데이트할 내용, 옵션 순서로 패러미터를 넣는다. 그리고 findByIdAndUpdate는 변경한 데이터를 반환한다. 그런데 findByIdAndUpdate의 중요한 점은 반환하는 것이 업데이트 이전의 데이터라는 점이다. 우리는 업데이트 이후의 데이터가 필요하다. 이 경우 options에 returnDocument="after"로 설정하면 업데이트 이후의 데이터가 나온다. 그러므로 업데이트 한 내용을 반환 받아서 바로 req.session.user에 넣어주면 된다.
+두 번째, findByIdAndUpdate를 이용하는 것이다. `findByIdAndUpdate(_id, [update], [options]))`는 찾으려는 \_id, 업데이트할 내용, 옵션 순서로 패러미터를 넣는다. 그리고 findByIdAndUpdate는 변경한 데이터를 반환한다. 그런데 findByIdAndUpdate의 중요한 점은 반환하는 것이 업데이트 이전의 데이터라는 점이다. 우리는 업데이트 이후의 데이터가 필요하다. 이 경우 options에 returnDocument="after"로 설정하면 업데이트 이후의 데이터가 나온다. 그러므로 업데이트 한 내용을 반환 받아서 바로 req.session.user에 넣어주면 된다.
 
 ```
 // userController.js
@@ -289,7 +294,7 @@ export const postEdit = async (req, res) => {
 
 마지막으로 username과 email을 업데이트 할 때, 중복되는 값이 있는지 검사해야 한다. 이는 exists를 쓰면 존재 여부는 쉽게 알 수 있다. 우리는 이전에도 `const exists = await User.exitsts({ $or: [{ username }, { email }] });`로 username과 email이 있는지 확인했었다. 그런데 어떻게 사용자가 내용을 업데이트 하려는지 확인할 수 있을까? 만약 사용자가 아무것도 수정하지 않고 그대로 업데이트를 누르면, 이미 존재하는 사용자이므로 값을 업데이트 하지 않게 된다. 그러므로 우리는 사용자가 username이나 email을 변경시켰는지를 알아봐야 한다.
 
-이를 위해서 _id로 사용자를 찾아주고, 사용자의 username, email과 입력받은 username, email에 차이가 있는지를 확인하고, 차이가 없다면 업데이트를 해줘야 한다. 먼저 `const findedUser = await User.findById({_id});`로 _id를 사용해서 사용차를 찾아준다. 그 후 email을 비교해서 서로 다르다면, 바꾸려는 email을 검색해서 존재하는지 확인해줘야 한다. 이는 `const findEmail = await User.findOne({ email });`로 가능하다. 그 후에 둘의 _id를 비교해서 다르다면 바꾸려는 이메일을 쓰는 사용자가 있다는 의미이므로 허용해서는 안 된다. 이때, 바꾸려는 이메일을 쓰는 사용자가 없을 수도 있기 때문에, findEmail이 null인지 확인해줘야 한다. 동일한 과정을 username에 적용하고, 이 둘을 통과했다면 username과 email을 변경해준다. 아래는 이를 코드로 적은 것이다.
+이를 위해서 \_id로 사용자를 찾아주고, 사용자의 username, email과 입력받은 username, email에 차이가 있는지를 확인하고, 차이가 없다면 업데이트를 해줘야 한다. 먼저 `const findedUser = await User.findById({_id});`로 \_id를 사용해서 사용차를 찾아준다. 그 후 email을 비교해서 서로 다르다면, 바꾸려는 email을 검색해서 존재하는지 확인해줘야 한다. 이는 `const findEmail = await User.findOne({ email });`로 가능하다. 그 후에 둘의 \_id를 비교해서 다르다면 바꾸려는 이메일을 쓰는 사용자가 있다는 의미이므로 허용해서는 안 된다. 이때, 바꾸려는 이메일을 쓰는 사용자가 없을 수도 있기 때문에, findEmail이 null인지 확인해줘야 한다. 동일한 과정을 username에 적용하고, 이 둘을 통과했다면 username과 email을 변경해준다. 아래는 이를 코드로 적은 것이다.
 
 ```
 export const postEdit = async (req, res) => {
@@ -304,11 +309,11 @@ export const postEdit = async (req, res) => {
    * First, we need to find user by _id.
    */
   const findedUser = await User.findById({ _id });
-  // Next, we check findedUser.email and email are equal 
+  // Next, we check findedUser.email and email are equal
   if(findedUser.email !== email) {
     // If they are different, find the owner of email
     const findEmail = await User.findOne({ email });
-    // findEmail can be null, so we need to check it 
+    // findEmail can be null, so we need to check it
     // and identify they have same _id
     if(findEmail !== null && findedUser._id !== findEmail._id) {
         // If _id are different, it means that the users are different
@@ -323,7 +328,7 @@ export const postEdit = async (req, res) => {
       console.log("This username already exists");
       return res.redirect("/users/edit");
     }
-  } 
+  }
   const updatedUser = await User.findByIdAndUpdate(
     _id,
     {
@@ -334,12 +339,15 @@ export const postEdit = async (req, res) => {
     },
     { returnDocument: "after" }
   );
-  req.session.user = updatedUser; 
+  req.session.user = updatedUser;
   return res.redirect("/users/edit");
 };
 ```
+
 ### 8.4 Change Password part One
+
 비밀번호를 바꾸는 페이지를 만들어보겠다. edit-profile.pug에서 비밀번호를 바꿀 수 있는 페이지로 가는 링크를 만들어주겠다.
+
 ```
 // edit-profile.pug
 ...
@@ -434,11 +442,12 @@ block content
 ```
 
 ### 8.5 Change Password part Two
+
 현재 우리는 소셜 로그인한 정보가 DB에 남아 있으므로, 몽고의 데이터를 모두 지워주도록 한다. `mongo`로 접속한 `use wetube`로 wetube를 사용하는 데이터로 지정한다. 그 다음에 `db.sessions.remove({})`를 입력하면 세션 데이터를 모두 지울 수 있다. 같은 방법으로 `db.users.remove({})`로 사용자 정보도 모두 지워준다.
 
 그리고 새로 회원가입을 해 준 다음, edit-profile에 들어가면 소셜 로그인 때는 볼 수 없었던 Change Password를 볼 수 있다. 그런데 앞으로도 소셜 로그인과, 일반 로그인을 나눠야 하는 경우가 많을 수도 있다. 이 경우엔 소셜 로그인 한 경우와 아닌 경우를 나눠주는 미들웨어를 만들어주면 더욱 편할 것이다. 우리는 아직은 필요하지 않으므로 추가하지는 않겠다. 만약 만든다면 passwordOnly 같이 비밀번호가 있는 경우에만 사용할 수 있도록 하는 미들웨어를 추가하면 된다.
 
-다음으로 postChangePassword를 완성시켜야 한다. 우선은 form에서 보내주는 정보를 받아주고, 현재 로그인한 사용자가 누구인지를 알아내야 한다. _id는 req.session.user에 있고, form에서 보내준 정보는 req.body에 들어 있다. 이전에 postEdit에서 한 것처럼 작성하면 간단하게 데이터를 받아 온다.
+다음으로 postChangePassword를 완성시켜야 한다. 우선은 form에서 보내주는 정보를 받아주고, 현재 로그인한 사용자가 누구인지를 알아내야 한다. \_id는 req.session.user에 있고, form에서 보내준 정보는 req.body에 들어 있다. 이전에 postEdit에서 한 것처럼 작성하면 간단하게 데이터를 받아 온다.
 
 ```
 // userController.js
@@ -511,7 +520,7 @@ export const postChangePassword = async (req, res) => {
 };
 ```
 
-다음으로 모든 것이 일치한다면 비밀번호를 변경해줘야 한다. 이전에 우리는 User 스키마를 만들 때, pre로 저장하기 전에 해시함수로 암호화 하는 과정을 추가해줬다. 그러므로 우리가 `user.save();`만 사용하더라도 알아서 현재 비밀번호를 암호화 한다. 그런데 우리는 아직 사용자의 비밀번호를 바꿔주지 않았으므로, 비밀번호를 바꿔준 다음에 저장해야 한다. 그러므로 사용자를 _id로 찾아와서 password를 newPassword로 바꿔준 다음에 저장하도록 만들어준다.
+다음으로 모든 것이 일치한다면 비밀번호를 변경해줘야 한다. 이전에 우리는 User 스키마를 만들 때, pre로 저장하기 전에 해시함수로 암호화 하는 과정을 추가해줬다. 그러므로 우리가 `user.save();`만 사용하더라도 알아서 현재 비밀번호를 암호화 한다. 그런데 우리는 아직 사용자의 비밀번호를 바꿔주지 않았으므로, 비밀번호를 바꿔준 다음에 저장해야 한다. 그러므로 사용자를 \_id로 찾아와서 password를 newPassword로 바꿔준 다음에 저장하도록 만들어준다.
 
 ```
 // userController.js
@@ -539,7 +548,7 @@ export const postChangePassword = async (req, res) => {
     ...
 ```
 
-다른 방법으로는 _id로 사용자를 찾는 부분을 패스워드 검증하는 곳 보다 먼저 사용한 다음, password 대신에 user.password를 사용해도 된다. 이렇게 하면 세션에서 값을 가져오는 것이 아니라 DB에서 가져오기 때문에, 세션을 업데이트해줄 필요가 없다.
+다른 방법으로는 \_id로 사용자를 찾는 부분을 패스워드 검증하는 곳 보다 먼저 사용한 다음, password 대신에 user.password를 사용해도 된다. 이렇게 하면 세션에서 값을 가져오는 것이 아니라 DB에서 가져오기 때문에, 세션을 업데이트해줄 필요가 없다.
 
 ```
 // userController.js
@@ -550,7 +559,7 @@ export const postChangePassword = async (req, res) => {
     },
     body: { oldPassword, newPassword, newPasswordConfirmation },
   } = req;
-  // find user by _id 
+  // find user by _id
   const user = await User.findById(_id);
   // We can use user.password to confirm oldPassword.
   const ok = await bcrypt.compare(oldPassword, user.password);
@@ -574,7 +583,8 @@ export const postChangePassword = async (req, res) => {
 ```
 
 ### 8.6 File Uploads part One
-어떻게 파일을 업로드 하는지 알아보자. 사용자의 아바타용 사진을 업로드하는 기능을 추가하려고 한다. 우선 당연히 로그인 한 경우에 edit-profile에 파일을 업로드하는 칸을 만들어주자. 그러기 위해서는 input에 속성으로 type="file"로 지정해서 만들면 된다. 다만 우리는 이미지 파일만 추가하기를 원하므로 accept="image/*"를 추가해주도록 하자.
+
+어떻게 파일을 업로드 하는지 알아보자. 사용자의 아바타용 사진을 업로드하는 기능을 추가하려고 한다. 우선 당연히 로그인 한 경우에 edit-profile에 파일을 업로드하는 칸을 만들어주자. 그러기 위해서는 input에 속성으로 type="file"로 지정해서 만들면 된다. 다만 우리는 이미지 파일만 추가하기를 원하므로 accept="image/\*"를 추가해주도록 하자.
 
 ```
 // edit-profile.pug
@@ -616,6 +626,7 @@ userRouter
 여기서 multer 미들웨어의 작동 방법을 설명해야 한다. multer은 form에서 파일을 받아오고 uploadFiles를 실행시켜서 그 파일을 폴더에 저장한다. 그 후 저장한 정보를 postEdit에 전달해준다. 이렇게 추가한 정보는 req.file에서 찾을 수 있다. postEdit에서 console.log(req.file)을 적어주고, 파일을 업로드 했을 때 콘솔에 적히는 것을 확인해보자. 그 중에서 path가 중요한데, 우리가 User 스키마를 만들 때, 아바타 url을 만들었다. 여기에다가 콘솔에 나온 path를 적어주면 해당 사용자와 파일이 연결되게 된다. 이에 관한 것은 다음에 계속하겠다.
 
 ### 8.7 File Uploads part Two
+
 어떻게 하면 파일을 사용자와 연결 시킬 수 있을끼? 처음 드는 생각은 req.file.path를 가져와서 findByIdAndUpdate를 사용할 때, 같이 넣어서 업데이트 해주면 될 것 같다. 그런데 사용자가 아바타를 사용하지 않으면 어떻게 될까? 아바타를 사용하지 않았다면 file이 undefined이므로 path가 존재하지 않아서 에러가 발생한다. 그러므로 req.file.path를 가져오는 것이 아니라 req.file을 가져와야 한다. 하지만 여전히 file이 undefined인 경우엔 업데이트 해주는 것이 불가능하다. 그러므로 세션의 user 정보를 활용해야 한다.
 
 우선 req.session.user에서 avatarUrl을 받아온다. 그리고 findByInAndUpdate 안에서 avatarUrl을 업데이트 하되, 삼항 연산자를 사용해서 file이 undefined인 경우엔 avatarUrl을 그대로 넣어준다.
@@ -669,6 +680,7 @@ block content
 하지만 이렇게 작성해줘도 제대로 작동하지 않는다. 그 이유는 이미지를 받아와야할 url을 라우터나 사용해야 할 폴더로 지정한 적도 없기 때문에 익스프레스가 처리하지 못하기 때문이다.
 
 ### 8.8 Static Fiels and Recap
+
 이제 브라우저가 uploads 폴더에 있는 파일에 접근할 수 있어야 한다. 왜 이런 일을 해야 하냐면, 만약 브라우저가 어떤 폴더든 갈 수 있다고 하면, 보안상 좋지 못하다. 그러므로 사용하는 폴더를 따로 지정해주도록 만들어져있다. 그러기 위해서 static files serving이라는 것을 활성화 시킨다. 이는 폴더 전체를 브라우저에게 노출 시키는 기능이다.
 
 우선 /upload 라우터를 만들어야 한다. 그리고 폴더를 노출시키기 위해 express.static()을 사용한다. static에는 노출시키고 싶은 폴더를 적어주면 된다.
@@ -682,13 +694,14 @@ app.use("/", rootRouter);
 ...
 ```
 
-이렇게 하고 다시 edit-profile을 확인해보면 아바타가 나오는 것을 확인할 수 있다. 
+이렇게 하고 다시 edit-profile을 확인해보면 아바타가 나오는 것을 확인할 수 있다.
 
 요약하면 우리가 원하던 것은 파일을 업로드 하는 것이었다. 그래서 multer을 사용해 파일을 받아오게 만들었다. 다음으로 form을 만들어서 이미지를 받아오고 서버에 저장했다. multer 미들웨어는 받아온 파일의 정보를 다음 컨트롤러의 req에 넣어서 사용할 수 있게 해준다. 우리는 req에서 file을 받아왔다. 이 file은 사용자가 업로드 했을 수도 안 했을 수도 있으므로 삼항 연산자를 사용해서 undefined인 경우에도 에러가 발생하지 않도록 만들었다. 그리고 avartarUrl을 받아왔지만 아직 브라우저는 이 파일이 존재하는지 모른다. 그러므로 express.static()으로 폴더를 사용할 수 있게 만들어줬다. 그 결과 edit-profile에서 업로드한 이미지를 볼 수 있게 되었다.
 
 그런데 문제가 있다. 우리가 새로 파일을 업로드할 때마다 새로 파일이 생기고, 이전의 파일은 삭제되지 않으므로 파일이 계속 쌓이게 된다. 또한 파일이 서버에 저장되고 있다는 점도 문제다. 서버는 계속 종료되고 다시 시작되기 때문에, 업로드하면 그 전 서버의 저장된 파일들이 사라지게 된다. 또한 여러 서버를 사용하고 있으면 한 서버가 다운되었을 때, 그 서버에 저장된 파일을 사용할 수 없게 된다. 나중에 이 방법을 고쳐서 서버가 다시 시작돼도 파일은 그대로 남아있게 만들겠다.
 
 ### 8.9 Video Upload
+
 이번에는 비디오를 업로드 하는 것을 추가해보겠다. 앞서 이미지에서 했던 것을 그대로 비디오로 한다고 보면 된다. 우선 샘플 비디오가 하나 필요하다. 샘플 비디오는 [sample-video](https://sample-videos.com/)에서 원하는 사양으로 받을 수 있으니 하나 준비하자.
 
 upload.pug에 들어가서 비디오를 업로드하는 것을 추가한다.
@@ -834,13 +847,14 @@ export const postUpload = async (req, res) => {
     ...
     try {
         // We can shortcut fileUrl: path, to fileUrl.
-        fileUrl, 
+        fileUrl,
     }
     ...
 };
 ```
 
 ### 8.10 User Profile
+
 이번에는 프로필 페이지를 만들어보겠다. 프로필 페이지에서는 이름과 아바타 같은 기본적인 정보 뿐만 아니라, 업로드한 비디오도 볼 수 있게 만들겠다. 그리고 영상을 틀면 누가 그 영상을 올렸는지 알려주고, 해당 동영상의 소유자가 아니라면 edit, delete 기능을 쓸 수 없도록 만들겠다.
 
 우리가 만든 비디오를 보면 소유자 정보가 없다. 또한 사용자도 어떤 비디오를 올렸는지 정보가 없다. 그러므로 비디오에 소유자를 한 명 만들고, 사용자는 업로드한 비디오를 여러 개 가지도록 만들어야 한다. 이를 위해 우리 모델을 수정해야 한다.
@@ -894,7 +908,8 @@ block content
 이렇게 프로파일을 보여주는 페이지 형태는 만들었다. 문제는 비디오와 사용자가 전혀 연결되어 있지 않다는 점이다. 이는 모델을 업데이트 해야 해결되기 때문에 현재 정보를 모두 지워줘야 한다. 터미널을 열어서 mongo -> use wetube -> db.videos.remove({}) -> db.users.remove({})로 모든 비디오와 사용자 정보를 없애준다.
 
 ### 8.11 Video Owner
-우리는 이번에 비디오와 사용자를 연결하는 일을 해보겠다. 연결을 위해 사용하는 것은 물론 _id다. _id는 서로 달라서 하나 뿐인데다가, 랜덤한 숫자라 비디오나 사용자를 구분하기 가장 좋기 때문이다. user에는 user가 업로드한 video의 id를 저장하고, video에는 영상을 올린 user의 id를 적어준다.
+
+우리는 이번에 비디오와 사용자를 연결하는 일을 해보겠다. 연결을 위해 사용하는 것은 물론 \_id다. \_id는 서로 달라서 하나 뿐인데다가, 랜덤한 숫자라 비디오나 사용자를 구분하기 가장 좋기 때문이다. user에는 user가 업로드한 video의 id를 저장하고, video에는 영상을 올린 user의 id를 적어준다.
 
 먼저 videoSchema에 owner를 추가해주겠다. 그런데 스키마를 수정할 때, owner의 타입이 문제가 된다. 우리가 사용하고 싶은 기능은 [populate()](https://mongoosejs.com/docs/populate.html)라는 기능인데, 이를 사용하기 위해서는 Schema.Types.ObjectId라는 타입을 사용해야 한다. 그런데 ObjectId라는 타입은 자바스크립트에 없다. 그래서 타입은 mongoose.Schema.Types.ObjectId를 사용해줘야 하는데, 이는 몽구스에서 사용하는 타입으로 DB의 다른 데이터의 Id를 가져올 때는 이를 사용한다고 기억하자. 다음으로 id를 가져오더라도 어떤 자료에서 가져와야 할지 모른다. 예를 들어 우리가 20개 정도의 모델이 있다고 하면, 타입만으로는 id를 가져올 수 없다. 그러므로 어떤 모델에서 가져오는지 추가하는 ref라는 속성이 있다. 여기에 가져오고 싶은 모델의 이름을 적어주면 된다. 최종적으로 코드는 아래처럼 된다.
 
@@ -906,7 +921,7 @@ const videoSchema = new mongoose.Schema({
 });
 ```
 
-다음으로 비디오를 업로드할 때, 사용자 id를 모델에 넣어줘야 한다. 그러므로 userController.js에서 postUpload에 사용자 _id를 추가하는 코드를 만들었다.
+다음으로 비디오를 업로드할 때, 사용자 id를 모델에 넣어줘야 한다. 그러므로 userController.js에서 postUpload에 사용자 \_id를 추가하는 코드를 만들었다.
 
 ```
 // videoController.js
@@ -923,7 +938,7 @@ try {
 }
 ```
 
-이렇게 하고 비디오를 업로드 한 다음에, 몽구스에서 비디오를 확인해보면 owner가 추가된 것을 볼 수 있다. 여기서 우리는 동영상을 수정, 삭제하는 일은 그 동영상의 소유자만 가능하게 하려고 했다. 우리는 누가 로그인 되었는지 알고 있으므로 로그인 된 사람의 id와 owner의 id가 일치하면, 그 동영상의 소유자가 로그인 했다고 생각할 수 있다. watch.pug에서 코드를 수정해서 소유자인 경우에만 수정, 삭제 버튼이 보이도록 만들자. if문을 사용하고 `video.owner === loggedInUser._id`를 비교하면 될 것 같다. 그런데 이렇게 하면 작동하지 않는다. 그 이유는 video.owner는 ObjectId고 _id는 string이기 때문이다. 그러므로 양쪽에 String()을 씌워서 서로가 스트링이 되게 만든 다음 비교해야 한다.
+이렇게 하고 비디오를 업로드 한 다음에, 몽구스에서 비디오를 확인해보면 owner가 추가된 것을 볼 수 있다. 여기서 우리는 동영상을 수정, 삭제하는 일은 그 동영상의 소유자만 가능하게 하려고 했다. 우리는 누가 로그인 되었는지 알고 있으므로 로그인 된 사람의 id와 owner의 id가 일치하면, 그 동영상의 소유자가 로그인 했다고 생각할 수 있다. watch.pug에서 코드를 수정해서 소유자인 경우에만 수정, 삭제 버튼이 보이도록 만들자. if문을 사용하고 `video.owner === loggedInUser._id`를 비교하면 될 것 같다. 그런데 이렇게 하면 작동하지 않는다. 그 이유는 video.owner는 ObjectId고 \_id는 string이기 때문이다. 그러므로 양쪽에 String()을 씌워서 서로가 스트링이 되게 만든 다음 비교해야 한다.
 
 ```
 // watch.pug
@@ -965,6 +980,7 @@ block content
 ```
 
 ### 8.12 Video Owner part Two
+
 앞서 우리는 owner를 따로 찾아와서 보여줬다. 그런데 몽구스에서 이를 대신할 수 있다. 다시 말해 video의 owner만으로도 앞서 했던 것과 동일한 것이 가능하다. 이는 우리가 모델을 만들 때, ref를 적어줬기 때문에 가능한 것이다. 먼저 아래 두 코드를 실행해서 video의 차이 보자.
 
 ```
@@ -1012,13 +1028,13 @@ block content
 // watch.pug
 block content
     ...
-        small Uploaded by 
+        small Uploaded by
             a(href=`/users/${video.owner._id}`)=video.owner.name
     if String(video.owner._id) === String(loggedInUser._id)
     ...
 ```
 
-이제 프로파일로 가도록 만들어줬다. 그런데 지금까지 한 것만 해도 사용자가 올린 비디오를 모두 보여주는 것이 가능하다. 방법은 see 컨트롤러에서 Video.find()를 사용해서 owner가 _id인 것을 찾으면 된다. 그 후 이를 랜더링 하는 페이지로 보내서 보여주면 된다.
+이제 프로파일로 가도록 만들어줬다. 그런데 지금까지 한 것만 해도 사용자가 올린 비디오를 모두 보여주는 것이 가능하다. 방법은 see 컨트롤러에서 Video.find()를 사용해서 owner가 \_id인 것을 찾으면 된다. 그 후 이를 랜더링 하는 페이지로 보내서 보여주면 된다.
 
 ```
 export const see = async (req, res) => {
@@ -1045,9 +1061,10 @@ block content
         li Sorry nothing found.
 ```
 
-이렇게 해결해도 되지만 더 간결하게 코드를 작성하는 법이 있다. 대신에 User 모델에 비디오 _id를 넣어줘야 하므로 DB를 초기화 시킨 후에 진행해야 한다. 이는 다음에 알아보겠다.
+이렇게 해결해도 되지만 더 간결하게 코드를 작성하는 법이 있다. 대신에 User 모델에 비디오 \_id를 넣어줘야 하므로 DB를 초기화 시킨 후에 진행해야 한다. 이는 다음에 알아보겠다.
 
 ### 8.13 User's Video
+
 User에 추가하는 Video는 여러 개가 있을 수 있다. 그러므로 모델을 수정할 때, array로 추가해주겠다. 기본적으로 Video에 User를 추가하는 것과 동일하지만, required일 필요가 없고, ref에 Video를 적어주면 된다.
 
 ```
@@ -1058,7 +1075,7 @@ const userSchema = new mongoose.Schema({
 });
 ```
 
-다음으로 videoController의 postUpload를 수정해줘야 한다. 왜냐하면 비디오를 업로드 할 때, User에게 Video의 _id를 추가해야 하기 때문이다. Video.create는 새로 만든 Video를 반환한다. 이를 가져와서 _id로 찾은 사용자에게 비디오를 추가해주도록 한다.
+다음으로 videoController의 postUpload를 수정해줘야 한다. 왜냐하면 비디오를 업로드 할 때, User에게 Video의 \_id를 추가해야 하기 때문이다. Video.create는 새로 만든 Video를 반환한다. 이를 가져와서 \_id로 찾은 사용자에게 비디오를 추가해주도록 한다.
 
 ```
 // videoController.js
@@ -1066,7 +1083,7 @@ export const postUpload = async (req, res) => {
     ...
     try {
         const newVideo = await Video.create({
-          ...  
+          ...
         });
         const user = await User.findById(_id);
         user.videos.push(newVideo._id);
@@ -1106,6 +1123,7 @@ block content
 다음에는 위의 두 문제를 수정해보겠다.
 
 ### 8.14 Bugfix
+
 해싱이 반복적으로 일어나는 것을 고치는 일은 간단하다. 저장할 때마다 해싱하는 것이 아니라, 비밀번호가 수정될 때마다 해싱하면 해결된다. userSchema.pre()로 돌아가서 말해보자. 여기서 this는 user과 동일하다고 말 했었다. 그러므로 this.을 입력하면 여러 선택지가 나온다. 여기서 isModified()를 사용하면 어떤 것이 변화가 있었을 경우에 true가 반환된다. 우리는 비밀번호가 바뀌었는지 확인하고 싶으므로, isModified("password")라고 적어주면 된다.
 
 ```
@@ -1135,7 +1153,7 @@ export const getEdit = async (req, res) => {
 };
 ```
 
-그런데 이렇게 하고 실행하면 소유자가 동일함에도 불구하고 인식하지 못 한다. 그 이유는 video.owner과 _id가 type이 다르기 때문이다. `console.log(typeof video.owner, typeof _id)`를 확인해보면 video.owner은 object고 _id는 string이다. 그러므로 둘에 String()을 사용해서 타입을 바꿔줘야 한다. 이는 이전에 watch.pugd에서 동일한 방법으로 해결해주었다. 이처럼 생긴 것은 같지만 타입이 다른 경우 서로 다른 것으로 인식하기 때문에 주의해야 한다.
+그런데 이렇게 하고 실행하면 소유자가 동일함에도 불구하고 인식하지 못 한다. 그 이유는 video.owner과 \_id가 type이 다르기 때문이다. `console.log(typeof video.owner, typeof _id)`를 확인해보면 video.owner은 object고 \_id는 string이다. 그러므로 둘에 String()을 사용해서 타입을 바꿔줘야 한다. 이는 이전에 watch.pugd에서 동일한 방법으로 해결해주었다. 이처럼 생긴 것은 같지만 타입이 다른 경우 서로 다른 것으로 인식하기 때문에 주의해야 한다.
 
 ```
 // videoController.js
@@ -1171,7 +1189,7 @@ export const postEdit = async (req, res) => {
 
 백엔드에서는 이와 같은 일이 중요하다. 링크만을 숨기는 것이 아니라, 허락되는 사람이 아니면 반드시 막아야 한다. 그래야 url로 접근해서 허락되지 않은 일이 생기는 것을 방지할 수 있다.
 
-같은 이유로 deleteVideo에도 동일한 일을 해줘야 한다. 그런데 video가 없기 때문에 id로 찾아줘야 하고, 동시에 세션에서 user._id를 받아온다. video가 없을 경우 404를 보여주고, 소유주가 아닌 경우 403으로 forbidden을 표시하면 된다.
+같은 이유로 deleteVideo에도 동일한 일을 해줘야 한다. 그런데 video가 없기 때문에 id로 찾아줘야 하고, 동시에 세션에서 user.\_id를 받아온다. video가 없을 경우 404를 보여주고, 소유주가 아닌 경우 403으로 forbidden을 표시하면 된다.
 
 ```
 export const deleteVideo = async (req, res) => {

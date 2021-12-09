@@ -6,9 +6,11 @@ categories: Nodsjs
 tag:
 toc: true
 ---
+
 ## 12 VIEWS API
 
 ### 12.0 Register View Controller
+
 영상 조회수를 기록하는 것을 만들어보겠다. 영상을 시청할 때마다 백엔드에 요청을 보내고, 해당 id의 조회수를 올려준다. 그 전에 우리가 만들 새로운 views를 이해해야 한다. 현재 우리 코드를 보면 서버에서 views로 페이지를 랜더링해주고 있다. 그런데 대부분의 페이지는 이런식으로 작동하지 않는다. 요즘 백엔드는 템플릿은 랜더링하지 않는다. 백앤드는 인증, DB를 담당하고, 프론트엔드는 React 등으로 만든다. 현재 우리 Nodejs는 페이지까지 랜더링하고 있는데 이를 바꿔보려고 한다. 그래서 템플릿을 랜더링하지 않는 views를 만들텐데 이를 api views라고 한다.
 
 지금까지 우리가 아는 지식으로 조회수를 올려주는 기능을 만드려고 해보자. routers에 새로운 apiRouter.js 파일을 만든다. 그리고 그 안에 새로운 라우터를 만들고 server.js에서 특정 주소로 들어가면 그 라우터를 쓸 수 있게 해준다. 다음으로 해당 라우터에서 사용할 컨트롤러를 만든다. 컨트롤러는 비디오의 id로 영상을 찾아서 비디오가 없다면 오류를 보내고, 있다면 조회수를 +1 한 다음 저장하는 기능을 할 것이다. 여기까지의 과정을 코드로 만들면 아래처럼 된다.
@@ -51,7 +53,8 @@ export const registerView = async (req, res) => {
 url을 바꾸지 않고 사용하는 경우는 굉장히 많다. 우리가 댓글을 달 때나 영상을 시청할 때, url은 변하지 않는다. 이처럼 url이 변하지 않고 작동하는 것을 interactivity라고 한다. 다음에는 클라이언트에서 어떻게 url을 변경시키지 않고 이런 일이 가능한지 알아보자.
 
 ### 12.1 Register View Event
-videoPlayer.js에 url을 변경시키지 않고 작동하도록 코드를 만드려고 한다. 우리는 비디오가 끝날 때, 조회수를 올려주기 위해서 "ended" 이벤트를 사용해서 handleEnded()를 만드려고 한다. 이는 fetch를 사용하면 할 수 있지만, 그 전에 영상의 _id가 필요하다. _id는 간단히 html에 `span=video._id` 같은 형태로 만들 수도 있지만, 이 경우 페이지에 _id가 직접적으로 보이게 된다. 다행히도 화면에 보이지 않게 추가 정보를 담을 수 있는 방법이 있는데, data attribute를 사용하는 것이다. data attribute은 사용법이 굉장히 간단한데, **data-**로 시작하는 속성으로 어떤 것이든 넣어도 된다. 예를 들어 `data-columns="3"`은 columns="3"이라는 정보를 넣어준 것이다. 우리의 경우 _id를 보내주고 싶으므로 watch.pug를 아래처럼 고치자.
+
+videoPlayer.js에 url을 변경시키지 않고 작동하도록 코드를 만드려고 한다. 우리는 비디오가 끝날 때, 조회수를 올려주기 위해서 "ended" 이벤트를 사용해서 handleEnded()를 만드려고 한다. 이는 fetch를 사용하면 할 수 있지만, 그 전에 영상의 \_id가 필요하다. \_id는 간단히 html에 `span=video._id` 같은 형태로 만들 수도 있지만, 이 경우 페이지에 \_id가 직접적으로 보이게 된다. 다행히도 화면에 보이지 않게 추가 정보를 담을 수 있는 방법이 있는데, data attribute를 사용하는 것이다. data attribute은 사용법이 굉장히 간단한데, **data-**로 시작하는 속성으로 어떤 것이든 넣어도 된다. 예를 들어 `data-columns="3"`은 columns="3"이라는 정보를 넣어준 것이다. 우리의 경우 \_id를 보내주고 싶으므로 watch.pug를 아래처럼 고치자.
 
 ```
 // watch.pug
@@ -80,7 +83,7 @@ article.dataset.parent // "cars"
 
 우리는 data-id로 넣었으므로, videoContainer.dataset.id에 비디오의 id가 들어 있다. 이제 id를 가져올 수 있으므로 다음으로 해당 id로 요청을 보낼 수 있게 되었다.
 
-이제 알아볼 것은 `fetch(url [,options])`다. fetch는 자바스크립트에서 페이지 새로 고침 없이 서버에 요청을 보내고 정보를 받아올 수 있다. url에는 요청을 보낼 주소를 적고, options는 method, body, header 등 굉장히 많은 옵션이 있다. 이때 options를 지정하지 않으면 `method: "GET"`으로 작동하는데, 우리는 "POST"가 필요하므로 이 부분만 바꿔주면 된다. fetch는 promise를 반환하므로 순서가 중요하면 async/await을 사용해야 한다. 
+이제 알아볼 것은 `fetch(url [,options])`다. fetch는 자바스크립트에서 페이지 새로 고침 없이 서버에 요청을 보내고 정보를 받아올 수 있다. url에는 요청을 보낼 주소를 적고, options는 method, body, header 등 굉장히 많은 옵션이 있다. 이때 options를 지정하지 않으면 `method: "GET"`으로 작동하는데, 우리는 "POST"가 필요하므로 이 부분만 바꿔주면 된다. fetch는 promise를 반환하므로 순서가 중요하면 async/await을 사용해야 한다.
 
 ```
 // videoPlayer.js
@@ -93,7 +96,9 @@ const handleEnded = () => {
 ...
 video.addEventListener("ended", handleEnded);
 ```
+
 ### 12.2 Conclusions
+
 앞서 비디오의 id를 가져오고 fetch로 페이지를 랜더링하지 않고 정보를 업데이트 해줬다. 제대로 작동하는지 확인하기 위해서 브라우저로 돌아가서 inspect -> Network를 확인하자. 동영상이 끝날 때, 여기에 view라는 요청이 생길 것이다. 문제는 status가 pending에서 멈춰있는데, 이는 우리가 return res.status()를 사용했기 때문이다. res.status()는 res에 status를 추가하는 코드일뿐, status를 보내주는 코드가 아니다. 지금까지는 res.status().render() 형태로 사용했고, render이 알아서 status를 보내줬지만, 우리는 지금 res.status()만 사용하고 있다. 그래서 status가 보내지지 않고, vidw가 pending에서 멈추는 것이다. 이를 해결하기 위해선 status 대신에 sendStatus()를 사용하면 된다.
 
 마지막으로 한 가지만 더 알아보자. 우리는 비디오 조회수에 ended를 사용했는데, 유튜브는 timeupdate를 사용하는 것을 더 선호한다. 왜냐하면 사용자가 얼마나 오래 봤는지, 그리고 사용자가 어떤 정보를 보내는지 수집하기 때문이다.
@@ -101,6 +106,7 @@ video.addEventListener("ended", handleEnded);
 ## 13 VIDEO RECORDER
 
 ### 13.0 Recorder Setup
+
 비디오 녹화 기능을 만들어보겠다. 파일을 새로 만들어서 recorder.js에 코드를 작성할텐데, 그 전에 webpack.config.js 파일에서 파일을 불러와야 한다. 코드를 아래처럼 수정해주자.
 
 ```
@@ -123,7 +129,7 @@ block content
     ...
 
 block scripts
-    script(src="/static/js/recorder.js") 
+    script(src="/static/js/recorder.js")
 ```
 
 이렇게하면 기본적인 준비는 끝났다. [MediaDevices.getUserMedia()](https://developer.mozilla.org/ko/docs/Web/API/MediaDevices/getUserMedia)를 보면 어떻게 비디오를 녹화할 수 있는지 나온다. `navigator.mediaDeivces.getUserMedia(constraints)` 구조로 작성할 수 있는데, 여기서 constraits는 영상 어떻게 녹화할지 지정하는 기능이다. `{ audio: true, video: true}`로 녹음, 녹화가 가능하게 지정할 수 있고, `{ video: { width: 1280, height: 720 }}`으로 녹화하려는 영상의 사이즈를 지정하는 일도 가능하다. 하지만 지금 우리는 단순히 녹화만 필요하므로 `{ audio: true, video: true}`만을 사용하겠다.
@@ -154,11 +160,12 @@ import "regenerator-runtime";
 
 ```
 // base.pug
-script(src="/static/js/main.js") 
+script(src="/static/js/main.js")
     block scripts
 ```
 
 ### 13.1 Video Preview
+
 stream으로 받아온 것을 보여줄 element를 만들어주겠다. upload.pug에서 아래처럼 만든다.
 
 ```
@@ -188,6 +195,7 @@ const handleStart = async () => {
 이렇게하면 화면을 미리볼 수 있는 창이 만들어진다.
 
 ### 13.2 Recording Video
+
 이번에는 stream을 녹화해보겠다. [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)를 보면 어떻게 녹화할 수 있는지 나와있다. `new MediaRecorder(stream [, options])`로 MediaRecorder 객체를 만들 수 있는데, stream에는 녹화하고 싶은 대상이 들어간다. options에는 초당 비트 같은 내용이 들어가는데, 우리의 경우 간단한 녹화 기능만 필요하므로 사용하지 않겠다.
 
 `new MediaRecorder()`로 객체를 만들었으면, `MediaRecorder.start()`, `MediaRecorder.stop()`으로 녹화를 시작하고 중단할 수 있다. 그런데 우리는 지금 버튼을 누르면 stream이 handler 안에서 생성되고 있다. 이 경우 stream을 함수 밖에서 사용할 수 없으므로 녹화를 시작하거나 멈추는데 어려움이 있다. 그러므로 stream을 전역 변수로 선언한 다음에 가져와서 사용해야 한다. 그리고 handleStart는 버튼을 눌러서 stream을 만들 이유가 없으므로 자바스크립트가 불러와질 때, 실행되도록 바꾸고 이름도 init으로 바꿔주겠다.
@@ -257,6 +265,7 @@ const handleStart = () => {
 녹화를 시작하면 먼저 #1에서 recorder이 출력되는데, state: "inactive"로 나온다. 그리고 #2에서 state: "recording"으로 바뀐다. 10초가 지나서 녹화가 끝나면 #3으로 녹화가 종료되었다는 문구가 나오고, #4에서 BlobEvent를 출력한다. BlobEvent의 내용 중 data: Blob의 내용이 #5에서 출력되고 코드가 종료된다.
 
 ### 13.3 Recording Video part Two
+
 이제 setTimeout()이 아니라 버튼으로 recorder.stop()을 실행시키려고 한다. 그런데 recorder이 함수 안에서 선언되어 있으므로 다른 함수에서 사용할 수 없다. 그래서 recorder를 global로 선언했다. 그리고 필요없는 console.log()들을 지워줬다.
 
 ```
@@ -274,7 +283,7 @@ const handleStart = () => {
   startBtn.addEventListener("click", handleStop);
   recorder = new MediaRecorder(stream);
   recorder.ondataavailable = (event) => {
-    
+
   };
   recorder.start();
 };
@@ -301,20 +310,19 @@ const handleStart = () => {
 // recorder.js
 const handleStart = () => {
     ...
-      recorder.ondataavailable = (event) => {
-    const videoFile = URL.createObjectURL(event.data);
-    video.srcObject = null;
-    video.src = videoFile;
-    video.loop = true;
-    video.play();
-  };
+    recorder.ondataavailable = (event) => {
+      const videoFile = URL.createObjectURL(event.data);
+      video.srcObject = null;
+      video.src = videoFile;
+      video.loop = true;
+      video.play();
+    };
     ...
 };
 ```
 
-
-
 ### 13.4 Downloading the File
+
 다음으로 handleStop()에서 영상을 멈췄을 때, 다운로드할 수 있도록 바꿔보겠다. 그런데 videoFile을 다른 함수에서 사용하기 위해 global로 선언해준다.
 
 ```
@@ -352,13 +360,13 @@ const handleDownload = () => {
 
 ### 13.5 Recap
 
-
 ## 14 WEBASSEMBLY VIDEO TRANSCODE
 
 ### 14.0 Introduction
+
 영상을 녹화하고 다눙로드해서 webm 파일로 다운로드하는 기능까지는 구현했다. 문제는 영상을 보면 움직이지도 않고, 시간도 없다. 그래서 FFmpeg를 사용해서 mp4로 변환하는 방법과, 썸네일을 만드는 방법을 알아보겠다.
 
-FFmpeg는 인코딩과 디코딩에서 거의 표준으로 사용되는 오픈 소스 프로젝트로, 우리가 아는 대부분의 비디오 관련 프로그램이 사용하고 있다. FFmpeg를 사용하려면 콘솔에서 ffmpeg로 사용할 수 있다. 이를 사용하면 유튜브 처럼 하나의 영상을 인코딩해서 여러 화질로 만들고, 사용자들이 화질을 선택할 수 있다. 문제는 비용이 너무 많이 든다는 점이다. 예를 들어 100개의 1GB 용량의 비디오를 인코딩하려면 이를 위한 메모리와, 연산 능력은 우리가 부담하기에 너무 비싸다. 
+FFmpeg는 인코딩과 디코딩에서 거의 표준으로 사용되는 오픈 소스 프로젝트로, 우리가 아는 대부분의 비디오 관련 프로그램이 사용하고 있다. FFmpeg를 사용하려면 콘솔에서 ffmpeg로 사용할 수 있다. 이를 사용하면 유튜브 처럼 하나의 영상을 인코딩해서 여러 화질로 만들고, 사용자들이 화질을 선택할 수 있다. 문제는 비용이 너무 많이 든다는 점이다. 예를 들어 100개의 1GB 용량의 비디오를 인코딩하려면 이를 위한 메모리와, 연산 능력은 우리가 부담하기에 너무 비싸다.
 
 이 문제를 해결할 방법이 WebAssembly다. 웹어셈블리는 프론트엔드에서 굉장히 빠른 코드를 실행시킨다. 물론 웹어셈블리를 직접 만들지는 않고, 대부분은 c, c++, RUST로 만들게 된다. 우리의 경우 웹어셈블리를 직접 만드는 것이 아니라 다른 사람이 만든 것을 이용한다.
 
@@ -379,6 +387,7 @@ FFmpeg는 인코딩과 디코딩에서 거의 표준으로 사용되는 오픈 �
 ## 15 FLASH MEDDAGES
 
 ### 15.0 Installation
+
 express-flash
 
 ### 15.1 Sending Messages

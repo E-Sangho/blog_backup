@@ -1,4 +1,4 @@
-I" <h2 id="scss">SCSS?</h2>
+I"X<h2 id="scss">SCSS?</h2>
 <p>SCSS, Less, Stylus는 가장 많이 쓰이는 CSS Preprocessor들로 CSS 코드 작성을 굉장히 편하게 만들어 준다. SCSS는 Sass와 유사한데, Sass는 들여쓰기로 구분하고 SCSS는 {}로 구분한다는 차이점이 있다.</p>
 
 <h2 id="variables">Variables</h2>
@@ -80,7 +80,7 @@ e.g.
 }
 
 h1 {
-    @include coloring(red)수
+    @include coloring(red);
 }
 </code></pre></div></div>
 <p>mixin도 variable과 마찬가지로 <code class="language-plaintext highlighter-rouge">_mixin.scss</code> 파일에 저장해서 import로 사용하면 좀 더 깔끔하게 쓸 수 있다.</p>
@@ -147,6 +147,14 @@ h1 {
 // style.scss
 .a {
     @extend %button;
+}
+</code></pre></div></div>
+
+<h2 id="속성">속성</h2>
+<p>input의 속성인 placeholder를 바꾸고 싶다면 input::placeholder를 이용해서 바꿀 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>input::placeholder {
+    color: black;
 }
 </code></pre></div></div>
 :ET

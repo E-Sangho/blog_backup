@@ -4,25 +4,23 @@
     <div class="categories">Categories</div>
     <ul class="nav-list__items">
         {% for menu in sidebar %}
-            <li class="nav-list__item">
-                {% if menu.url %}
-                    <a href="{{ menu.url | relative_url }}">
-                        {{ menu.title }}
+        <li class="nav-list__item">
+            {% if menu.url %}
+            <a href="{{ menu.url | relative_url }}"> {{ menu.title }} </a>
+            {% endif %}
+
+            <ul class="nav-list__submenu">
+                {% for submenu in menu.submenu %}
+                <li>
+                    {% if submenu.url %}
+                    <a href="{{ submenu.url | relative_url }}">
+                        {{ submenu.title }}
                     </a>
-                {% endif %}
-                
-                <ul class="nav-list__submenu">
-                    {% for submenu in menu.submenu %}
-                        <li>
-                            {% if submenu.url %}
-                                <a href="{{ submenu.url | relative_url }}">
-                                    {{ submenu.title }}
-                                </a>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            </li>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
         {% endfor %}
     </ul>
 </nav>

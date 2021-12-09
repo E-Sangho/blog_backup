@@ -40,140 +40,127 @@
     <div class="categories">Categories</div>
     <ul class="nav-list__items">
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/all"> ALL </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/all">
-                        ALL
-                    </a>
-                
-                
-                <ul class="nav-list__submenu">
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/algorithm"> Algorithm </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/algorithm">
-                        Algorithm
-                    </a>
+                <li>
+                    
+                </li>
                 
+                <li>
+                    
+                </li>
                 
-                <ul class="nav-list__submenu">
-                    
-                        <li>
-                            
-                        </li>
-                    
-                        <li>
-                            
-                        </li>
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/computersystem"> Computer System </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/computersystem">
-                        Computer System
-                    </a>
+                <li>
+                    
+                </li>
                 
+                <li>
+                    
+                </li>
                 
-                <ul class="nav-list__submenu">
-                    
-                        <li>
-                            
-                        </li>
-                    
-                        <li>
-                            
-                        </li>
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/jekyll"> Jekyll </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/jekyll">
-                        Jekyll
-                    </a>
+                <li>
+                    
+                </li>
                 
+                <li>
+                    
+                </li>
                 
-                <ul class="nav-list__submenu">
-                    
-                        <li>
-                            
-                        </li>
-                    
-                        <li>
-                            
-                        </li>
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/html"> HTML </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/html">
-                        HTML
-                    </a>
+                <li>
+                    
+                </li>
                 
+                <li>
+                    
+                </li>
                 
-                <ul class="nav-list__submenu">
-                    
-                        <li>
-                            
-                        </li>
-                    
-                        <li>
-                            
-                        </li>
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/css"> CSS </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/css">
-                        CSS
-                    </a>
+                <li>
+                    
+                </li>
                 
+                <li>
+                    
+                </li>
                 
-                <ul class="nav-list__submenu">
-                    
-                        <li>
-                            
-                        </li>
-                    
-                        <li>
-                            
-                        </li>
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
-            <li class="nav-list__item">
+        <li class="nav-list__item">
+            
+            <a href="/categories/javascript"> JavaScript </a>
+            
+
+            <ul class="nav-list__submenu">
                 
-                    <a href="/categories/javascript">
-                        JavaScript
-                    </a>
+                <li>
+                    
+                </li>
                 
+                <li>
+                    
+                </li>
                 
-                <ul class="nav-list__submenu">
-                    
-                        <li>
-                            
-                        </li>
-                    
-                        <li>
-                            
-                        </li>
-                    
-                </ul>
-            </li>
+            </ul>
+        </li>
         
     </ul>
 </nav>
+
         
     </div>
 
@@ -189,6 +176,7 @@
 <li class="toc-entry toc-h2"><a href="#content">Content</a></li>
 <li class="toc-entry toc-h2"><a href="#function">Function</a></li>
 <li class="toc-entry toc-h2"><a href="#extends">Extends</a></li>
+<li class="toc-entry toc-h2"><a href="#속성">속성</a></li>
 </ul>
     </div>
     <div class="md-content">
@@ -274,7 +262,7 @@ e.g.
 }
 
 h1 {
-    @include coloring(red)수
+    @include coloring(red);
 }
 </code></pre></div></div>
 <p>mixin도 variable과 마찬가지로 <code class="language-plaintext highlighter-rouge">_mixin.scss</code> 파일에 저장해서 import로 사용하면 좀 더 깔끔하게 쓸 수 있다.</p>
@@ -344,6 +332,14 @@ h1 {
 }
 </code></pre></div></div>
 
+<h2 id="속성">속성</h2>
+<p>input의 속성인 placeholder를 바꾸고 싶다면 input::placeholder를 이용해서 바꿀 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>input::placeholder {
+    color: black;
+}
+</code></pre></div></div>
+
     </div>
 </div>
 
@@ -358,33 +354,26 @@ h1 {
         <div class="footer">
     <div class="footer__container">
         <ul class="footer__links">
-            
-                
-                    <li>
-                        <a href="istrangeho@gmail.com">
-                            <i class=""></i>
-                            
-                        </a>
-                    </li>
-                
-            
-                
-                    <li>
-                        <a href="https://github.com/E-Sangho">
-                            <i class="fab fa-github"></i>
-                            github
-                        </a>
-                    </li>
-                
-            
-                
-            
+             
+            <li>
+                <a href="istrangeho@gmail.com">
+                    <i class=""></i>
+                    
+                </a>
+            </li>
+              
+            <li>
+                <a href="https://github.com/E-Sangho">
+                    <i class="fab fa-github"></i>
+                    github
+                </a>
+            </li>
+               
         </ul>
     </div>
-    <div class="footer__copyright">
-        &copy; 
-    </div>
+    <div class="footer__copyright">&copy; </div>
 </div>
+
     </footer>
     <script src="https://kit.fontawesome.com/36691f69ce.js" crossorigin="anonymous"></script>
 </body>

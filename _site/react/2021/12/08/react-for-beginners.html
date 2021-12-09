@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React for Beginner 1</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-home">
+            <a href="/">Home</a>
+        </div>
+        <div class="navbar-nav">
+            <ul class = "navbar-nav__items">
+                
+                <li class="navbar-nav__item">
+                    <a href="/about.html">About</a>
+                </li>
+                
+                <li class="navbar-nav__item">
+                    <a href="/blog.html">Blog</a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</nav>
+    </header>
+    <main>
+        
+    <div class="sidebar">
+        
+            
+
+<nav class="nav-list">
+    <div class="categories">Categories</div>
+    <ul class="nav-list__items">
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/all"> ALL </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+            </ul>
+        </li>
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/algorithm"> Algorithm </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+                <li>
+                    
+                </li>
+                
+                <li>
+                    
+                </li>
+                
+            </ul>
+        </li>
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/computersystem"> Computer System </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+                <li>
+                    
+                </li>
+                
+                <li>
+                    
+                </li>
+                
+            </ul>
+        </li>
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/jekyll"> Jekyll </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+                <li>
+                    
+                </li>
+                
+                <li>
+                    
+                </li>
+                
+            </ul>
+        </li>
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/html"> HTML </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+                <li>
+                    
+                </li>
+                
+                <li>
+                    
+                </li>
+                
+            </ul>
+        </li>
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/css"> CSS </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+                <li>
+                    
+                </li>
+                
+                <li>
+                    
+                </li>
+                
+            </ul>
+        </li>
+        
+        <li class="nav-list__item">
+            
+            <a href="/categories/javascript"> JavaScript </a>
+            
+
+            <ul class="nav-list__submenu">
+                
+                <li>
+                    
+                </li>
+                
+                <li>
+                    
+                </li>
+                
+            </ul>
+        </li>
+        
+    </ul>
+</nav>
+
+        
+    </div>
+
+        <h1>React for Beginner 1</h1>
+<p>08 Dec 2021 - Lee Sangho</p>
+<div>
+    <div class="table-of-contents">
+        <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h2"><a href="#2-the-basics-of-react">2 The Basics of React</a></li>
+<li class="toc-entry toc-h2"><a href="#참고-사이트">참고 사이트</a></li>
+</ul>
+    </div>
+    <div class="md-content">
+        <h2 id="2-the-basics-of-react">2 The Basics of React</h2>
+
+<p><a href="https://ko.reactjs.org/">React</a>는 간단히 말해 자바스크립트로 HTML을 만들 수 있게 해준다.
+물론 정확한 표현은 아니지만 글로 읽기보다 직접 해보는 것이 이해하기 좋을 것이다.
+React를 사용하는 방법은 여러가지가 있지만, 지금은 가장 간단한 CDN을 써서 시작해보려고 한다.
+우선 index.html 파일을 만들고 그 안에 기본적인 html 구조를 만들어주자.
+그리고 &lt;body&gt; 밑에 React, ReactDOM의 CDN 링크를 넣어준다.
+<a href="https://ko.reactjs.org/docs/cdn-links.html">CDN</a>을 보면 두 스크립트가 제공되므로 복사 붙여넣로 넣어준다.
+지금까지의 형태는 아래처럼 된다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>지금까지 프론트엔드를 만들 때, body 에 모든 내용을 만들어줬었다. 그런데 React를 사용하면 자바스크립트로 이들을 대체할 수 있다.
+지금부터 아래에 작성할 내용은 시작을 위해서 만들 뿐, 일반적인 React 사용법이 아니다.
+대부분의 개발자는 이런 방법으로 React를 만들지 않으므로 직접 해볼 필요가 없다.
+React에서 html element를 만드려면 <code class="language-plaintext highlighter-rouge">React.createElement(component, props, ...children)</code> 형태로 만들 수 있다.
+여기서 component는 html 태그, props는 속성, children은 그 속에 어떤 자식 속성을 넣을지를 정한다.
+우선은 간단하게 span과 button을 만들어보겠다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        const span = React.createElement('span');
+        const button = React.createElement('button');
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>하지만 이 파일을 실행시켜도 브라우저엔 아무것도 나오지 않을 것이다.
+React로 만든 element를 배치시키려면 ReactDOM을 사용해야 하기 때문이다.
+<code class="language-plaintext highlighter-rouge">ReactDOM.render(element, container [, callback])</code>를 사용하면 element를 배치할 수 있는데, element에는 배치 시키고 것을 넣고, container는 어디에 배치 시킬지를 정할 수 있다.
+body에 배치시키기 위해 <code class="language-plaintext highlighter-rouge">&lt;div id='root'&gt;&lt;/div&gt;</code>를 하나 만들어주고 아래처럼 ReactDOM.render()를 사용한다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+        &lt;div id='root'&gt;&lt;/div&gt;
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        const root = document.getElementById('root');
+        const span = React.createElement('span');
+        const button = React.createElement('button');
+        ReactDOM.render(span, root);
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>그런데 ReactDOM.render()에 사용할 수 있는 element는 하나 뿐이라서, span과 button 2개를 배치할 수 없다.
+이는 createElement로 container를 하나 만들어주면 간단하게 해결된다.
+여기서 createElement의 마지막 속성으로 array를 사용하면 여러 자식 요소를 가지게 만들 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+        &lt;div id='root'&gt;&lt;/div&gt;
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        const root = document.getElementById('root');
+        const span = React.createElement('span');
+        const button = React.createElement('button');
+        const container = React.createElement('div', null, [h3, btn]);
+        ReactDOM.render(container, root);
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>그 외에 이벤트를 만들거나, 안에 텍스트를 적는 등의 일도 createElement()의 prop와 …children에 적어주면 된다.
+아래는 span에 마우스가 들어가거나, button을 클릭하면 텍스트가 출력되게 만들었다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+        &lt;div id='root'&gt;&lt;/div&gt;
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        const root = document.getElementById('root');
+        const h3 = React.createElement(
+            'span',
+            { onMouseEnter: () =&gt; console.log('mouse enter') },
+            'This is a span'
+        );
+        const btn = React.createElement(
+            'button',
+            { onClick: () =&gt; console.log('im clicked') },
+            'Click me'
+        );
+        const container = React.createElement('div', null, [h3, btn]);
+        ReactDOM.render(container, root);
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>여기서 React를 사용하는 핵심은 자바스크립트로 HTML을 모두 컨트롤 한다는 점이다.
+지금까지 해온 방식대로라면 HTML과 자바스크립트 파일을 오가면서 고쳐야 하는데, React는 자바스크립트만으로 모두 해결 할 수 있다.
+하지만 이렇게 작성하면 HTML로 만드는 것보다, 오히려 더 어려워 보인다.
+물론 이는 이해를 위해서 한 것일 뿐 실제로 이런 방식으로 코드를 만들진 않는다.
+이제 위의 코드를 더 간단히 만들 수 있는 방법을 알아보자.</p>
+
+<p><a href="https://ko.reactjs.org/docs/introducing-jsx.html">JSX</a>는 자바스크립트를 확장한 문법으로, HTML과 비슷한 문법으로 React element를 만들게 해준다.
+아래는 JSX로 코드를 수정한 것으로 별다른 설명 없이 보기만 해도 HTML과 굉장히 비슷한 것을 알 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+        &lt;div id='root'&gt;&lt;/div&gt;
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        const root = document.getElementById('root');
+        const Title = &lt;h3 id="title" onMouseEnter={(() =&gt; console.log("mouse enter"))}&gt;
+            Hello I'm a title
+        &lt;/h3&gt;
+        const Button = &lt;button style= onclick={() =&gt; console.log("im clicked")}&gt;
+            Click me
+        &lt;/button&gt;
+        const container = React.createElement('div', null, [Title, Button]);
+        ReactDOM.render(container, root);
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>하지만 이렇게 작성하고 확인해보면 브라우저가 코드를 전혀 이해하지 못했다.
+이는 JSX로 작성한 코드를 브라우저가 이해 가능한 방식으로 바꿔줘야 하기 때문이다.
+<a href="https://babeljs.io/docs/en/babel-standalone">@babel/standalone</a>에서 사용법을 자세히 볼 수 있다.
+우선은 <code class="language-plaintext highlighter-rouge">&lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;</code>으로 코드를 추가해준다.
+이때, 번역하고 싶은 script에 type=”text/babel”을 적어줘야 한다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+        &lt;div id='root'&gt;&lt;/div&gt;
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;
+    &lt;script type="text/babel"&gt;
+        const root = document.getElementById('root');
+        const Title = &lt;h3 id="title" onMouseEnter={(() =&gt; console.log("mouse enter"))}&gt;
+            Hello I'm a title
+        &lt;/h3&gt;
+        const Button = &lt;button style= onclick={() =&gt; console.log("im clicked")}&gt;
+            Click me
+        &lt;/button&gt;
+        const container = React.createElement('div', null, [Title, Button]);
+        ReactDOM.render(container, root);
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>그런데 아직 우리는 container를 JSX 방식으로 바꿔주지 않았다.
+container를 바꿔주려면 어떻게 해야 할까?</p>
+
+<div>Title Button</div>
+<p>로 적으면 안의 내용을 그대로 글자로 인식할 뿐이다.
+해결 방법은 Title, Button을 함수로 만들어 주는 것이다.
+그리고 Title, Button을 태그처럼 사용해주면 된다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;html&gt;
+    &lt;body&gt;
+        &lt;div id='root'&gt;&lt;/div&gt;
+    &lt;/body&gt;
+    &lt;script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;
+    &lt;script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+    &lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;
+    &lt;script type="text/babel"&gt;
+        const root = document.getElementById('root');
+        const Title = () =&gt; (
+            &lt;h3 id="title" onMouseEnter={(() =&gt; console.log("mouse enter"))}&gt;
+                Hello I'm a title
+            &lt;/h3&gt;
+        );
+        const Button = () =&gt; (
+            &lt;button style= onclick={() =&gt; console.log("im clicked")}&gt;
+                Click me
+            &lt;/button&gt;
+        );
+        const Container = () =&gt; (
+            &lt;div&gt;
+                &lt;Title /&gt;
+                &lt;Button /&gt;
+            &lt;/div&gt;
+        );
+        ReactDOM.render(Container, root);
+    &lt;/script&gt;
+&lt;/html&gt;
+</code></pre></div></div>
+
+<p>주의해야할 점은 제일 앞 글자를 대문자로 써야 한다.
+만약 소문자로 적어주면 <button> HTML 태그로 이해한다.
+그러므로 앞 글자를 대문자로 써서 <button></button>으로 적어야 제대로 이해하게 된다.</button></p>
+
+<p>이렇게 사용하면 HTML을 쪼개서 만든 다음 원하는 곳에서 합쳐서 사용할 수 있다.
+이는 굉장한 장점으로 반복되는 코드를 함수로 만들어서 사용하는 것처럼, 반복되는 HTML을 하나의 덩어리로 만들어서 쓸 수 있게 된다.
+그래서 하나를 수정하면 전체를 수정한 것과 동일한 효과를 얻을 수 있다.</p>
+
+<h2 id="참고-사이트">참고 사이트</h2>
+
+<p><a href="https://ko.reactjs.org/">React</a>
+<a href="https://ko.reactjs.org/docs/react-dom.html">ReactDom</a>
+<a href="https://ko.reactjs.org/tutorial/tutorial.html">React 자습서</a>
+<a href="https://www.taniarascia.com/getting-started-with-react/">Tania Rascia의 React 개요</a>
+<a href="https://nomadcoders.co/">NomadCoders</a></p>
+
+    </div>
+</div>
+
+    <div class="tags">
+        
+    </div>
+ 
+    </main>
+    <footer>
+        <div class="footer">
+    <div class="footer__container">
+        <ul class="footer__links">
+             
+            <li>
+                <a href="istrangeho@gmail.com">
+                    <i class=""></i>
+                    
+                </a>
+            </li>
+              
+            <li>
+                <a href="https://github.com/E-Sangho">
+                    <i class="fab fa-github"></i>
+                    github
+                </a>
+            </li>
+               
+        </ul>
+    </div>
+    <div class="footer__copyright">&copy; </div>
+</div>
+
+    </footer>
+    <script src="https://kit.fontawesome.com/36691f69ce.js" crossorigin="anonymous"></script>
+</body>
+</html>
