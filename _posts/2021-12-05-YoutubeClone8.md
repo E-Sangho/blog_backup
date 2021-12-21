@@ -129,7 +129,7 @@ block content
     ...
 
 block scripts
-    script(src="/static/js/recorder.js")
+    script(src="/assets/js/recorder.js")
 ```
 
 이렇게하면 기본적인 준비는 끝났다. [MediaDevices.getUserMedia()](https://developer.mozilla.org/ko/docs/Web/API/MediaDevices/getUserMedia)를 보면 어떻게 비디오를 녹화할 수 있는지 나온다. `navigator.mediaDeivces.getUserMedia(constraints)` 구조로 작성할 수 있는데, 여기서 constraits는 영상 어떻게 녹화할지 지정하는 기능이다. `{ audio: true, video: true}`로 녹음, 녹화가 가능하게 지정할 수 있고, `{ video: { width: 1280, height: 720 }}`으로 녹화하려는 영상의 사이즈를 지정하는 일도 가능하다. 하지만 지금 우리는 단순히 녹화만 필요하므로 `{ audio: true, video: true}`만을 사용하겠다.
@@ -160,8 +160,8 @@ import "regenerator-runtime";
 
 ```
 // base.pug
-script(src="/static/js/main.js")
-    block scripts
+  script(src="/assets/js/main.js")
+  block scripts
 ```
 
 ### 13.1 Video Preview
@@ -221,7 +221,7 @@ init();
 ```
 // recorder.js
 
-const handelStart = () => {
+const handleStart = () => {
     startBtn.innerText = 'Stop Recording';
     startBtn.removeEventListener('click', handleStart);
     startBtn.addEventListener('click', handleStop);
@@ -270,6 +270,9 @@ const handleStart = () => {
 
 ```
 // recorder.js
+let recorder;
+...
+
 const handleStop = () => {
   startBtn.innerText = "Start Recording";
   startBtn.removeEventListener("click", handleStop);
@@ -327,7 +330,7 @@ const handleStart = () => {
 
 ```
 // recorder.js
-let videofile;
+let videoFile;
 
 const handleStop = () => {
   startBtn.innerText = "Download Recording";
@@ -388,6 +391,23 @@ FFmpeg는 인코딩과 디코딩에서 거의 표준으로 사용되는 오픈 �
 
 ### 15.0 Installation
 
-express-flash
+한 번만 출력되고 다시 사라지는 메세지를 플래시 메세지라고 한다.
+플래시 메세지를 사용하기 위해선 [express-flash](https://www.npmjs.com/package/express-flash)를 사용해야 한다.
+`npm i express-flash`로 패키지를 설치한 다음 server.js에서 import해주고, `app.use(flash())`를 써줘야 한다.
+이때, flash()는 내부적으로 session을 사용하므로 항상 session보다 아래에 적어줘야 한다.
+
+```
+// server.js
+import flash from "express-flash";
+...
+app.use(flash());
+app.use(localsMiddleware);
+```
+
+이제부터 `req.flash(key, value)`를 사용할 수 있다.
+req.flash()를 사용하면 messages라는 전역 변수 안에 생성되는데, messages.key에는 value가 들어가게 된다.
+예를 들어서 `req.flash("error", "This is error message")`라고 적어주면 messages.error에는 "This is erro message"가 들어간다.
+
+그러므로 pug에서 if messages.error로 메세지가 존재하는지 확인한 후에 `span=messages.error`로 출력해주면 된다.
 
 ### 15.1 Sending Messages

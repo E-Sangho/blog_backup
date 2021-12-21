@@ -28,7 +28,8 @@ React를 사용하는 방법은 여러가지가 있지만, 지금은 가장 간�
 </html>
 ```
 
-지금까지 프론트엔드를 만들 때, body 에 모든 내용을 만들어줬었다. 그런데 React를 사용하면 자바스크립트로 이들을 대체할 수 있다.
+지금까지 프론트엔드를 만들 때, body 에 모든 내용을 만들어줬었다.
+그런데 React를 사용하면 자바스크립트로 이들을 대체할 수 있다.
 지금부터 아래에 작성할 내용은 시작을 위해서 만들 뿐, 일반적인 React 사용법이 아니다.
 대부분의 개발자는 이런 방법으로 React를 만들지 않으므로 직접 해볼 필요가 없다.
 React에서 html element를 만드려면 `React.createElement(component, props, ...children)` 형태로 만들 수 있다.
@@ -85,7 +86,7 @@ body에 배치시키기 위해 `<div id='root'></div>`를 하나 만들어주고
         const root = document.getElementById('root');
         const span = React.createElement('span');
         const button = React.createElement('button');
-        const container = React.createElement('div', null, [h3, btn]);
+        const container = React.createElement('div', null, [span, btn]);
         ReactDOM.render(container, root);
     </script>
 </html>
@@ -182,7 +183,7 @@ container를 바꿔주려면 어떻게 해야 할까?
 
 <div>Title Button</div>로 적으면 안의 내용을 그대로 글자로 인식할 뿐이다.
 해결 방법은 Title, Button을 함수로 만들어 주는 것이다.
-그리고 Title, Button을 태그처럼 사용해주면 된다.
+그리고 Title, Button을 태그처럼 사용해주면 되는데, <Title>이 아니라 <Title />로 적어주면 된다.
 
 ```
 <html>
@@ -219,7 +220,14 @@ container를 바꿔주려면 어떻게 해야 할까?
 만약 소문자로 적어주면 <button> HTML 태그로 이해한다.
 그러므로 앞 글자를 대문자로 써서 <Button />으로 적어야 제대로 이해하게 된다.
 
-이렇게 사용하면 HTML을 쪼개서 만든 다음 원하는 곳에서 합쳐서 사용할 수 있다.
+여기서 /를 사용하는 의미는 안에 아무런 내용도 적지 않는다는 뜻이다.
+예를 들어서 <h1> 태그에 내용을 적어줄 때, <h1>Hello World</h1>으로 적어준다.
+그런데 아무런 내용도 포함하지 않는다면, <h1></h1>으로 적게 된다.
+마찬가지로 <Title>이란 React에서 만들었다면, 안에 내용을 적어줘야 하는 경우도 있을 것이다.
+이 경우에는 <Title>Hello World</Title>로 적어주면 된다.
+그리고 대부분의 경우 안에 내용을 적어주지 않을 텐데, 이를 간편하게 작성하기 위해서 <Title />로 적기로 문법으로 정해놓았다.
+
+이렇게 React를 사용하면 HTML을 쪼개서 만든 다음 원하는 곳에서 합쳐서 사용할 수 있다.
 이는 굉장한 장점으로 반복되는 코드를 함수로 만들어서 사용하는 것처럼, 반복되는 HTML을 하나의 덩어리로 만들어서 쓸 수 있게 된다.
 그래서 하나를 수정하면 전체를 수정한 것과 동일한 효과를 얻을 수 있다.
 

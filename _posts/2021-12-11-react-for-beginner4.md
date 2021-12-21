@@ -18,7 +18,7 @@ CRA(create-react-app)을 사용하려면 Node.js가 필요하므로, Node.js가 
 package.json을 보면 scipts가 있다.
 Nods.js를 해봤다면 알겠지만, scripts를 사용하면 복잡한 명령을 간단하게 할 수 있다.
 우리의 경우 `npm start`를 입력하면 App을 개발 모드로 실행하게 된다.
-hppt://localhost:3000에 들어가면 우리가 만든 App을 볼 수 있다.
+https://localhost:3000에 들어가면 우리가 만든 App을 볼 수 있다.
 
 src 폴더는 앞으로 우리가 작업하게 될 폴더다.
 그 중에서도 index.js 파일을 보면 익숙한 코드가 있다.
