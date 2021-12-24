@@ -566,12 +566,21 @@ export default App;
 
 ## Movie App
 
-다음으로 영화 페이지를 만들어보겠다.
-영화 정보를 가져오기 위해선 fetch와 "https://yts.mx/api/v2/list_movies.json?minimum_rating=8.8&sort_by=year" 주소를 사용하면 된다.
-그런데 영화 제목을 누르면 해당 영화의 정보를 보여주는 페이지까지 만들고 싶다.
-다시 말해서 Node.js에서 한 것처럼 라우터를 만들고 싶다.
-이를 위해선 [react-router-dom](https://www.npmjs.com/package/react-router-dom)을 사용해야 하므로 `npm i react-router-dom`로 패키지를 설치한다.
+다음으로 영화 페이지를 만들어볼텐데, 일반적인 사이트처럼 여러 페이지를 옮겨다닐 수 있게 만들겠다.
+앞으로 할 것은 크게 3부분으로 나뉜다.
 
+1. 페이지 제작
+2. 라우터 구현
+3. publishing
+
+그 중에서도 1은 이미 해본 것이고, 3은 그다지 어려운 일은 아니다.
+이중 중요한 것은 라우터 구현 부분으로, 라우터를 구현하기 위해서 [react-router-dom](https://www.npmjs.com/package/react-router-dom)을 사용한다.
+문제는 react-router-dom이 업데이트하면서 버전이 v5와 v6로 나뉜다는 점이다.
+처음에는 오래된 버전인 v5로 작성하고, 추가적으로 새로 나온 v6로 작성하는 법을 알아보겠다.
+
+### 페이지 제작
+
+영화 정보를 가져오기 위해선 fetch와 "https://yts.mx/api/v2/list_movies.json?minimum_rating=8.8&sort_by=year" 주소를 사용하면 된다.
 기본적으로 만드는 것은 이전과 동일하지만, 처음 단계부터 다시 만들어보겠다.
 우선은 개략적인 모양과 필요한 변수들을 만들어주겠다.
 
@@ -685,6 +694,8 @@ function App() {
 
 export default App;
 ```
+
+### 라우터
 
 여기까지 하면 홈화면은 완성된다.
 하지만 앞서 말했듯이 우리는 라우터를 만들어서 영화를 소개하는 페이지도 만들어야 한다.
@@ -832,7 +843,7 @@ export default Detail;
 이제 남은 것은 react-router-dom을 사용해서 라우터를 만들고 각 페이지를 연결해주는 일이다.
 react-router-dom에서 사용하는 컴포넌트는 크게 3종류가 있는데, Routers, Mathcers, Navigation이다.
 
-### Routers
+#### Routers
 
 -   <BrowserRouter>
 -   <HashRouter>
@@ -858,13 +869,13 @@ ReactDOM.render(
 예를 들어서 <HashRouter>에서 URL은 "http://example.com/#/page" 처럼 보이게 된다.
 일반적으로 저런 표기법은 사용하지 않으므로 <BrowserRouter>만 사용해도 충분하다.
 
-### Route Matchers
+#### Route Matchers
 
 -   <Switch>(<Router>)
 -   <Route>
 
 라우트를 찾는 컴포넌트는 2가지가 있다.
-<Switch>는 랜더링되면 자식 중에 <Route>를 찾고 path가 현재 URL과 비교한다.
+<Switch>는 랜더링되면 자식 중에 <Route>를 찾고 path를 현재 URL과 비교한다.
 그리고 맞는 path가 있다면 해당 <Route>를 사용하고 나머지는 무시한다.
 이때 path가 중요한데, <Switch>는 현재 URL과 완전히 일치하는 것을 찾는 것이 아니다.
 <Switch>는 URL과 path를 앞에서부터 비교하기 시작한다.
@@ -895,7 +906,7 @@ function App() {
 이런 일을 방지하기 위해서 path는 긴 것부터 적어줘야 한다.
 정확히 표현하자면 가장 깊숙하게 있는 path를 위로 올려줘야 정상적으로 작동한다.
 
-### Navigation
+#### Navigation
 
 -   <Link>
 -   <NavLink>
@@ -931,7 +942,10 @@ function App() {
 <Redirect to="/login" />
 ```
 
+#### 라우터 구현
+
 이제 이를 바탕으로 다시 하던 일로 돌아가보자.
+`npm i react-router-dom`로 패키지를 설치한다.
 App.js에 라우터를 만들어준다.
 이때 BrowserRouter는 Router로 불러오고, path는 더 깊은 순서대로 작성해야 하는 것을 잊으면 안 된다.
 
@@ -1057,10 +1071,127 @@ Movie.propTypes = {
   ...
 ```
 
+### v6
+
 문제는 react-router-dom이 업데이트를 했다는 점이다.
-그래서 사용법이 조금 바뀌었는데, v5의 react-router-dom을 사용하거나, 아래의 설명을 보고 v6을 써도 된다.
+그래서 사용법이 조금 바뀌었는데, v5의 react-router-dom을 사용하거나,[react-router-dom v6](https://reactrouter.com/docs/en/v6/upgrading/v5#upgrade-to-react-router-v6)의 설명을 보고 v6을 써도 된다.
 
 기존의 v5와 달라진 점은 <Switch> 대신에 <Routes>를 쓴다는 점이다.
+둘의 가장 큰 차이점은 URL을 지정하는 방법이다.
+이를 위해서 아래 예시를 보자.
+
+```
+// This is a React Router v5 app
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  useRouteMatch
+} from "react-router-dom";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Switch>
+        <Route exact path="/">
+          <Home />
+        </Route>
+        <Route path="/users">
+          <Users />
+        </Route>
+      </Switch>
+    </BrowserRouter>
+  );
+}
+
+function Users() {
+  // In v5, nested routes are rendered by the child component, so
+  // you have <Switch> elements all over your app for nested UI.
+  // You build nested routes and links using match.url and match.path.
+  let match = useRouteMatch();
+
+  return (
+    <div>
+      <nav>
+        <Link to={`${match.url}/me`}>My Profile</Link>
+      </nav>
+
+      <Switch>
+        <Route path={`${match.path}/me`}>
+          <OwnUserProfile />
+        </Route>
+        <Route path={`${match.path}/:id`}>
+          <UserProfile />
+        </Route>
+      </Switch>
+    </div>
+  );
+}
+```
+
+위의 코드를 보면 라우트가 중첩되었다.
+다시 말해서 <App>에 라우트가 있고 또 <Users>에도 라우트가 있다.
+이렇게 중첩된 구조에서 하위 라우트에서는 path를 지정할 때, path에는 match.path와 match.url을 사용해야 했다.
+여기서 match.path는 <Route>에서 사용되는 주소고, match.url은 <Link>에 사용된다.
+
+그런데 v6로 바뀌면서 상대주소로 찾게 만들어졌고, match.path나 match.url을 적을 필요가 없어졌다.
+
+```
+// This is a React Router v5 app
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link,
+  useRouteMatch
+} from "react-router-dom";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Switch>
+        <Route exact path="/">
+          <Home />
+        </Route>
+        <Route path="/users">
+          <Users />
+        </Route>
+      </Switch>
+    </BrowserRouter>
+  );
+}
+
+function Users() {
+  // In v5, nested routes are rendered by the child component, so
+  // you have <Switch> elements all over your app for nested UI.
+  // You build nested routes and links using match.url and match.path.
+  let match = useRouteMatch();
+
+  return (
+    <div>
+      <nav>
+        <Link to={`${match.url}/me`}>My Profile</Link>
+      </nav>
+
+      <Switch>
+        <Route path={`${match.path}/me`}>
+          <OwnUserProfile />
+        </Route>
+        <Route path={`${match.path}/:id`}>
+          <UserProfile />
+        </Route>
+      </Switch>
+    </div>
+  );
+}
+```
+
+그리고 exact가 사라졌다.
+기존에는 URL이 완전히 동일해야 작동하도록 exact를 사용해줬다.
+v6에서는 이 대신에 _를 사용해서 하위 라우트가 존재하는 것을 표시한다.
+위의 예에서도 App 안의 라우트를 보면 path="users/_"로 적어서 하위 라우트가 있음을 보여준다.
+
 그리고 <Route>에 component를 넣어주는 대신에, element에 지정하도록 바뀌었다.
 예를 들어서 아래의 예시는 동일한 일을 한다.
 
@@ -1092,30 +1223,55 @@ function App() {
 
 ## publishing
 
-`npm i gh-pages`
+퍼블리싱을 위해 `npm i gh-pages`로 gh-pages를 설치한다.
+그 후 package.json 파일의 script를 보면 build가 생겼다.
+build를 실행시키면 우리가 만든 코드를 업로드하기에 적절한 코드로 변경시켜준다.
+`npm run build`로 스크립트를 실행시키면 build 폴더에 변환된 코드가 저장된다.
 
-package.json script build `npm run build`
-
-마지막줄에
-},
-"homepage": "https://{username}.github.io/{githubRepository}"
-`git remote -v`로 체크가능
-
-script만들기
-"deploy": "gp-pages -d build"
-"predeploy": "npm run build"
-
-5분 정도 후에 반영된다.
-
-혹시 React router 6버전으로 진행하신 분들 중 gh-pages로 배포 후, 빈 화면이 나온다면 Route컴포넌트의 path경로 앞에 process.env.PUBLIC_URL을 추가해서 수정을 해주시면 됩니다.
+다음으로 package.json 파일의 마지막줄을 아래처럼 바꿔준다.
 
 ```
-Route path={`${process.env.PUBLIC_URL}/`} element={Home}
+    },
+    "homepage": "https://{username}.github.io/{githubRepository}"
+}
 ```
 
-element Home은 <>로 감싸주셔야 합니다.
+여기서 {username}은 자기 깃허브 사용자명이고, {githubRepository}는 레파지토리 이름이다.
+`git remote -v`로 레파지토리 이름을 확인할 수 있는데, 연결하지 않았다면 미리 연결을 해줘야 한다.
 
-react-router-dom": "^6.2.1 를 사용합니다.
-App.js 에서 아래 가이드에 맞게 해서 잘되었습니다. 공유합니다.
+script를 추가해줄텐데, 아래 두 script를 추가해준다.
 
-Router basename={process.env.PUBLIC_URL}
+-   "deploy": "gp-pages -d build"
+-   "predeploy": "npm run build"
+
+여기서 deploy는 gh-pages로 build라는 파일을 올려준다.
+그런데 deploy로 올려주기 전에 자동으로 build가 실행되도록 하고 싶으므로, predeploy를 만들어서 npm run build가 일어나도록 만들었다.
+이렇게 하면 `npm run deploy`를 실행하면 `npm run predeploy`가 먼저 실행된다.
+이 스크립트는 `npm run build`를 실행하므로 먼저 build가 일어나고 deploy가 일어난다.
+deploy는 바로 일어나지 않으므로 몇 분 후에 다시 확인해주면 된다.
+
+다만 react-router-dom v6로 진행했다면, gh-pages로 배포해도 화면이 나오지 않는다.
+이는 경로가 제대로 지정되지 않아서 생기는 문제점으로 경로 앞에 {process.env.PUBLIC_URL}를 붙여줘야 한다.
+해결 방법은 2가지로 하나는 path에 직접적으로 추가하는 방법이다.
+
+```
+<Route path=`${process.env.PUBLIC_URL}/` element={<Home />} />
+```
+
+다른 하나는 <BrowserRouter>에 basename에 추가해주는 것이다.
+basename은 <BrowserRouter>의 경로를 지정해주는 속성이다.
+
+```
+<BrowserRouter basename={process.env.PUBLIC_URL}>
+    ...
+</BrouwerRouter>
+```
+
+여기서 process.env.PUBLIC_URL이 무엇인지 설명해보겠다.
+환경 변수(environment variable)는 프로그램이 실행되는 환경, 다시 말해 프로그램 밖의 값을 저장한 변수다.
+그리고 가장 대표적인 환경 변수가 바로 현재 경로다.
+Node.js에서는 process.env 안에 환경 변수 값이 들어 있다.
+여기서 process가 전역 변수이므로 어디서든 사용가능하다.
+예를 들어서 `process.env.USER`, `process.env.HOME`, `process.env.LANG`을 출력해보면 현재 사용 환경을 알 수 있다.
+그 중에서도 `process.env.PUBLIC_URL`에는 현재 실행되는 프로그램의 경로가 지정되어 있다.
+gh-pages에서 화면에 보이지 않는 이유가 경로가 잘못되었기 때문이므로, `process.env.PUBLIC_URL`로 경로를 정확히 지정해줘야 한다.
