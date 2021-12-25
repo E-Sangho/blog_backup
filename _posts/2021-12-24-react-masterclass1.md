@@ -1,6 +1,6 @@
 ---
 layout: post
-title: react-masterclass 1
+title: react-masterclass 1 styled-components
 date: Fri Dec 24 17:47:57 JST 2021
 categories: React, styled-components
 tag:
@@ -279,7 +279,12 @@ export default App;
 
 ### Animation
 
-keyframes를 사용하면 애니메이션도 사용할 수 있다.
+CSS에서 애니메이션 기능을 사용하려면 @keyframes를 사용하면 됐다.
+그런데 @keyframes를 사용하면 global하게 만들어지므로, 이름이 겹치는 경우가 생길 수도 있다.
+그래서 styled-component는 keyframes를 사용해서, 컴포넌트의 고유한 애니메이션 기능을 만들도록 했다.
+keyframes를 사용하기 위해서 styled-component로부터 import 해준다.
+애니메이션 기능을 만드는 방법은 기존의 CSS와 동일하다.
+주의할 점은 keyframes로 만든 애니메이션을 적용할 때, ${} 사이에 적어줘야 한다.
 
 ```
 import styled, { keyframes } from "styled-components";
@@ -334,34 +339,40 @@ function App() {
 export default App;
 ```
 
-###
+### Pseudo Selector
 
-SASS처럼 컴포넌트 안에서 태그를 지정해서 스타일을 적용할 수 있다.
+한 컴포넌트 안에는 여러 자식 컴포넌트가 있을 수 있다.
+그리고 styled-component는 sass처럼 안의 컴포넌트를 지정해서 스타일을 적용할 수 있다.
+예를 들어서 아래는 <Box> 안에서 span을 지정해서 스타일을 적용한 코드다.
 
 ```
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 
-const Wrapper = styled.div`
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  justify-content: center;
-  align-items: center;
+const Box = styled.div`
+  height: 200px;
+  width: 200px;
+  span {
+    font-size: 36px;
+  }
 `;
 
-const rotationAnimation = keyframes`
-  0% {
-    transform:rotate(0deg);
-    border-radius:0px;
-  }
-  50% {
-    border-radius:100px;
-  }
-  100%{
-    transform:rotate(360deg);
-    border-radius:0px;
-  }
-`;
+function App() {
+  return (
+    <Wrapper>
+      <Box>
+        <span>Hello</span>
+      </Box>
+    </Wrapper>
+  );
+}
+
+export default App;
+```
+
+또한 sass 처럼 &는 자기 자신을 가리키기 때문에, :hover, :active 등과 같이 사용하면 편하게 쓸 수 있다.
+
+```
+import styled from "styled-components";
 
 const Emoji = styled.span`
   font-size: 36px;
@@ -370,11 +381,41 @@ const Emoji = styled.span`
 const Box = styled.div`
   height: 200px;
   width: 200px;
-  background-color: tomato;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: ${rotationAnimation} 1s linear infinite;
+  span:hover {
+    font-size: 100px;
+  }
+`;
+
+function App() {
+  return (
+    <Wrapper>
+      <Box>
+        <Emoji>🤩</Emoji>
+      </Box>
+      <Emoji>🔥</Emoji>
+    </Wrapper>
+  );
+}
+
+export default App;
+```
+
+위의 예시를 보면 <Emoji> 태그를 만들었다.
+그런데 <Emoji>는 span이기 때문에 위의 스타일이 적용된다.
+하지만 앞서 사용했듯이 as를 쓰게 된다면, 스타일이 적용되지 않을 것이다.
+이때는 <Emoji> 태그를 직접 지정하는 것이 더 좋다.
+여기서 컴포넌트의 이름이 HTML에 존재하는 것이 아니라 우리가 만든 것이므로 ${}를 써줘야 한다.
+
+```
+import styled from "styled-components";
+
+const Emoji = styled.span`
+  font-size: 36px;
+`;
+
+const Box = styled.div`
+  height: 200px;
+  width: 200px;
   ${Emoji}:hover {
     font-size: 98px;
   }
@@ -394,9 +435,17 @@ function App() {
 export default App;
 ```
 
+위의 예시에서 2번째 <Emoji>는 <Box> 안에 없으므로 스타일이 적용되지 않는다.
+그래서 마우스를 올려도 아무런 변화가 없다.
+
 ### Theme
 
-다크모드, 라이트모드처럼 다양한 테마를 선택할 때, 사용할 수 있는 Theme도 지원한다.
+styled-component는 다크모드, 라이트모드처럼 다양한 테마를 선택할 때, 사용할 수 있는 Theme도 지원한다.
+이를 위해서 <ThemProvider>를 사용해야 한다.
+<ThemeProvider>는 theme으로 전달 받는 객체를 모든 하위 컴포넌트의 props로 넣어준다.
+그래서 하위 컴포넌트에서 theme의 값을 사용할 수 있게 된다.
+이를 이용해서 미리 테마의 색을 정할 수 있다.
+
 ThemeProvider를 import 해주고, 적용하고 싶은 컴포넌트를 <ThemeProvider>로 감싸준다.
 그리고 그 안에 props로 theme으로 적용하고 싶은 스타일을 넘겨준다.
 
@@ -427,7 +476,7 @@ ReactDOM.render(
 );
 ```
 
-이렇게하면 App.js에서 props.theme에서 적용한 스타일을 찾을 수 있다.
+이렇게하면 App.js에서 props.theme에서 값을 가져올 수 있다.
 
 ```
 // App.js
@@ -456,3 +505,6 @@ function App() {
 
 export default App;
 ```
+
+이를 이용하면 미리 지정해놓은 스타일을 적용하는 것이 가능한데, 나중에 배울 local Estate Management와 같이 사용하면 테마를 바꿀 수 있게 된다.
+지금은 <ThemeProvider>를 사용하면 미리 지정한 스타일 값을 가져올 수 있다는 것만 기억해두자.
