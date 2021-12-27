@@ -267,6 +267,7 @@ interface CircleProps {
 interface ContainerProps {
   bgColor: string;
 }
+
 const Container = styled.div<ContainerProps>``;
 
 function Circle({ bgColor }: CircleProps) {
@@ -296,7 +297,11 @@ interface CircleProps {
   bgColor: string;
 }
 
-const Container = styled.div<CircleProps>`
+interface ContainerProps {
+  bgColor: string;
+}
+
+const Container = styled.div<ContainerProps>`
   width: 200px;
   height: 200px;
   background-color: ${(props) => props.bgColor};
@@ -313,3 +318,518 @@ export default Circle;
 다만 여기서 생기는 문제점은 모든 props가 required가 된다는 점이다.
 
 ### Optional Props
+
+<Circle>을 보면 bgColor props를 필수적으로 넣어줘야 한다.
+이번에는 선택적으로 props를 쓰는 법을 알아보겠다.
+사용법은 interface에서 ?를 : 앞에 붙여주는 것이다.
+예를 들어서 borderColor를 optional props로 만들려면 아래처럼 하면 된다.
+
+```
+// Circle.tsx
+import styled from "styled-components";
+
+interface CircleProps {
+  bgColor: string;
+  // This is Optional Props
+  borderColor?: string;
+}
+
+interface ContainerProps {
+  bgColor: string;
+}
+
+const Container = styled.div<ContainerProps>`
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bgColor};
+  border-radius: 100px;
+`;
+
+function Circle({ bgColor }: CircleProps) {
+  return <Container bgColor={bgColor} />;
+}
+
+export default Circle;
+```
+
+이제 borderColor는 string | undefined로 정의된다.
+<Container> interface에도 똑같은 방법으로 borderColor를 정의하면 된다.
+하지만 이번에는 고의적으로 다르게 만들어서 오류를 만들어보겠다.
+<Circle>에서 borderColor를 사용해보자.
+borderColor를 받아서 <Container>에서 쓰도록 하면 아래처럼 된다.
+
+```
+// Circle.tsx
+import styled from "styled-components";
+
+interface CircleProps {
+  bgColor: string;
+  borderColor?: string;
+}
+
+interface ContainerProps {
+  bgColor: string;
+}
+
+const Container = styled.div<ContainerProps>`
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bgColor};
+  border-radius: 100px;
+`;
+
+function Circle({ bgColor, borderColor }: CircleProps) {
+  return <Container bgColor={bgColor} borderColor={borderColor} />;
+}
+
+export default Circle;
+```
+
+그리고 <Container>에서 borderColor을 받아 쓰기 위해 interface와 styled-component에 추가해줘야 한다.
+이때 optional이 아니라 required로 만든다.
+
+```
+// Circle.tsx
+import styled from "styled-components";
+
+interface CircleProps {
+  bgColor: string;
+  borderColor?: string;
+}
+
+interface ContainerProps {
+  bgColor: string;
+  // borderColor is not optional
+  borderColor: string;
+}
+
+const Container = styled.div<ContainerProps>`
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bgColor};
+  border-radius: 100px;
+  border: 1px solid ${(props) => props.borderColor};
+`;
+
+function Circle({ bgColor, borderColor }: CircleProps) {
+  return <Container bgColor={bgColor} borderColor={borderColor} />;
+}
+
+export default Circle;
+```
+
+타입스크립트는 borderColor가 string | undefined이므로 <Container>에서 borderColor를 사용하면 에러가 생길 수 있다는 것을 알려준다.
+여기서 우리는 default 값을 지정할 수 있다.
+default 값은 ?? 뒤에 적으면 되는데, borderColor의 default 값을 bgColor로 설정한다.
+
+```
+// Circle.tsx
+import styled from "styled-components";
+
+interface CircleProps {
+  bgColor: string;
+  borderColor?: string;
+}
+
+interface ContainerProps {
+  bgColor: string;
+  borderColor: string;
+}
+
+const Container = styled.div<ContainerProps>`
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bgColor};
+  border-radius: 100px;
+  border: 1px solid ${(props) => props.borderColor};
+`;
+
+function Circle({ bgColor, borderColor }: CircleProps) {
+  return <Container bgColor={bgColor} borderColor={borderColor ?? bgColor} />;
+}
+
+export default Circle;
+```
+
+<Circle>의 argument에서 default 값을 정할 수 있는데, text를 하나 만들어서 default 값을 정하겠다.
+
+```
+// Circle.tsx
+import styled from "styled-components";
+
+interface CircleProps {
+  bgColor: string;
+  borderColor?: string;
+  text?: string;
+}
+
+interface ContainerProps {
+  bgColor: string;
+  borderColor: string;
+}
+
+const Container = styled.div<ContainerProps>`
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bgColor};
+  border-radius: 100px;
+  border: 1px solid ${(props) => props.borderColor};
+`;
+
+function Circle({ bgColor, borderColor, text = "default text" }: CircleProps) {
+  return (<Container bgColor={bgColor} borderColor={borderColor ?? bgColor}
+            {text}
+        </Container>
+  );
+}
+
+export default Circle;
+```
+
+### State
+
+타입스크립트에서 state를 사용해보자.
+
+```
+// Circle.tsx
+import { useState } from "react";
+...
+
+function Circle({ bgColor, borderColor }: CircleProps) {
+  const [value, setValue] = useState(0);
+  ...
+}
+
+export default Circle;
+```
+
+위와 같이 사용했다면, setValue는 앞으로 number만이 값으로 들어올거라 생각한다.
+이처럼 setState 함수는 state에 주어진 초기값을 가지고 앞으로 사용할 값의 타입을 유추한다.
+그래서 string을 썼으면 setState에도 string을 써야 하고, boolean을 썼으면 setState에도 boolean을 써야 한다.
+이는 보통 같은 타입을 사용하기 때문에 합리적인 방법이다.
+
+하지만 경우에 따라서 2가지 이상의 타입을 써야 한다.
+아래는 string, number 타입을 사용하고 싶을 때의 코드다.
+
+```
+// Circle.tsx
+import { useState } from "react";
+...
+
+function Circle({ bgColor, borderColor }: CircleProps) {
+  const [value, setValue] = useState<number|string>(0);
+  ...
+}
+
+export default Circle;
+```
+
+그리고 초기값이 주어지지 않은 경우에 타입을 정해야 한다면 useState<type> 형태로 적는다.
+
+### Forms
+
+이제 Circle.tsx는 필요 없으니 지워준다.
+앞으로는 <form>을 알아보겠다.
+간단한 input의 내용을 제출받는 <form>을 만들어줬다.
+
+```
+// App.tsx
+import React, { useState } from "react";
+
+function App() {
+  const [value, setValue] = useState("");
+  const onChange = (event) => {
+
+  };
+  const onSubmit = (event) => {
+
+  };
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          value={value}
+          onChange={onChange}
+          type="text"
+          placeholder="username"
+        />
+        <button>Log in</button>
+      </form>
+    </div>
+  );
+}
+```
+
+이제 할 일은 onChange와 onSubmit을 완성하는 것이다.
+그런데 event의 타입을 보면 any라고 나온다.
+any는 타입스크립트의 타입으로 이름 그대로 어떤 타입이든 사용할 수 있다.
+하지만 any는 자바스크립트처럼 타입을 지정하지 않는 것이므로 가급적 any가 있으면 안 된다.
+그러므로 event에 타입을 추가해줘야 한다.
+추가해줘야 할 타입은 React.FormEvent다.
+
+```
+// App.tsx
+import React, { useState } from "react";
+
+function App() {
+  const [value, setValue] = useState("");
+  const onChange = (event: React.FormEvent) => {
+
+  };
+  const onSubmit = (event) => {
+
+  };
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          value={value}
+          onChange={onChange}
+          type="text"
+          placeholder="username"
+        />
+        <button>Log in</button>
+      </form>
+    </div>
+  );
+}
+```
+
+문제는 위처럼 어떤 타입을 지정하는 것이 굉장히 비직관적이다.
+React 내에 FormEvent라는 것이 있다는 것을 직접 알아내는 것은 불가능하기 때문이다.
+이런 타입을 알아내는 법은 구글 검색 뿐이다.
+
+이런 이상한 타입을 사용하는 이유는 React가 SyntheticEvent를 만들기 때문이다.
+React는 실제 이벤트를 전달하는 것이 아니라, SyntheticEvent를 만들어서 전달한다.
+이 때문에 React용 event 타입이 필요한 것이다.
+
+FormEvent를 보면 어떤 element가 onChange를 발생시킬지 특정할 수 있다.
+우리는 input을 다루므로 <HTMLInputElement>를 적어준다.
+그리고 콘솔에 출력해야 하는데, 일단은 event.currentTarget.value를 쓴다.
+
+```
+// App.tsx
+import React, { useState } from "react";
+
+function App() {
+  const [value, setValue] = useState("");
+  const onChange = (event: React.FormEvent<HTMLInputElement>) => {
+      console.log(event.currentTarget.value);
+  };
+  const onSubmit = (event) => {
+
+  };
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          value={value}
+          onChange={onChange}
+          type="text"
+          placeholder="username"
+        />
+        <button>Log in</button>
+      </form>
+    </div>
+  );
+}
+```
+
+보면 target이 아니라 currentTarget을 썼다.
+타입스크립트는 currentTarget을 사용하기로 했는데, 우리가 아는 target과 동일하다.
+값을 받아와서 setValue로 지정하도록 만든다.
+
+```
+// App.tsx
+import React, { useState } from "react";
+
+function App() {
+  const [value, setValue] = useState("");
+  const onChange = (event: React.FormEvent<HTMLInputElement>) => {
+      const {
+          currentTarget: { value },
+      } = event;
+      setValue(value);
+  };
+  const onSubmit = (event) => {
+
+  };
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          value={value}
+          onChange={onChange}
+          type="text"
+          placeholder="username"
+        />
+        <button>Log in</button>
+      </form>
+    </div>
+  );
+}
+```
+
+이제 onSubmit을 완성하면 된다.
+onSubmint을 일으키는 태그는 <form> 태그이므로, event의 타입은 React.FormEvent<HTMLFormElement>가 된다.
+
+```
+// App.tsx
+import React, { useState } from "react";
+
+function App() {
+  const [value, setValue] = useState("");
+  const onChange = (event: React.FormEvent<HTMLInputElement>) => {
+      const {
+          currentTarget: { value },
+      } = event;
+      setValue(value);
+  };
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      console.log("hello", value);
+  };
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          value={value}
+          onChange={onChange}
+          type="text"
+          placeholder="username"
+        />
+        <button>Log in</button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Themes
+
+#### .d.ts
+
+타입스크립트로 테마를 구현하기 위해 [styled-components typescript](https://styled-components.com/docs/api#typescript)를 참고해서 진행하겠다.
+
+이전에 우리는 타입스크립트가 패키지를 이해하도록 @type/이 붙은 몇 가지를 설치했었다.
+이 파일들은 모듈을 정의해서 타입스크립트가 패키지를 이해하도록 하는데, 이때 사용하는 파일이 _.d.ts_ 파일이다.
+만약 타입스크립트를 지원하지 않는 라이브러리를 사용한다면 .d.ts 파일을 만들어서 타입을 직접 선언해야 한다.
+.d.ts 파일 안에 declare module을 작성하면, 해당 패키지에서 interface, class, function 등의 타입을 선언할 수 있다.
+
+테마 기능을 쓰기 위해선 styled-component에 테마의 타입을 선언해줘야 한다.
+아래는 styled.d.ts 파일을 만들어서 DefaultTheme을 선언한 것이다.
+
+```
+// src/styled.d.ts
+import "styled-components";
+
+declare module "styled-components" {
+  export interface DefaultTheme {
+    textColor: string;
+    bgColor: string;
+    btnColor: string;
+  }
+}
+```
+
+위와 같이 작성하면 이제 styled-components로부터 DefaultTheme을 import할 수 있게 된다.
+이를 이용해 테마 내용이 들어 있는 theme.ts 파일을 만들었다.
+
+```
+// src/theme.ts
+import { DefaultTheme } from "styled-components";
+
+export const lightTheme: DefaultTheme = {
+  bgColor: "white",
+  textColor: "black",
+  btnColor: "tomato",
+};
+
+export const darkTheme: DefaultTheme = {
+  bgColor: "black",
+  textColor: "white",
+  btnColor: "teal",
+};
+```
+
+#### Declaration Merging
+
+그런데 위에서 모듈을 선언한 것을 보면 이미 styled-components가 있음에도 불구하고 같은 이름으로 모듈을 만들었다.
+그리고 import 한 것을 보면 선언한 내용이 styled-components와 합쳐진 것을 알 수 있다.
+
+이런 일이 일어나는 이유는 선언 병합(Declaration Merging) 때문이다.
+선언 병합은 컴파일러가 같은 이름으로 선언된 정의를 하나로 합치는 것을 말한다.
+예를 들어 아래처럼 2개의 interface가 있다고 하자.
+
+```
+interface Box {
+  height: number;
+  width: number;
+}
+
+interface Box {
+  scale: number;
+}
+
+let box: Box = { height: 5, width: 6, scale: 10 };
+```
+
+2개의 interface를 하나로 만들어주기 때문에 위이 box처럼 3개의 값을 적어도 작동한다.
+물론 각 interface에 이름은 같지만 타입이 다른 멤버를 선언하면 에러가 발생하므로 주의하자.
+그 외에도 선언 순서에 따라 병합되는 순서가 다르고, 몇 가지 규칙이 더 있지만 추가적인 내용은 [Declaration Merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html)을 확인하자.
+
+중요한 것은 이처럼 같은 이름으로 작성하면 하나로 병합된다는 점이다.
+그러므로 특정 모듈과 같은 이름으로 선언하고 interface를 만들어주면, 그 모듈이 업데이트 된 것과 동일한 효과가 나타난다.
+이것이 앞서 우리가 styled-components로 모듈을 선언하고 interface를 작성한 것이, 기존의 styled-components에서 불러올 수 있었던 이유다.
+
+#### theme
+
+다시 하던 일로 돌아가자.
+우리는 styled.d.ts에서 DefaultTheme interface를 만들었다.
+그리고 이를 가지고 theme.ts에 lightTheme과 darkTheme을 만들었다.
+다음으로 index.tsx에서 theme을 적용시키겠다.
+우선은 <ThemeProvider>를 styled-components에서 불러와야 한다.
+그리고 속성에 theme={darkTheme}을 줘서 <App>에 테마 변화 기능을 준다.
+
+```
+// index.tsx
+import React from "react";
+import ReactDOM from "react-dom";
+import { ThemeProvider } from "styled-components";
+import App from "./App";
+import { darkTheme, lightTheme } from "./theme";
+
+ReactDOM.render(
+  <React.StrictMode>
+    <ThemeProvider theme={darkTheme}>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+```
+
+그리고 App.tsx를 고쳐서 테마 변화가 잘 보이도록 고쳐줬다.
+
+```
+// App.tsx
+import styled from "styled-components";
+
+const Container = styled.div`
+    background-color: ${(props) => props.theme.bgColor};
+`;
+
+const H1 = styled.h1`
+    color: ${(props) => props.theme.textColor}
+`;
+
+function App() {
+    return (
+        <Container>
+            <H1>Hello</H1>
+        </Container>
+    )
+}
+```
+
+테마를 변화시키려면 index.tsx에서 <ThemeProvider>의 theme만 lightTheme으로 바꿔주면 해결된다.
