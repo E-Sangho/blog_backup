@@ -665,3 +665,727 @@ function Coins() {
 }
 export default Coins;
 ```
+
+글자 대신에 이미지를 추가해서 링크를 좀 더 보기 좋게 바꾸겠다.
+코인의 이미지를 가져오는 API는 [Cryptoion](https://cryptoicon-api.vercel.app/)을 사용했다.
+
+우선 이미지를 넣을 styled component를 만들어준다.
+그리고 만든 컴포넌트를 <Link> 안에 추가시키고 링크를 추가해준다.
+
+```
+// Coins.tsx
+const Img = styled.img`
+  width: 35px;
+  height: 35px;
+  margin-right: 10px;
+`;
+
+function Coins() {
+            ...
+              <Link to={`/${coin.id}`}>{coin.name}
+                <Img
+                  src={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
+                />
+              </Link>
+            </Coin>
+          ))}
+        </CoinsList>
+      )}
+    </Container>
+  );
+}
+export default Coins;
+```
+
+그리고 스타일을 수정해주면 되는데 <Link>의 스타일을 수정하려면 <a>를 수정해줘야 한다.
+
+```
+// Coins.tsx
+const Coin = styled.li`
+  background-color: white;
+  color: ${(props) => props.theme.bgColor};
+  border-radius: 15px;
+  margin-bottom: 10px;
+  a {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    transition: color 0.2s ease-in;
+  }
+  &:hover {
+    a {
+      color: ${(props) => props.theme.accentColor};
+    }
+  }
+`;
+```
+
+### 5. State
+
+각 코인의 링크를 누르면 코인의 세부정보를 볼 수 있다.
+이 페이지는 Coin.tsx에서 만든 것인데, 앞으로 여기서도 API를 추가한다.
+그리고 API를 추가하면 로딩을 한 후에 페이지를 보여준다.
+그런데 Home에서 페이지로 넘어간 경우를 생각해보면, 이미 코인의 정보를 어느 정도 알고 있다.
+이미 알고 있는 정보를 사용해서 미리 정보를 보내주면, 페이지가 더 빠르게 작동하도록 만들 수 있다.
+이를 위해서 사용하는 것이 <Link>의 state다.
+state는 다음 페이지로 전달하고 싶은 정보를 담는 곳으로, 여기에 담은 내용은 다음 페이지에서 useLocation()으로 쓸 수 있다.
+
+우선 Coin.tsx에 Coins.tsx의 styled-component를 옮기고 같은 모양으로 만든다.
+아래는 코드를 그대로 옮겨쓴 것인 뿐이다.
+
+```
+// Coin.tsx
+import { useState } from "react";
+import { useParams } from "react-router";
+import styled from "styled-components";
+
+const Title = styled.h1`
+  font-size: 48px;
+  color: ${(props) => props.theme.accentColor};
+`;
+
+const Loader = styled.span`
+  text-align: center;
+  display: block;
+`;
+
+const Container = styled.div`
+  padding: 0px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+`;
+
+const Header = styled.header`
+  height: 15vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+interface RouteParams {
+  coinId: string;
+}
+
+function Coin() {
+  const [loading, setLoading] = useState(true);
+  const { coinId } = useParams<RouteParams>();
+  return (
+    <Container>
+      <Header>
+        <Title>Coin</Title>
+      </Header>
+      {loading ? <Loader>Loading...</Loader> : null}
+    </Container>
+  );
+}
+export default Coin;
+```
+
+이제 Home에서 코인의 이름을 가져오기 위해 state를 사용한다.
+state로 전달하려면 <Link>에 state를 추가하고 정보를 적어주면 된다.
+
+```
+// Coins.tsx
+            ...
+              <Link
+                to={{
+                  pathname: `/${coin.id}`,
+                  state: { name: coin.name },
+                }}
+              >
+                ...
+```
+
+이제 받아온 정보를 사용하기 위해서 Coin에서 useLocation()을 사용한다.
+react-router에서 useLocation을 import하고, `console.log(useLocation())`으로 어떤 내용이 있는지 확인해보자.
+
+```
+// Coin.tsx
+import { useLocation, useParams } from "react-router";
+
+function Coin() {
+  const [loading, setLoading] = useState(true);
+  const { coinId } = useParams<RouteParams>();
+  console.log(useLocation());
+  return (
+    <Container>
+      <Header>
+        <Title>Coin</Title>
+      </Header>
+      {loading ? <Loader>Loading...</Loader> : null}
+    </Container>
+  );
+}
+export default Coin;
+```
+
+정보를 보면 useLocation에는 state가 있고, 그 안에 우리가 넣어준 name이 있다.
+그러므로 이를 가져와서 사용해야 하는데, 타입이 지정되어 있지 않으므로 interface를 만들어서 적용시켜야 한다.
+그리고 <Title>에서 이름을 보여준다.
+
+```
+// Coin.tsx
+interface RouteState {
+  name: string;
+}
+
+function Coin() {
+  const [loading, setLoading] = useState(true);
+  const { coinId } = useParams<RouteParams>();
+  const { state } = useLocation<RouteState>();
+  return (
+    <Container>
+      <Header>
+        <Title>{state.name}</Title>
+      </Header>
+      {loading ? <Loader>Loading...</Loader> : null}
+    </Container>
+  );
+}
+export default Coin;
+```
+
+이렇게하면 Home에서 링크를 누르면 정상적으로 작동한다.
+하지만 Home을 거치지 않고 바로 해당 URL로 접속하면 state가 존재하지 않으므로 에러가 난다.
+그러므로 ?를 사용해서 state가 없는 경우엔 "Loading..."이 나오도록 한다.
+
+```
+// Coin.tsx
+interface RouteState {
+  name: string;
+}
+
+function Coin() {
+  const [loading, setLoading] = useState(true);
+  const { coinId } = useParams<RouteParams>();
+  const { state } = useLocation<RouteState>();
+  return (
+    <Container>
+      <Header>
+        <Title>{state?.name || "Loading..."}</Title>
+      </Header>
+      {loading ? <Loader>Loading...</Loader> : null}
+    </Container>
+  );
+}
+export default Coin;
+```
+
+### 6. Coin Data
+
+이제 fetch로 정보를 받아 온 다음에 코인 정보를 넣어주려고 한다.
+받아올 정보는 코인 자체의 정보와 가격이다.
+각각 "https://api.coinpaprika.com/v1/coins/${coinId}"와 "https://api.coinpaprika.com/v1/tickers/${coinId}"로 가져올 수 있다.
+이미 fetch로 하는 것은 많이 해봤으므로 생략하겠다.
+차이점이라면 받아오는 데이터가 json 형태이므로 useState({})로 초기화 시킨다는 점 뿐이다.
+
+```
+// Coin.tsx
+import { useEffect, useState } from "react";
+...
+function Coin() {
+  ...
+  const [info, setInfo] = useState({});
+  const [priceInfo, setPriceInfo] = useState({});
+  useEffect(() => {
+    (async () => {
+      const infoData = await (
+        await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+      ).json();
+      const priceData = await (
+        await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+      ).json();
+      setInfo(infoData);
+      setPriceInfo(priceData);
+      setLoading(false);
+    })();
+  }, []);
+}
+```
+
+### 7. Data Types
+
+불러온 데이터의 interface를 만들어줘야 한다.
+"https://app.quicktype.io/?l=ts"나 "http://json2ts.com/"에서 데이터를 넣어주면 자동으로 만들어준다.
+다 만들고 적용하면 useState({})에서 데이터 내용을 알게 되므로 {}는 필요 없다.
+
+```
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router";
+import styled from "styled-components";
+
+const Title = styled.h1`
+  font-size: 48px;
+  color: ${(props) => props.theme.accentColor};
+`;
+
+const Loader = styled.span`
+  text-align: center;
+  display: block;
+`;
+
+const Container = styled.div`
+  padding: 0px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+`;
+
+const Header = styled.header`
+  height: 15vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+interface RouteParams {
+  coinId: string;
+}
+interface RouteState {
+  name: string;
+}
+
+interface InfoData {
+  id: string;
+  name: string;
+  symbol: string;
+  rank: number;
+  is_new: boolean;
+  is_active: boolean;
+  type: string;
+  description: string;
+  message: string;
+  open_source: boolean;
+  started_at: string;
+  development_status: string;
+  hardware_wallet: boolean;
+  proof_type: string;
+  org_structure: string;
+  hash_algorithm: string;
+  first_data_at: string;
+  last_data_at: string;
+}
+
+interface PriceData {
+  id: string;
+  name: string;
+  symbol: string;
+  rank: number;
+  circulating_supply: number;
+  total_supply: number;
+  max_supply: number;
+  beta_value: number;
+  first_data_at: string;
+  last_updated: string;
+  quotes: {
+    USD: {
+      ath_date: string;
+      ath_price: number;
+      market_cap: number;
+      market_cap_change_24h: number;
+      percent_change_1h: number;
+      percent_change_1y: number;
+      percent_change_6h: number;
+      percent_change_7d: number;
+      percent_change_12h: number;
+      percent_change_15m: number;
+      percent_change_24h: number;
+      percent_change_30d: number;
+      percent_change_30m: number;
+      percent_from_price_ath: number;
+      price: number;
+      volume_24h: number;
+      volume_24h_change_24h: number;
+    };
+  };
+}
+
+function Coin() {
+  const [loading, setLoading] = useState(true);
+  const { coinId } = useParams<RouteParams>();
+  const { state } = useLocation<RouteState>();
+  const [info, setInfo] = useState<InfoData>();
+  const [priceInfo, setPriceInfo] = useState<PriceData>();
+  useEffect(() => {
+    (async () => {
+      const infoData = await (
+        await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+      ).json();
+      const priceData = await (
+        await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+      ).json();
+      setInfo(infoData);
+      setPriceInfo(priceData);
+      setLoading(false);
+    })();
+  }, []);
+  return (
+    <Container>
+      <Header>
+        <Title>{state?.name || "Loading..."}</Title>
+      </Header>
+      {loading ? <Loader>Loading...</Loader> : null}
+    </Container>
+  );
+}
+export default Coin;
+```
+
+그런데 useEffect()를 보면 경고문이 있다.
+읽어보면 [] 안에 내용을 넣어라는 뜻인데, coinId를 넣어주면 된다.
+
+나머지 코인 설명, 가격 등은 비슷한 방법으로 만들 수 있고, 스타일링도 styled-components로 할 수 있으므로 생략하고 결과만 적는다.
+
+```
+// App.tsx
+body {
+  font-weight: 300;
+  font-family: 'Source Sans Pro', sans-serif;
+  background-color:${(props) => props.theme.bgColor};
+  color:${(props) => props.theme.textColor};
+  line-height: 1.2;
+}
+```
+
+```
+// Coin.tsx
+const Overview = styled.div`
+  display: flex;
+  justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 10px;
+`;
+const OverviewItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  span:first-child {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+`;
+const Description = styled.p`
+  margin: 20px 0px;
+`;
+...
+}, [coinId]);
+  return (
+    <Container>
+      <Header>
+        <Title>
+          {state?.name ? state.name : loading ? "Loading..." : info?.name}
+        </Title>
+      </Header>
+      {loading ? (
+        <Loader>Loading...</Loader>
+      ) : (
+        <>
+          <Overview>
+            <OverviewItem>
+              <span>Rank:</span>
+              <span>{info?.rank}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Symbol:</span>
+              <span>${info?.symbol}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Open Source:</span>
+              <span>{info?.open_source ? "Yes" : "No"}</span>
+            </OverviewItem>
+          </Overview>
+          <Description>{info?.description}</Description>
+          <Overview>
+            <OverviewItem>
+              <span>Total Suply:</span>
+              <span>{priceInfo?.total_supply}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Max Supply:</span>
+              <span>{priceInfo?.max_supply}</span>
+            </OverviewItem>
+          </Overview>
+        </>
+      )}
+    </Container>
+  );
+}
+```
+
+### 8. Nested Routes
+
+이전에 Node.js에서 라우터를 만든 것을 기억해보자.
+큰 주소로 라우터를 나누고 다시 그 안에서 라우트를 만들었다.
+예를 들어서 `https://localhost:4000/users/edit`과 `https://localhost:4000/users/create` 처럼 끝 부분의 주소가 다른 것만으로 다른 정보를 보여주었다.
+이때 라우터로 /users를 만들었고, 그 안에서 다시 edit, create 라우트를 만들었다.
+이처럼 라우트를 나누는 것은 최상위 컴포넌트에서만 가능한 것이 아니라, 하위 라우트에서도 가능하다.
+그런데 이렇게 되면 라우트가 중첩되기 때문에 Nested Routes라는 표현을 사용하는 것이다.
+
+Nested Routes를 사용하면 원하는 위치에서 URL을 나눌 수 있고, 끝부분을 바꾸는 것만으로 다른 정보를 보여줄 수 있다.
+이를 사용해서 Coin.tsx에서 Price와 Chart를 보여주는 라우트를 만들겠다.
+만드는 법은 이전에 라우트를 만들었듯이 <Switch>와 <Route>를 사용하면 된다.
+다만 주소는 \`/${coinId}/price\`나 \`/${coinId}/chart\`로 다르게 해주면 된다.
+물론 라우트에서 쓰일 컴포넌트도 Price.tsx와 Chart.tsx에 만들어준다.
+
+```
+// src/routes/Chart.tsx
+function Chart() {
+  return <h1>Chart</h1>;
+}
+
+export default Chart;
+```
+
+```
+// src/routes/Price.tsx
+function Price() {
+  return <h1>Price</h1>;
+}
+
+export default Price;
+```
+
+```
+// Coin.tsx
+import { Switch, Route, useLocation, useParams } from "react-router";
+import Chart from "./Chart";
+import Price from "./Price";
+          ...
+          </Overview>
+          <Switch>
+            <Route path={`/${coinId}/price`}>
+              <Price />
+            </Route>
+            <Route path={`/${coinId}/chart`}>
+              <Chart />
+            </Route>
+          </Switch>
+        </>
+```
+
+그런데 위처럼 ${coinId}로 적어줄 필요 없이 :coinId로 적어도 작동한다.
+
+```
+// Coin.tsx
+          <Switch>
+            <Route path={`/:coinId/price`}>
+              <Price />
+            </Route>
+            <Route path={`/:coinId/chart`}>
+              <Chart />
+            </Route>
+          </Switch>
+```
+
+다음으로 Price와 Chart를 바꿔주는 탭을 만들겠다.
+<Tab> 컴포넌트를 만들고 스타일을 만들어준다.
+그리고 <Tab> 안에 <Link>를 사용해서 경로를 지정해주면 된다.
+
+```
+//Coin.tsx
+const Tabs = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 25px 0px;
+  gap: 10px;
+`;
+
+const Tab = styled.span<{ isActive: boolean }>`
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 400;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 7px 0px;
+  border-radius: 10px;
+  a {
+    display: block;
+  }
+`;
+
+function Coin() {
+          </Overview>
+          <Tabs>
+            <Tab isActive={chartMatch !== null}>
+              <Link to={`/${coinId}/chart`}>Chart</Link>
+            </Tab>
+            <Tab isActive={priceMatch !== null}>
+              <Link to={`/${coinId}/price`}>Price</Link>
+            </Tab>
+          </Tabs>
+```
+
+이제 탭을 누르면 Price와 Chart 페이지를 오갈 수 있게 됐다.
+
+여기서 현재 어떤 페이지에 들어와 있는지를 색으로 표현하고 싶다.
+현재 URL을 알기 위해선 useRouteMatch()를 사용한다.
+useRouteMatch()는 현재 URL과 경로가 일치하는 경우에만 match를 반환한다.
+어떤 내용이 나오는지 보기 위해 console.log로 출력해보자.
+
+```
+// Coin.tsx
+import {
+  Switch,
+  Route,
+  useLocation,
+  useParams,
+  useRouteMatch,
+} from "react-router-dom";
+
+function Coin() {
+  ...
+  const priceMatch = useRouteMatch("/:coinId/price");
+  console.log(priceMatch);
+}
+```
+
+만약 URL이 일치하지 않는다면, null이 나온다.
+URL이 일치하는 경우엔 객체를 반환하는데, 그 안에 isExact, params, path, url 등의 정보가 들어가 있다.
+이를 사용해서 null이 아닌 경우에만 색을 바꿔주도록 하겠다.
+
+```
+// Coin.tsx
+const Tab = styled.span<{ isActive: boolean }>`
+  ...
+  color: ${(props) =>
+  props.isActive ? props.theme.accentColor : props.theme.textColor};
+  ...
+`;
+
+function Coin() {
+          ...
+          <Tabs>
+              <Tab isActive={chartMatch !== null}>
+                <Link to={`/${coinId}/chart`}>Chart</Link>
+              </Tab>
+              <Tab isActive={priceMatch !== null}>
+                <Link to={`/${coinId}/price`}>Price</Link>
+              </Tab>
+            </Tabs>
+```
+
+### 9. React Query
+
+지금까지 API로 정보를 받아올 때 fetch를 사용하고, useState, useEffect를 써서 해결했다.
+이 모든 것을 간단하게 해결할 수 있는데, [React Query](https://react-query.tanstack.com/)를 사용하면 된다.
+`npm i react-query`로 설치할 수 있는데, 우리는 이미 이전에 설치했줬다.
+React Query의 페이지에서 설명을 읽어보면, <QueryClient>와 <QueryClientProvider>를 쓴다.
+이는 이전에 <ThemeProvider>를 쓴 것과 동일한 것으로, React Query를 사용하려면 <QueryClientProvider>를 사용해야 한다.
+
+index.tsx로 가서 <QueryClient>와 <QueryClientProvider>를 추가해주자.
+이때 <QueryClientProvider>에 client로 QueryClient()를 줘야 한다.
+
+```
+// index.tsx
+import React from "react";
+import ReactDOM from "react-dom";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { ThemeProvider } from "styled-components";
+import App from "./App";
+import { theme } from "./theme";
+
+const queryClient = new QueryClient();
+
+ReactDOM.render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <App />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+```
+
+그리고 모든 api를 컨트롤하는 api.ts 파일을 만들었다.
+모든 파일의 api는 이곳에서 작성하고 다른 곳에서 import해서 사용한다.
+
+우선 Coins.tsx의 fetch코드를 가져와서 넣어준다.
+
+```
+// src/api.tsx
+export function fetchCoins() {
+  return fetch("https://api.coinpaprika.com/v1/coins").then((response) =>
+    response.json()
+  );
+}
+```
+
+React Query가 promise를 사용하므로 promise를 반환해줬다.
+그리고 async/await을 사용하면 코드가 길어지므로, .then을 썼다.
+
+이제 Coins.tsx로 돌아가서 코드를 수정해보자.
+우리는 React Query를 사용하기 때문에, 더이상 useState나 useEffect가 필요없다.
+react-query에서 `useQuery(queryKey, queryFn)`를 import한다.
+[useQuery](https://react-query.tanstack.com/reference/useQuery)에 관한 설명은 링크를 보면 알 수 있다.
+
+-   queryKey(Required): 유일해야하고, queryKey를 기반으로 만들기 때문에 바뀔경우 새로 업데이트 한다.
+-   queryFn(Required): 프로미스를 반환하는 함수가 되어야 하는데, 위에서 만든 fetch 함수가 들어가면 된다.
+
+useQuery는 isLoading과 data를 반환하는데, isLoading에는 로딩중인지 boolean 값이 들어있고, data에는 fetch로 받아온 데이터가 들어간다.
+isLoading과 data를 사용하면 별도로 useState로 state를 만들 필요가 없다.
+그러므로 코드를 isLoading과 data를 사용하도록 수정해준다.
+
+```
+// Coins.tsx
+import { useQuery } from "react-query";
+import { fetchCoins } from "../api";
+function Coins() {
+  const { isLoading, data } = useQuery("allCoins", fetchCoins);
+  return (
+    <Container>
+      <Header>
+        <Title>코인</Title>
+      </Header>
+      {isLoading ? (
+        <Loader>Loading...</Loader>
+      ) : (
+        <CoinsList>
+          {data.map((coin) => (
+            <Coin key={coin.id}>
+              <Link
+                to={{
+```
+
+그런데 data가 어떤 형태인지 설명하지 않아서, 에러가 난다.
+그래서 interface를 지정해줘야 하는데, 이전의 CoinInterface를 ICoin으로 이름만 바꿔서 사용했다.
+그리고 data가 위에 마우스를 올리면 ICoin || undefined로 나오는데, 이는 data 유무가 확실하지 않아서 그렇다.
+그러므로 ?를 붙여서 없는 경우엔 실행되지 않도록 한다.
+
+```
+// Coin.tsx
+interface ICoin {
+  id: string;
+  name: string;
+  symbol: string;
+  ...
+}
+
+function Coins() {
+  const { isLoading, data } = useQuery<ICoin[]>("allCoins", fetchCoins);
+  return (
+    <Container>
+      <Header>
+        <Title>코인</Title>
+      </Header>
+      {isLoading ? (
+        <Loader>Loading...</Loader>
+      ) : (
+        <CoinsList>
+          {data?.slice(0, 100).map((coin) => (
+            <Coin key={coin.id}>
+              <Link
+                to={{
+```
+
+여기까지 보면 코드가 조금 더 깔끔해지긴 했지만, 기존의 fetch를 사용한 것을 분리했을 뿐 큰 차이는 없어 보인다.
+하지만 브라우저에서 확인하면 큰 차이점이 있다.
+이전에 Home에서 코인 정보 페이지로 가고, 다시 Home으로 돌아갔을 때 로딩이 필요했다.
+그런데 React Query를 사용하면 로딩이 필요 없다.
+이는 React Query가 캐시 데이터에 정보를 저장했기 때문이다.
+앞서 useQuery에서 설명했듯이 queryKey를 설정하면 계속해서 내용을 추적하기 때문이다.
+
+### 10.
