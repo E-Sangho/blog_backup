@@ -1388,4 +1388,180 @@ function Coins() {
 이는 React Query가 캐시 데이터에 정보를 저장했기 때문이다.
 앞서 useQuery에서 설명했듯이 queryKey를 설정하면 계속해서 내용을 추적하기 때문이다.
 
-### 10.
+다음 단계로 넘어가기 전에 [Devtools](https://react-query.tanstack.com/devtools#_top)를 소개하려고 한다.
+Devtools는 캐시의 query를 보여주는 컴포넌트를 만들어주는데, 위의 링크에서 사용법을 볼 수 있다.
+App.tsx에서 ReactQueryDevtools를 import하고, 아래처럼 initialIsOpen={true} 속성을 줘서 만들어준다.
+
+```
+// App.tsx
+import { ReactQueryDevtools } from "react-query/devtools";
+...
+      <Router />
+      <ReactQueryDevtools initialIsOpen={true} />
+    </>
+```
+
+그리고 브라우저를 열어보면 뭔가가 생겼는데, 이것이 Devtools다.
+Devtools를 보면 캐시의 query 정보를 자세히 볼 수 있다.
+어떤 내용이 들어있고, 어떤 정보가 있으며, 현재 사용 유무 등 다양한 정보가 있다.
+그리고 Home에 들어가면 모든 코인 정보를 담은 query가 있다.
+Devtools를 보면 query를 더 쉽게 다룰 수 있고, 현재 상태를 시각화하므로 코드를 작성하는 동안 Devtools를 사용하겠다.
+
+이제 Coin.tsx 파일에서도 React Query를 사용해주려고 한다.
+그 전에 api.ts에서 fetch 기능을 사용하도록 가져오겠다.
+그런데 URL이 공통되는 부분이 많으므로 BASE_URL을 만들어서 아래처럼 간단히 할 수 있다.
+
+```
+// api.ts
+const BASE_URL = `https://api.coinpaprika.com/v1`;
+
+export function fetchCoins() {
+  return fetch(`${BASE_URL}/coins`).then((response) => response.json());
+}
+
+export function fetchCoinInfo(coinId: string) {
+  return fetch(`${BASE_URL}/coins/${coinId}`).then((response) =>
+    response.json()
+  );
+}
+
+export function fetchCoinTickers(coinId: string) {
+  return fetch(`${BASE_URL}/tickers/${coinId}`).then((response) =>
+    response.json()
+  );
+}
+```
+
+여기서 새로운 점은 coinId를 가져오기 위해 변수를 사용했다는 점이다.
+나중에 useQuery에서 변수를 어떻게 넘겨주는지 설명하겠다.
+다시 Coin.tsx로 돌아가서 useQuery를 사용해보자.
+그런데 여기서 문제점이 생기는데, 이전에 useQuery를 사용할때는 딱 하나만 사용했으므로 isLoading, data, queryKey가 겹치지 않았다.
+하지만 지금은 2개를 사용하고 있으므로 이름이 중복되는 문제가 생긴다.
+우선 isLoading, data의 이름을 새로 설정할 수 있는데, 뒤에 :를 붙이고 새로운 이름을 적어주면 된다.
+현재까지의 코드를 적으면 아래처럼 된다.
+
+```
+// Coin.tsx
+import { useQuery } from "react-query";
+import { fetchCoinInfo, fetchCoinTickers } from "../api";
+
+function Coin() {
+  const { coinId } = useParams<RouteParams>();
+  const { state } = useLocation<RouteState>();
+  const priceMatch = useRouteMatch("/:coinId/price");
+  const chartMatch = useRouteMatch("/:coinId/chart");
+  const { isLoading: infoLoading, data: infoData } = useQuery();
+  const { isLoading: tickersLoading, data: tickersData } = useQuery();
+}
+```
+
+위와 같이 적으면 isLoading, data의 중복 문제는 해결되었다.
+다음으로 queryKey의 중복 문제를 해결하겠다.
+우선 queryKey에 unique한 값인 coinId를 사용해야 하는것은 확실하다.
+하지만 useQuery를 2개 사용하고 있으므로 coinId만으로는 불충분하다.
+여기서 queryKey가 Array를 사용할 수 있다는 점을 이용한다.
+coinId는 그대로 두고 Array에 다른 내용을 적어주기만 하면 두 useQuery를 구분할 수 있고, 나머지와는 coinID가 구분해준다.
+
+```
+// Coin.tsx
+function Coin() {
+  ...
+  const { isLoading: infoLoading, data: infoData } = useQuery(["info", coinId],);
+  const { isLoading: tickersLoading, data: tickersData } = useQuery(["tickers", coinId],);
+  ...
+}
+```
+
+다음으로 queryFn에 변수를 넣어줘야 한다.
+기존에는 함수명만 작성하면 알아서 해결해줬다.
+하지만 이렇게하면 변수를 작성할 수 없다.
+그렇다고 fetchCoinInfo(coinId)를 바로 적으면 이는 함수를 실행하는 것이므로 문제가 된다.
+그래서 우리는 콜백 함수를 작성해야 한다.
+
+```
+// Coin.tsx
+function Coin() {
+  ...
+  const { isLoading: infoLoading, data: infoData } = useQuery(
+    ["info", coinId],
+    () => fetchCoinInfo(coinId)
+  );
+  const { isLoading: tickersLoading, data: tickersData } = useQuery(
+    ["tickers", coinId],
+    () => fetchCoinTickers(coinId)
+  );
+  ...
+}
+```
+
+이제 나머지 부분을 수정할텐데, 우선 2개를 불러오므로 loading을 ||를 사용해서 둘 다 확인해야 한다.
+그리고 info는 infoData로 수정해야 하고, priceInfo는 tickersData로 바꿔준다.
+
+```
+// Coin.tsx
+function Coin() {
+  ...
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ["tickers", coinId],
+    () => fetchCoinTickers(coinId)
+  );
+  const loading = infoLoading || tickersLoading;
+  ...
+        <Title>
+          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+        </Title>
+        ...
+         <Overview>
+            <OverviewItem>
+              <span>Rank:</span>
+              <span>{infoData?.rank}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Symbol:</span>
+              <span>${infoData?.symbol}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Open Source:</span>
+              <span>{infoData?.open_source ? "Yes" : "No"}</span>
+            </OverviewItem>
+          </Overview>
+          <Description>{infoData?.description}</Description>
+          <Overview>
+            <OverviewItem>
+              <span>Total Suply:</span>
+              <span>{tickersData?.total_supply}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Max Supply:</span>
+              <span>{tickersData?.max_supply}</span>
+            </OverviewItem>
+          </Overview>
+}
+```
+
+그런데 여기서 infoData와 tickersData의 타입을 정하지 않았다.
+그러므로 위의 useQuery에 interface를 지정해줘야 한다.
+interface는 이전에 InfoData와 PriceData를 사용했다.
+
+```
+// Coin.tsx
+function Coin() {
+  ...
+  const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
+    ["info", coinId],
+    () => fetchCoinInfo(coinId)
+  );
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ["tickers", coinId],
+    () => fetchCoinTickers(coinId)
+  );
+  ...
+}
+```
+
+### 10. Price Chart
+
+Chart.tsx 작성
+api.ts에 fetcher 작성
+
+APEXCHARTS
