@@ -1559,9 +1559,301 @@ function Coin() {
 }
 ```
 
+마지막으로 useQuery의 refetchInterval을 소개하겠다.
+refetchInterval은 이름 그대로 정해진 시간마다 fetch를 해준다.
+그래서 refetchInterval을 설정하면 지속적으로 페이지가 업데이트 된다.
+단위는 ms이므로 1초마다 페이지를 업데이트 하려면 1000을 적어준다.
+
+```
+// Coin.tsx
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ["tickers", coinId],
+    () => fetchCoinTickers(coinId),
+    {
+      refetchInterval: 5000,
+    }
+  );
+```
+
 ### 10. Price Chart
 
-Chart.tsx 작성
-api.ts에 fetcher 작성
+차트 기능을 만들텐데, 그러기 위해서 가격을 가져오는 api가 필요하다.
+api.ts에 fetchCoinHistory를 아래처럼 만든다.
 
-APEXCHARTS
+```
+// api.tsx
+export function fetchCoinHistory(coinId: string) {
+  const endDate = Math.floor(Date.now() / 1000);
+  const startDate = endDate - 60 * 60 * 24 * 7 * 2;
+  return fetch(
+    `${BASE_URL}/coins/${coinId}/ohlcv/historical?start=${startDate}&end=${endDate}`
+  ).then((response) => response.json());
+}
+```
+
+다음으로 차트를 보여주는 컴포넌트가 필요하므로, Chart.tsx 파일을 만들어서 적어준다.
+이때 coinId와 data를 위해 interface를 만들어준다.
+
+```
+// src/routes/Chart.tsx
+import { useQuery } from "react-query";
+import { fetchCoinHistory } from "../api";
+
+interface IHistorical {
+  time_open: string;
+  time_close: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  market_cap: number;
+}
+
+interface ChartProps {
+  coinId: string;
+}
+
+function Chart({ coinId }: ChartProps) {
+  const { isLoading, data } = useQuery<IHistorical[]>(["ohlcv", coinId], () =>
+    fetchCoinHistory(coinId)
+  );
+  return <h1>Chart</h1>;
+}
+```
+
+그리고 Coin.tsx에서 <Chart>를 사용해준다.
+
+```
+// Coin.tsx
+            <Route path={`/:coinId/chart`}>
+              <Chart coinId={coinId} />
+            </Route>
+          </Switch>
+```
+
+다음으로 차트를 만들기 위해 [APEXCHARTS](https://apexcharts.com/)를 사용해보겠다.
+APEXCHARS 홈페이지에서 DOCS, Integration, React Charts를 순서대로 누른다.
+[React Charts](https://apexcharts.com/docs/react-charts/)를 보면 설치 방법이 나와 있다.
+`npm install --save react-apexcharts apexcharts`로 패키지를 설치한다.
+보통 `import Chart from "react-apexcharts"`를 많이 사용하는데, Chart라는 이름이 겹치므로 `import ApexChart from "react-apexcharts"`를 사용한다.
+
+Chart.tsx로 돌아가서 아래처럼 코드를 추가해준다.
+
+```
+// Chart.tsx
+import ApexChart from "react-apexcharts";
+
+function Chart({ coinId }: ChartProps) {
+  ...
+  return (
+    <div>
+      {isLoading ? (
+        "Loading chart..."
+      ) : (
+        <ApexChart
+          type="line"
+          series={[
+            {
+              name: "hello",
+              data: [1, 2, 3, 4, 5, 6],
+            },
+            {
+              name: "sales",
+              data: [10, 20, 30, 40, 50, 60],
+            },
+          ]}
+          options={{
+            chart: {
+              height: 300,
+              width: 500,
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+<ApexChart>는 다양한 속성이 있다.
+type은 차트의 타입을 설정하는데, 우리는 line으로 정했다.
+그리고 series에 차트에 표시하고 싶은 데이터가 들어가는데, name과 data가 들어있는 배열을 전달해줘야 한다.
+그리고 options에서 다양한 설정을 할 수 있는데, chart에서 높이와 넓이를 정해줬다.
+
+위와 같이 하고 브라우저에서 확인하면 차트가 나온다.
+차트를 수정하려면 options에서 내용을 추가해주면 된다.
+우리가 타입스크립트를 쓰고 있으므로, options에서 자동완성 기능을 사용할 수 있으므로 필요한 기능을 더 쉽게 찾을 수 있다.
+
+우선은 series의 내용을 수정해서 우리가 필요한 값이 보이도록 수정한다.
+
+```
+// Chart.tsx
+import ApexChart from "react-apexcharts";
+
+function Chart({ coinId }: ChartProps) {
+  ...
+  return (
+      ...
+        <ApexChart
+          type="line"
+          series={[
+            {
+              name: "Price",
+              data: data?.map((price) => price.close),
+            },
+          ...
+  );
+}
+```
+
+그리고 options의 여러 기능을 소개하겠다.
+APEXCHARTS의 DOCS에서 왼쪽을 보면 Options에서 내용을 볼 수 있다.
+
+```
+// Chart.tsx
+          options={{
+            theme: {
+              mode: "dark",
+            },
+            chart: {
+              height: 300,
+              width: 500,
+              toolbar: {
+                show: false,
+              },
+              background: "transparent",
+            },
+            grid: { show: false },
+            stroke: {
+              curve: "smooth",
+              width: 4,
+            },
+            yaxis: {
+              show: false,
+            },
+            xaxis: {
+              axisBorder: { show: false },
+              axisTicks: { show: false },
+              labels: { show: false },
+            },
+          }}
+```
+
+적용한 옵션은 [theme](https://apexcharts.com/docs/options/theme/), [toolbar](https://apexcharts.com/docs/options/chart/toolbar/), [grid](https://apexcharts.com/docs/options/grid/), [stroke](https://apexcharts.com/docs/options/stroke/), [yaxis](https://apexcharts.com/docs/options/yaxis/), [xaxis](https://apexcharts.com/docs/options/xaxis/)다.
+
+```
+// Chart.tsx
+function Chart({ coinId }: ChartProps) {
+  const { isLoading, data } = useQuery<IHistorical[]>(
+    ["ohlcv", coinId],
+    () => fetchCoinHistory(coinId),
+    {
+      refetchInterval: 10000,
+    }
+  );
+  return (
+    <div>
+      {isLoading ? (
+        "Loading chart..."
+      ) : (
+        <ApexChart
+          type="line"
+          series={[
+            {
+              name: "Price",
+              data: data?.map((price) => price.close),
+            },
+          ]}
+          options={{
+            theme: {
+              mode: "dark",
+            },
+            chart: {
+              height: 300,
+              width: 500,
+              toolbar: {
+                show: false,
+              },
+              background: "transparent",
+            },
+            grid: { show: false },
+            stroke: {
+              curve: "smooth",
+              width: 4,
+            },
+            yaxis: {
+              show: false,
+            },
+            xaxis: {
+              axisBorder: { show: false },
+              axisTicks: { show: false },
+              labels: { show: false },
+              type: "datetime",
+              categories: data?.map((price) => price.time_close),
+            },
+            fill: {
+              type: "gradient",
+              gradient: { gradientToColors: ["#0be881"], stops: [0, 100] },
+            },
+            colors: ["#0fbcf9"],
+            tooltip: {
+              y: {
+                formatter: (value) => `$${value.toFixed(2)}`,
+              },
+            },
+          }}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+그런데 DOCS를 일일이 읽어서 찾으려면 시간이 굉장히 오래 걸린다.
+그러므로 DEMOS를 보고 원하는 차트를 찾아서, 아래의 코드를 보고 필요한 것을 알아내는 것이 편하다.
+
+### 11. react helmet
+
+[react helmet](https://www.npmjs.com/package/react-helmet)은 <head>의 내용을 수정할 때, 유용한 패키지다.
+react helmet을 설치하면 <Helmet>이라는 컴포넌트를 사용할 수 있는데, 그 안에 적은 내용은 <head>에 반영된다.
+이를 사용해서 <title>을 바꾸거나, CSS를 적용하거나, favicon을 바꾸는 데 사용할 수 있다.
+
+`npm install --save react-helmet`로 패키지를 설치한 후에 아래처럼 <title>을 바꿔준다.
+
+```
+// Coin.tsx
+import { Helmet } from "react-helmet";
+...
+function Coin() {
+    ...
+    <Container>
+      <Helmet>
+        <title>
+          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+        </title>
+      </Helmet>
+      <Header>
+```
+
+```
+// Coins.tsx
+import { Helmet } from "react-helmet";
+...
+function Coins() {
+  ...
+    return (
+    <Container>
+      <Helmet>
+        <title>코인</title>
+      </Helmet>
+}
+```
+
+### 12. Deploy
+
+gh-pages를 사용해서 배포
+이때 <BrowserRouter>에 basename={process.env.PUBLIC_URL}를 추가해줘야 한다.
+그 문제는 https://{userName}.github.io/{repository}가 우리가 실제 경로인데, /는 https://{userName}.github.io로 설정되어서 생긴다.
+그래서 basename을 설정하면 해결된다.
+이때 PUBLIC_URL은 package.json의 hompage URL로 설정된다.
