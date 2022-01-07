@@ -29,7 +29,7 @@ CSS를 작성하면 id와 class 단위로 만든다.
 styled-component를 사용하기 위해 `npm install --save styled-components`로 패키지를 설치해준다.
 그리고 새로운 React 프로젝트를 만들기 위해 `npx create-react-app react-masterclass`를 실행시킨다.
 여기서 폴더명을 react-masterclass로 설정했다.
-그리고 stypled-component를 styled로 import하면 준비는 끝이다.
+그리고 styled-component를 styled로 import하면 준비는 끝이다.
 
 ### Basic
 
@@ -83,7 +83,7 @@ function App() {
 그리고 inspect로 적용된 코드를 열어보면 각각 class를 준 것을 볼 수 있다.
 styled-component는 각 스타일에 독립적인 class명을 붙여주므로, 서로 중복될 걱정 없이 쓸 수 있다.
 
-그리고 여기서 만든 컴포넌트는 기존의 컴포넌트와 동일한 일을 하므로 자식 요소도 만들 수 있고, 안에 내용도 적을 수 있다.
+또한 여기서 만든 컴포넌트는 기존의 컴포넌트와 동일한 일을 하므로 자식 요소도 만들 수 있고, 안에 내용도 적을 수 있다.
 
 ```
 import styled from "styled-components";

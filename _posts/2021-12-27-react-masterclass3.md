@@ -60,7 +60,7 @@ ReactDOM.render(
 ### 2. Setup
 
 먼저 라우터를 만들 routes 폴더를 만들어준다.
-그리고 그 안에 Coin.tsx, Coin.tsx 파일을 만든다.
+그리고 그 안에 Coin.tsx, Coins.tsx 파일을 만든다.
 Coins.tsx에는 모든 코인 정보가 보이는 페이지를 만들 예정이고, Coin.tsx에는 각 코인의 세세한 정보를 보여주도록 만들 것이다.
 일단은 간단하게 형태만 만들어 놓는다.
 
@@ -140,7 +140,7 @@ export default Coin;
 
 그런데 useParams에 타입이 없기 때문에 에러가 발생한다.
 이를 해결하기 위해선 useParams에 타입을 설정해줘야 한다.
-방버은 2가지로 직접 타입을 적어주는 것과 interface로 만드는 것이다..
+방법은 2가지로 직접 타입을 적어주는 것과 interface로 만드는 것이다..
 
 ```
 // src/routes/Coin.tsx
@@ -247,7 +247,7 @@ function App() {
   <>
     <GlobalStyle />
     <Router />;
-  <>
+  </>
 }
 
 export default App;
@@ -270,7 +270,7 @@ function App() {
   <>
     <GlobalStyle />
     <Router />;
-  <>
+  </>
 }
 
 export default App;
@@ -299,7 +299,7 @@ function App() {
   <>
     <GlobalStyle />
     <Router />;
-  <>
+  </>
 }
 
 export default App;
@@ -332,7 +332,7 @@ function App() {
   <>
     <GlobalStyle />
     <Router />;
-  <>
+  </>
 }
 
 export default App;

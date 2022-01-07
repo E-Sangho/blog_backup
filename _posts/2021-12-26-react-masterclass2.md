@@ -26,7 +26,7 @@ console.log(sum(3, "5"));
 ```
 
 문제는 이런 경우가 개발자가 의도한 결과가 아닐 수도 있다는 점이다.
-위처럼 숫자 외의 변수가 입력되면, 작동되지 않도록 만들고 싶을 수도 있다.
+위와는 다르게 숫자 외의 변수가 입력되면, 작동되지 않도록 만들고 싶을 수도 있다.
 게다가 자바스크립트가 에러 메세지를 보내지 않으므로, 이런 오류가 생긴 것을 파일을 실행해보기 전에 알아낼 수 없다.
 
 이처럼 자바스크립트에서 타입을 지정하지 않는 것이 단점으로 느껴지는 경우가 있다.
@@ -53,7 +53,7 @@ console.log(sum(3, "5"));
 1의 경우를 권하지만, 어쩔 수 없으면 2번으로 진행해야 한다.
 
 우선 자바스크립트 파일의 확장자를 .tsx로 고쳐준다.
-왜냐하면 타입스크립트는 .ts 확장자를 사용하고, 특히 리액트에서는 .tsx 라는 확장자를 사용하기 때문이다.
+원래 타입스크립트는 .ts 확장자를 사용하지만, 리액트에서는 .tsx 라는 확장자를 사용하기 때문이다.
 하지만 확장자를 바꾼 것만으론 작동하지 않는다.
 기존의 패키지는 타입스크립트로 만들어지지 않았으므로 에러가 발생한다.
 그렇기 때문에 타입스크립트용 패키지를 다시 설치해줘야 한다.
@@ -61,6 +61,39 @@ console.log(sum(3, "5"));
 타입스크립트용 패키지를 설치하려면 @types/{package}를 설치해야 한다.
 `npm install --save typescript @types/node @types/react @types/react-dom @types/jest` 로 패키지를 설치한다.
 그리고 `npm i @types/styled-components`로 styled-component용 타입스크립트 패키지도 설치한다.
+이제 `npm start`를 실행하면 자동으로 tsconfig.json이란 파일을 만들어준다.
+만약 자동으로 해결해주지 않는다면 에러를 따라 해결하기 보다는 아래 2개의 파일을 추가해보자.
+
+```
+// tsconfig.json
+{
+    "compilerOptions": {
+        "target": "es5",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx"
+    },
+    "include": ["src"]
+}
+```
+
+```
+// src/react-app-env.d.ts
+/// <reference types="react-scripts" />
+```
+
+이 방법으로 해결되지 않는다면 1.로 진행하는 것을 추천한다.
 
 ### 3. Explicit Types & Interface
 
@@ -179,7 +212,7 @@ import styled from "styled-components";
 
 // write interface
 interface CircleProps {
-    bgColor: strkng;
+    bgColor: string;
 }
 
 const Container = styled.div``;

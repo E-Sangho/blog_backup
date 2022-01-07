@@ -209,6 +209,7 @@ export default App;
 예를 들어서 `[1, 2, 3].map(x => x*2)`는 [2, 4, 6]이 출력된다.
 
 <ul>에 toDos에 map을 사용해서 각 원소마다 <li>를 만들고, 각 <li>에 toDos의 원소를 넣어주면 된다.
+이때 return은 하나의 컴포넌트만 전달할 수 있으므로 <div>로 전체 return에 들어갈 내용을 감싸줘야 한다.
 
 ```
 import { useState } from "react";
@@ -231,19 +232,21 @@ function App() {
     };
 
     return (
+      <div>
         <form onSubmit={onSubmit}>
             <input
                 value={toDo}
                 onChange={onChange}
                 type="text"
-                placeholder="Write your to do..."
+                placeholder="Write your ToDo"
             />
             <button>Add ToDo</button>
         </form>
         <hr />
         <ul>
-            {toDos.map(todo => <li>{todo}</li>)}
+          {toDos.map(todo => <li>{todo}</li>)}
         </ul>
+      </div>
     );
 }
 
@@ -871,7 +874,7 @@ ReactDOM.render(
 
 #### Route Matchers
 
--   <Switch>(<Router>)
+-   <Switch>(<Routes>)
 -   <Route>
 
 라우트를 찾는 컴포넌트는 2가지가 있다.
