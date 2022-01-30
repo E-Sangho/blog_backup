@@ -125,3 +125,147 @@ var total = [ 0, 1, 2, 3 ].reduce(
   0
 );
 ```
+
+## 원소 추가 및 제거
+
+여기서는 원소를 추가하거나 제거하는 방법을 설명한다.
+이 방법으로 원소를 여러 개 추가할 수도 있지만, 아래의 배열 합치기 방법이 더 편한다.
+
+### push
+
+-   arr.push(element1[, ...[, elementN]])
+
+push는 배열 끝에 값을 추가하는데 사용한다.
+리턴값으로 새로 만들어진 배열의 길이를 반환한다.
+
+```
+var sports = ['축구', '야구'];
+var total = sports.push('미식축구', '수영');
+
+console.log(sports); // ['축구', '야구', '미식축구', '수영']
+console.log(total);  // 4
+```
+
+### pop
+
+-   arr.pop()
+
+배열의 마지막 값을 제거하고 반환한다.
+
+```
+var myFish = ['angel', 'clown', 'mandarin', 'sturgeon'];
+
+var popped = myFish.pop();
+
+console.log(myFish); // ['angel', 'clown', 'mandarin' ]
+
+console.log(popped); // 'sturgeon'
+```
+
+### unshift
+
+-   arr.unshift([...elementN])
+
+배열의 제일 앞에 요소를 추가한다.
+그리고 새로운 배열의 길이를 반환한다.
+
+```
+var arr = [1, 2];
+
+arr.unshift(0); // result of call is 3, the new array length
+// arr is [0, 1, 2]
+
+arr.unshift(-2, -1); // = 5
+// arr is [-2, -1, 0, 1, 2]
+
+arr.unshift([-3]);
+// arr is [[-3], -2, -1, 0, 1, 2]
+```
+
+### shift
+
+-   arr.shift()
+
+배열의 제일 앞 요소를 제거하고, 나머지를 한 칸씩 앞으로 당긴다.
+그리고 제거된 값을 반환한다.
+
+```
+var myFish = ['angel', 'clown', 'mandarin', 'surgeon'];
+
+console.log('myFish before: ' + myFish);
+// "제거전 myFish 배열: angel,clown,mandarin,surgeon"
+
+var shifted = myFish.shift();
+
+console.log('myFish after: ' + myFish);
+// "제거후 myFish 배열: clown,mandarin,surgeon"
+
+console.log('Removed this element: ' + shifted);
+// "제거된 배열 요소: angel"
+```
+
+## 배열 합치기
+
+### concat
+
+-   array.concat([value1[, value2[, ...[, valueN]]]])
+
+concat는 array에 value를 덧붙여서 새로운 배열을 만든다.
+이때 value에 배열을 사용해서 두 배열을 이어 붙일 수도 있다.
+
+```
+const alpha = ['a', 'b', 'c'];
+const numeric = [1, 2, 3];
+
+alpha.concat(numeric);
+// 결과: ['a', 'b', 'c', 1, 2, 3]
+```
+
+```
+const num1 = [1, 2, 3];
+const num2 = [4, 5, 6];
+const num3 = [7, 8, 9];
+
+num1.concat(num2, num3);
+// 결과: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+### spread operator
+
+배열이나 문자열 앞에 ...를 붙이면 안의 내용을 전개해준다.
+
+```
+const number = [1, 2, 3];
+
+function sum(x, y, z) {
+  return x + y + z;
+}
+
+console.log(sum(...number));
+// 6
+```
+
+이를 사용하면 두 배열을 간단히 합칠 수 있다.
+
+```
+let alphabet = ['a', 'b', 'c'];
+let number = [1, 2, 3];
+
+let arr = [...alphabet, ...number];
+// arr = ['a', 'b', 'c', 1, 2, 3]
+```
+
+## 포함
+
+> arr.includes(valueToFind[, fromIndex])
+
+-   valueToFind: 찾을 요소
+-   fromIndex: 검색을 시작할 위치
+
+```
+[1, 2, 3].includes(2);     // true
+[1, 2, 3].includes(4);     // false
+[1, 2, 3].includes(3, 3);  // false
+[1, 2, 3].includes(3, -1); // true
+[1, 2, NaN].includes(NaN); // true
+```
