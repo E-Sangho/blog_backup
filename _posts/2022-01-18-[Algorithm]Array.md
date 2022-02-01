@@ -49,7 +49,7 @@ let array = new Array(3);
 
 ## Array.from
 
--   Array.from(arrayLike [, mapFn] [,this Arg])
+> Array.from(arrayLike [, mapFn] [,this Arg])
 
 Array.from()은 string, map, set 등으로 배열을 만들 수 있다.
 그 중에서 자주 사용하는 것만 2가지 소개하겠다.
@@ -79,7 +79,7 @@ Array.from({length: 3}, () => 1);
 sort()는 조건에 따라 정렬한 배열을 반환한다.
 이때 반환한다는 뜻은 새로운 배열을 만든다는 것이 아니라 기존의 배열이 정렬된다는 의미다.
 
--   array.sort([compareFunction])
+> array.sort([compareFunction])
 
 compareFunction은 정렬 순서를 정의하는 함수로 생략할 경우 오름차순으로 정렬한다.
 정렬 순서는 compareFunction의 반환값에 따라 다르다.
@@ -104,7 +104,7 @@ console.log(arr)    // [1, 2, 3, 4, 5]
 
 reduce()는 배열의 각 요소로 함수를 실행해서 하나의 결과를 반환한다.
 
--   arr.reduce(callback[, initialValue])
+> arr.reduce(callback[, initialValue])
 
 initialValue는 callback의 최초 호출에 사용하는 값으로, 없을 경우 배열의 첫 번째 값을 사용한다.
 callback은 아래의 4가지 인수를 사용한다.
@@ -129,42 +129,14 @@ var total = [ 0, 1, 2, 3 ].reduce(
 ## 원소 추가 및 제거
 
 여기서는 원소를 추가하거나 제거하는 방법을 설명한다.
-이 방법으로 원소를 여러 개 추가할 수도 있지만, 아래의 배열 합치기 방법이 더 편한다.
+원소를 추가하거나 제거하는 위치는 배열의 앞, 중간, 뒤로 3가지가 있다.
+다만 배열에 원소를 여러 개 추가할 경우는 아래의 배열 합치기 방법을 사용하는 것이 더 편리하다.
 
-### push
+### 배열의 앞
 
--   arr.push(element1[, ...[, elementN]])
+#### unshift
 
-push는 배열 끝에 값을 추가하는데 사용한다.
-리턴값으로 새로 만들어진 배열의 길이를 반환한다.
-
-```
-var sports = ['축구', '야구'];
-var total = sports.push('미식축구', '수영');
-
-console.log(sports); // ['축구', '야구', '미식축구', '수영']
-console.log(total);  // 4
-```
-
-### pop
-
--   arr.pop()
-
-배열의 마지막 값을 제거하고 반환한다.
-
-```
-var myFish = ['angel', 'clown', 'mandarin', 'sturgeon'];
-
-var popped = myFish.pop();
-
-console.log(myFish); // ['angel', 'clown', 'mandarin' ]
-
-console.log(popped); // 'sturgeon'
-```
-
-### unshift
-
--   arr.unshift([...elementN])
+> arr.unshift([...elementN])
 
 배열의 제일 앞에 요소를 추가한다.
 그리고 새로운 배열의 길이를 반환한다.
@@ -182,9 +154,9 @@ arr.unshift([-3]);
 // arr is [[-3], -2, -1, 0, 1, 2]
 ```
 
-### shift
+#### shift
 
--   arr.shift()
+> arr.shift()
 
 배열의 제일 앞 요소를 제거하고, 나머지를 한 칸씩 앞으로 당긴다.
 그리고 제거된 값을 반환한다.
@@ -204,11 +176,86 @@ console.log('Removed this element: ' + shifted);
 // "제거된 배열 요소: angel"
 ```
 
+### 배열의 중간
+
+#### splice
+
+> array.splice(start[, deleteCount[, item1[, item2[, ...]]]])
+
+-   start: 배열에서 변경할 위치를 지정
+-   deleteCount: 배열에서 제거할 원소의 수
+-   item: 배열에 추가할 요소
+
+배열의 중간에서 삽입하거나 삭제하는 경우 모두 splice를 사용한다.
+
+예를 들어서 아무것도 삭제하지 않고 원소를 추가하려면 deleteCount가 0이면 된다.
+
+```
+var myFish = ['angel', 'clown', 'mandarin', 'sturgeon'];
+var removed = myFish.splice(2, 0, 'drum', 'guitar');
+
+// myFish is ["angel", "clown", "drum", "guitar", "mandarin", "sturgeon"]
+// removed is [], no elements removed
+```
+
+원소를 삭제하려면 deleteCount에 삭제하고 싶은 만큼 적어준다.
+
+```
+var myFish = ['angel', 'clown', 'drum', 'mandarin', 'sturgeon'];
+var removed = myFish.splice(3, 1);
+
+// removed is ["mandarin"]
+// myFish is ["angel", "clown", "drum", "sturgeon"]
+```
+
+두 기능을 동시에 사용해서 삭제 후에 삽입도 가능하다.
+
+```
+var myFish = ['angel', 'clown', 'trumpet', 'sturgeon'];
+var removed = myFish.splice(0, 2, 'parrot', 'anemone', 'blue');
+
+// myFish is ["parrot", "anemone", "blue", "trumpet", "sturgeon"]
+// removed is ["angel", "clown"]
+```
+
+### 배열의 뒤
+
+#### push
+
+> arr.push(element1[, ...[, elementN]])
+
+push는 배열 끝에 값을 추가하는데 사용한다.
+리턴값으로 새로 만들어진 배열의 길이를 반환한다.
+
+```
+var sports = ['축구', '야구'];
+var total = sports.push('미식축구', '수영');
+
+console.log(sports); // ['축구', '야구', '미식축구', '수영']
+console.log(total);  // 4
+```
+
+#### pop
+
+> arr.pop()
+
+배열의 마지막 값을 제거하고 반환한다.
+
+```
+var myFish = ['angel', 'clown', 'mandarin', 'sturgeon'];
+
+var popped = myFish.pop();
+
+console.log(myFish); // ['angel', 'clown', 'mandarin' ]
+
+console.log(popped); // 'sturgeon'
+```
+
 ## 배열 합치기
 
 ### concat
 
--   array.concat([value1[, value2[, ...[, valueN]]]])
+> array.concat([value1[, value2[, ...[, valueN]]]])
 
 concat는 array에 value를 덧붙여서 새로운 배열을 만든다.
 이때 value에 배열을 사용해서 두 배열을 이어 붙일 수도 있다.
@@ -268,4 +315,145 @@ let arr = [...alphabet, ...number];
 [1, 2, 3].includes(3, 3);  // false
 [1, 2, 3].includes(3, -1); // true
 [1, 2, NaN].includes(NaN); // true
+```
+
+## 배열 복사
+
+배열을 복사하는 이유를 알기 위해선 얕은 복사(Shallow Copy)와 깊은 복사(Deep Copy)를 알아야 한다.
+결과부터 얘기하자면 얕은 복사는 객체의 주소를 복사하고, 깊은 복사는 값을 복사하는 것이다.
+아래는 깊은 복사의 예다.
+
+```
+let a = 1;
+let b = a;
+
+console.log(a);
+console.log(b);
+// a = 1
+// b = 1
+
+a = 2;
+
+console.log(a);
+console.log(b);
+// a = 2
+// b = 1
+```
+
+깊은 복사는 해당 값을 복사해서 새로운 주소에 만든다.
+그렇기 때문에 원본을 수정하더라도 복사본에 아무런 변화가 생기지 않는다.
+문제는 배열의 복사에서 발생한다.
+
+```
+let a = [1, 2, 3];
+let b = a;
+
+console.log(a);
+console.log(b);
+// a = [1, 2, 3]
+// b = [1, 2, 3]
+
+a = [2, 4, 6];
+
+console.log(a);
+console.log(b);
+// a = [2, 4, 6]
+// b = [2, 4, 6]
+```
+
+보다시피 a만 바꿔줬는데도 b도 변경된 것을 볼 수 있다.
+배열의 경우 변수가 가리키는 것은 해당 배열이 시작하는 첫 번째 주소다.
+다시 말해 a에 들어 있는 것은 메모리 주소다.
+그래서 b가 복사한 것은 값이 아니라 주소가 된다.
+결국 a와 b가 동일한 주소를 공유하기 때문에 a의 값을 변경 시키면 b의 값도 변경되는 것이다.
+이는 배열 뿐만 아니라 객체 같이 주소를 사용하는 경우 동일하게 발생하는 문제다.
+
+배열을 복사하는 경우는 원본을 저장해두고 변경하고 싶은 경우다.
+그런데 위와 같이 얕은 복사를 하면 변경 사항이 원본에 영향을 주게 된다.
+그렇기 때문에 새로운 배열을 만들어서 값을 전달해줘야 한다.
+가장 간단한 방법은 slice를 사용하는 것이다.
+
+> arr.slice([begin[, end]])
+
+-   begin[Optional]: 추출 시작점
+-   end[Optional]: 추출 종료점
+
+slice는 배열의 특정 구간을 추출한다.
+begin으로 시작 지점을 정하고, end로 종료 지점을 정한다.
+만약 begin을 생략하면 처음부터 추출하고, end를 생략하면 마지막까지 추출한다.
+그리고 추출한 요소로 새로운 배열을 만들어서 반환한다.
+이를 사용해서 아래처럼 깊은 복사를 할 수 있다.
+
+```
+let a = [1, 2, 3];
+let b = a.slice();
+
+console.log(a);
+console.log(b);
+// a = [1, 2, 3]
+// b = [1, 2, 3]
+
+a = [2, 4, 6];
+
+console.log(a);
+console.log(b);
+// a = [2, 4, 6]
+// b = [1, 2, 3]
+```
+
+## 배열의 순서 변경
+
+배열 안에서 두 원소의 위치를 변경해야 하는 경우가 있다.
+이때 사용하는 것이 구조 분해 할당(Destructuring assignment)이다.
+우선 구조 분해 할당은 아래처럼 한 번에 값을 할당할 수 있다.
+
+```
+let a, b;
+[a, b] = [10, 20];
+
+console.log(a);
+// expected output: 10
+
+console.log(b);
+// expected output: 20
+```
+
+아래처럼 배열에 값을 전달하는 것도도 가능하다.
+
+```
+let rest;
+
+[...rest] = [30, 40, 50];
+
+console.log(rest);
+// expected output: Array [30,40,50]
+```
+
+이를 응용하면 두 원소의 위치를 바꿀 수 있다.
+아래는 i, j 위치의 배열의 원소를 바꿔준다.
+
+```
+[a[i], a[j]] = [a[j], a[i]];
+```
+
+## 검색
+
+> arr.filter(callback(element[, index[, array]])[, thisArg])
+
+-   callback: 각 요소를 테스트해서 true를 반환하면 유지하고, false를 반환하면 삭제한다. 위처럼 element, index, array를 매개변수로 사용한다.
+-   thisArg[Optional]: callback을 실행할 때 this로 사용하는 값
+
+filter를 사용해서 특정값을 쉽게 검색할 수 있다.
+
+```
+let a = [1, 2, 3, 4, 5];
+let b = a.filter((element) => element !== 3);
+
+console.log(b);
+// [1, 2, 4, 5]
+
+let c = a.filter((element) => element === 3);
+
+console.log(c);
+// [3]
 ```
