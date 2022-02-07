@@ -9,18 +9,19 @@ toc: true
 
 # DFS(Depth First Search)
 
-DFS는 tree나 graph에서 해를 찾는데 사용하는 알고리즘이다.
-연결된 노드를 따라 최대한 깊이 확인 한 후에, 다시 뒤로 돌아가 다음 경로를 탐색한다.
-tree와 graph에서 해를 찾기 때문에 항상 BFS(Breadth First Search)와 비교되는 알고리즘이다.
-각각 장점이 다른데 해가 깊이 있을 경우 DFS를 사용하는 것이 유리하다.
-그 이유는 BFS가 한 노드에 연결된 모든 노드를 탐색한 다음 아래로 내려가기 때문에, 깊은 곳까지 탐색하려면 오래 걸리기 때문이다.
-그리고 DFS는 최적해를 찾는데는 사용해선 안 된다.
-DFS는 조건을 만족하는 해를 찾으면 탐색을 중지하는데, 다른 경로에 최적의 해가 존재할 수 있기 때문이다.
+DFS는 그래프에서 모든 경로를 탐색하는데 사용하는 알고리즘이다.
+연결된 점을 따라가는데 더는 갈 곳이 없을 때까지 진행한다.
+그리고 경로가 막히게 되면 다시 경로를 되돌아가서 탐색한다.
+모든 경로를 탐색하므로 BFS(Breadth First Search)와 비교되는 알고리즘이다.
+둘의 차이점은 DFS는 깊게 탐색하고, BFS는 넓게 탐색한다는 점이다.
+그렇기 때문에 그래프의 형태가 깊을 경우 DFS를 사용하고, 넓을 경우 BFS를 사용한다.
+DFS는 경로를 찾는 것 외의 방법으로도 사용할 수 있다.
+조건을 만족하는 해, 부분집합, 우선 순위 탐색 등으로 사용한다.
 
 ## 구현
 
 우선 DFS가 어떻게 작동하는지 알기 위해 하나의 예를 보자.
-아래 그래프에서 F를 찾으려고 한다.
+아래 그래프에서 모든 노드를 지나는 경로를 찾으려고 한다.
 
 ```
         A
@@ -36,32 +37,90 @@ DFS는 한 경로를 따라 최대한 탐색한 다음 이전 경로로 돌아�
 그런데 B에서 갈 수 있는 것은 D뿐인데 이미 D는 방문했으므로 더 이상 갈 곳이 없다.
 다시 A로 돌아가서 방문한 적 없는 노드를 찾는다.
 A -> C -> E까지 탐색한 다음 더 이상 탐색할 수 없으므로 C로 돌아간다.
-C에서 가지 않은 경로 F를 탐색해서 해를 찾는다.
+C에서 가지 않은 경로 F를 탐색한다.
 이 예시에서 방문 순서를 보면 A, B, D, C, E, F가 된다.
 
-여기서 핵심은 2가지로 방문 여부를 확인해야 하고, 다음에 방문할 노드를 결정해야 한다.
-방문 여부는 배열을 사용해서 true, false로 쉽게 표시할 수 있다.
-그리고 방문 순서를 구현하려면 스택이나 재귀호출을 사용해야 한다.
-사실상 재귀호출이 스택과 비슷한 역할을 하기 때문에, 방문 순서는 스택으로 구현한다고 기억해도 된다.
-아래는 코드 동작 순서다.
-
-1. root node를 스택에 추가한다.
-2. 스택의 top을 꺼내 node를 방문한 것으로 처리한다.
-3. 현재 node에서 방문할 수 있는 node를 스택에 추가한다.
-4. 해를 구할 때까지 2와 3을 반복한다.
-
-여기서 스택을 사용하는 이유를 알 수 있는데, 나중에 추가한 노드일수록 먼저 탐색해야 하기 때문이다.
-위 예시에서 스택의 변화를 보면 좀 더 명확히 알 수 있다.
+DFS의 특징은 모든 노드에서 동일한 탐색 방법을 사용한다는 점이다.
+예를 들어서 위 그래프에서 A가 없다고 생각하자.
+B에서부터 시작하면 경로는 B -> D가 된다.
+C에서부터 시작하면 C -> E - > F다.
+이는 A부터 시작한 경로인 A -> (B -> D) -> (C -> E -> F)의 일부분이다.
+같은 탐색 방법을 사용한다는 뜻은 곧 재귀함수로 구현할 수 있다는 의미다.
+아래는 v 노드를 방문하고 v 노드와 인접한 w 노드에서 DFS를 실행하는 의사 코드다.
 
 ```
-[]              -> 빈 스택으로 시작, A를 추가한다.
-[A]             -> A를 빼고, A와 연결된 B, C를 추가
-[C, B]          -> B를 빼고, B와 연결된 D를 추가
-[C, D]          -> D를 제거, D와 연결된 node가 없으므로 추가하지 않는다.
-[C]             -> C를 제거, E, F를 추가
-[F, E]          -> E를 제거, 추가할 node가 없다.
-[F]             -> 탐색 대상인 F를 찾음
+DFS(G, v)
+    visit(v)
+    for(w in neighbor(v))
+        DFS(G, w)
 ```
+
+다만 한 가지 문제점이 있다.
+그래프 내부에 cycle이 존재할 경우 무한히 실행될 수 있다는 점이다.
+위 코드를 아래에 그대로 적용시키면 무한히 반복할 것이다.
+
+```
+    A
+  /   \
+ B  -  C
+```
+
+이를 피하기 위해선 방문한 노드를 표시할 필요가 있다.
+방문을 기록할 배열 marked를 만들고 값을 false로 초기화 한다.
+그리고 v를 방문한 경우 marked[v]를 true로 기록한다.
+이렇게 하면 marked로 노드가 이미 방문했는지 아닌지를 알 수 있다.
+다음으로 w를 방문하지 않은 경우만 DFS(G, w)를 실행한다.
+
+```
+marked = Array(G.size, false)
+DFS(G, v)
+    visit(v)
+    marked[v] = true
+    for(w in neighbor(v))
+        if(marked[w])
+            DFS(G, w)
+```
+
+지금까지 코드를 정리해보자.
+DFS는 노드 v를 방문하고 visit(v)를 실행시킨 후에, marked로 해당 노드를 표시한다.
+그리고 v와 연결된 노드 w를 방문했는지 확인하고 DFS(G, w)를 실행한다.
+
+위 코드에서 visit(v)를 제외하고는 항상 동일하다고 보면 된다.
+visit(v)만이 각 노드를 방문했을 때 실행할 함수로 구하고자 하는 것에 따라 달라진다.
+예를 들어서 만약 경로를 기록하고 싶다면 push로 경로를 추가하면 된다.
+
+```
+marked = Array(G.size, false)
+arr = [];
+DFS(G, v, arr)
+    arr.push(v)
+    marked[v] = true
+    for(w in neighbor(v))
+        if(!marked[w])
+            DFS(G, w, arr)
+```
+
+그런데 재귀함수는 함수가 쌓여서 뒤에서부터 처리하게 된다.
+그렇기 때문에 스택과 같은 면이 있다.
+DFS를 보면 앞으로 방문할 노드 함수가 스택처럼 쌓이는 것을 알 수 있다.
+그렇기 때문에 위 함수를 스택으로 구현할 수 있다.
+
+```
+marked = Array(G.size, false)
+arr = [];
+DFS(G, v, arr)
+    stack = [v]
+    while(stack.length > 0)
+        v = stack.pop()
+        if(!marked[v])
+            visit(v)
+            marked[v] = true
+            for(w in neighbor(v))
+                if(!marked[w])
+                    stack.push(w)
+```
+
+여기까지가 아이디어 설명이고 아래는 실제 코드로 구현해보겠다.
 
 ### 스택
 
@@ -76,7 +135,7 @@ procedure DFS(G, v) {
         v = S.pop()
         if(v is not visited) {
             v is visited
-            for all w in G.adjacentEdges(v) {
+            for(w in G.neighbor(v)) {
                 S.push(w)
             }
         }
@@ -88,7 +147,7 @@ procedure DFS(G, v) {
 
 ```
 function DFS(v) {
-    let visited = new Array.from({ length: n }, () => 0);
+    let visited = Array.from({ length: n }, () => 0);
     let stack = [];
     stack.push(v);
     while(stack.length > 0) {
@@ -128,7 +187,7 @@ addEdge(v, w)
 
 DFS(s)
 {
-    let visited = new Array.from({ length: n }, () => 0);
+    let visited = Array.from({ length: n }, () => 0);
     let stack = [];
     stack.push(s);
     while(stack.length > 0) {
@@ -190,7 +249,7 @@ procedure recursion(i) {
 | B_1 Block  |
 
 보다시피 A Block은 순서대로 작동하지만, B Block은 역순으로 작동한다.
-여기서 B Block 만을 사용한다면, 재귀 함수를 스택처럼 사용할 수 있다.
+A와 B를 적절히 사용하면 재귀 함수를 스택처럼 사용할 수 있다.
 이 형태를 이해하고 있어야 DFS를 변형할 때 구체적인 구조를 상상할 수 있다.
 
 아래는 재귀 함수를 사용해서 DFS의 의사 코드를 작성한 것이다.
@@ -259,7 +318,7 @@ class Graph
 }
 ```
 
-## tree에서 DFS 탐색 순서
+## pre, middle, post Order
 
 지금까지는 간단한 형태의 DFS를 살펴봤다.
 DFS는 단순히 경로 탐색에서만 사용하는 것이 아니라 더 복잡한 방법으로 사용할 수 있다.
@@ -269,7 +328,7 @@ DFS는 단순히 경로 탐색에서만 사용하는 것이 아니라 더 복잡
 앞서 살펴본 DFS 코드를 보면 아래와 같다.
 
 ```
-let visited = new Array.from({ length: n }, () => false);
+let visited = Array.from({ length: n }, () => false);
 
 function DFS(v) {
     visited[v] = true;
@@ -283,26 +342,45 @@ function DFS(v) {
 
 여기서 node v와 인접한 node에 대해 for문을 사용하는 것을 볼 수 있다.
 다시 말해서 node에서 갈림길이 생기면 DFS를 사용하고 있다.
-여기서 코드를 추가할 수 있는 부분은 4곳으로, for문 앞, 재귀 함수를 사용하기 전, 재귀 함수를 사용한 아래, for문이 종료된 곳이다.
-각각을 A, B, C, D Block으로 표현하면 아래처럼 된다.
+만약 그래프가 binary tree라면 이를 아래처럼 만들 수 있다.
 
 ```
+let visited = Array.from({ length: n }, () => false);
+
 function DFS(v) {
     visited[v] = true;
-    // A(v) Block
-    for(let node of E[v]) {
-        if(!visited[node]) {
-            // B(node) Block
-            DFS(node);
-            // C(node) Block
-        }
+    if(!visited[node1]) {
+        DFS(node1);
     }
-    // D(v) Block
+    if(!visited[node2]) {
+        DFS(node2);
+    }
 }
 ```
 
-A, B, C, D에 코드를 추가하면 어떤 효과가 나타나는지 알기 위해 예를 들어 설명하겠다.
-다만 A와 B는 if로 동작 여부만 다를 뿐 순서는 비슷하므로 하나로 생각한다.
+여기서 코드를 추가할 수 있는 부분은 4곳으로, for문 앞, 재귀 함수를 사용하기 전, 재귀 함수를 사용한 아래, for문이 종료된 곳이다.
+그런데 재귀함수가 사용되는 전후에 코드를 삽입하는 것은 탐색 순서에 영향을 주지 않는다.
+대신에 노드를 방문하기 전 후에 실행하는 코드를 삽입하는 곳이다.
+우리가 알아볼 것은 아래 A, B, C Block에 코드를 삽입했을 때 어떤 효과가 나타날지다.
+
+```
+let visited = Array.from({ length: n }, () => false);
+
+function DFS(v) {
+    visited[v] = true;
+    // A(v) Block
+    if(!visited[node1]) {
+        DFS(node1);
+    }
+    // B(v) Block
+    if(!visited[node2]) {
+        DFS(node2);
+    }
+    // C(v) Block
+}
+```
+
+A, B, C에 코드를 추가하면 어떤 효과가 나타나는지 알기 위해 예를 들어 설명하겠다.
 우선 아래와 같은 구조가 있다고 하자.
 
 ```
@@ -377,14 +455,13 @@ C(1)
 -   B: 4, 2, 5, 1, 6, 3, 7
 -   C: 4, 5, 2, 6, 7, 3, 1
 
-이들은 각각 전위, 중위, 후위 순회라고 불리는 순서다.
+이들은 각각 pre, middle, post-order라고 불리는 순서다.
 A는 root에서 왼쪽 tree를 탐색하고, 오른쪽 tree를 탐색한다.
 B는 왼쪽 트리를 탐색하고, root로 간 다음, 오른쪽 tree를 탐색한다.
 C는 왼쪽 트리를 탐색하고, 오른쪽 트리를 탐색한 다음 root로 간다.
 위 순서를 tree에서 직접 보면서 확인하면 좀 더 간단하게 알 수 있다.
 
 이처럼 DFS에서 코드를 삽입하는 위치에 따라서 코드가 3가지 방향으로 작동하는 것을 알 수 있다.
-이들을 복합적으로 사용하려면 굉장히 어렵기 때문에 각각 서로 독립되도록 하는 것이 좋다.
 
 ## 시간 복잡도
 
@@ -403,7 +480,7 @@ DFS는 한 번의 호출마다 각 node에 연결된 edge의 수 만큼 탐색�
 ### 단점
 
 -   해가 없는 경로가 깊으면 시간이 오래 걸린다.
--   얻어진 해가 최단 경로가 아닐 수 있다. DFS는 해를 구하면 탐색을 끝내버리므로 다른 해를 찾지 않는다. 그래서 찾은 해답이 최적의 답인지 확신할 수 없다.
+-   얻어진 해가 최단 경로가 아닐 수 있다.
 
 ## 참고
 
