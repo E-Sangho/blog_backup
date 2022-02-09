@@ -37,7 +37,7 @@ JSX로 변수를 사용하려면 중괄호({})로 감싸주면 된다.
     <script type="text/babel">
         const root = document.getElementById('root');
         let counter = 0;
-        const Container = () => (
+        const Container = (
             <div>
                 <h3>Total clicks: {counter}</h3>
                 <button>Click me</button>
@@ -62,7 +62,7 @@ onclick에 전달하는 함수도 변수이므로 중괄호를 쓰는 것을 잊
             counter += 1;
             console.log(counter);
         }
-        const Container = () => (
+        const Container = (
             <div>
                 <h3>Total clicks: {counter}</h3>
                 <button onClick={countUp}>Click me</button>
@@ -380,6 +380,50 @@ SyntheticEvent를 확인해보면 event.target.value에 <input>의 값이 들어
 </html>
 ```
 
+이제 minutes가 바뀌면 hours가 바뀌도록 해주자.
+hours <input>에 value값을 아래처럼 주면 된다.
+
+```
+<html>
+    ...
+    <script type="text/babel">
+        function App() {
+            const [minutes, setMinutes] = React.useState();
+            const onChange = (event) => {
+                // console.log(event);
+                setMinutes(event.target.value);
+            };
+            return (
+                <div>
+                    <h1 className="hi">Super Converter</h1>
+                    <div>
+                        <label htmlFor="minutes">Minutes</label>
+                        <input
+                            value={minutes}
+                            id="minutes"
+                            placeholder="Minutes"
+                            type="number"
+                            onChange={onChange}
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="hours">Hours</label>
+                        <input
+                            value={Math.round(minutes / 60)}
+                            id="hours"
+                            placeholder="Hours"
+                            type="number"
+                        />
+                    </div>
+                </div>
+            );
+        }
+        const root = document.getElementById('root');
+        ReactDOM.render(<App />, root);
+    </script>
+</html>
+```
+
 다음으로 reset 버튼을 만들어서 모든 수를 reset하도록 만들겠다.
 이는 onClick과 setMinutes(0)로 쉽게 구현할 수 있다.
 
@@ -388,7 +432,7 @@ SyntheticEvent를 확인해보면 event.target.value에 <input>의 값이 들어
     ...
     <script type="text/babel">
         function App() {
-            const [minutes, setMinutes] = React.useState(0);
+            const [minutes, setMinutes] = React.useState();
             const onChange = (event) => {
                 setMinutes(event.target.value);
             };
@@ -398,11 +442,22 @@ SyntheticEvent를 확인해보면 event.target.value에 <input>의 값이 들어
                     <h1 className="hi">Super Converter</h1>
                     <div>
                         <label htmlFor="minutes">Minutes</label>
-                        <input value={minutes} id="minutes" placeholder="Minutes" type="number" onChange={onChange} />
+                        <input
+                            value={minutes}
+                            id="minutes"
+                            placeholder="Minutes"
+                            type="number"
+                            onChange={onChange}
+                        />
                     </div>
                     <div>
                         <label htmlFor="hours">Hours</label>
-                        <input value={Math.round(minutes/60)} id="hours" placeholder="Hours" type="number" disabled} />
+                        <input
+                            value={Math.round(minutes / 60)}
+                            id="hours"
+                            placeholder="Hours"
+                            type="number"
+                        />
                     </div>
                     <button onClick={reset}>Reset</button>
                 </div>
@@ -424,10 +479,9 @@ SyntheticEvent를 확인해보면 event.target.value에 <input>의 값이 들어
     ...
     <script type="text/babel">
         function App() {
-            const [minutes, setMinutes] = React.useState(0);
+            const [minutes, setMinutes] = React.useState();
             const [flipped, setFlipped] = React.useState(false);
             const onChange = (event) => {
-                // console.log(event);
                 setMinutes(event.target.value);
             };
             const reset = () => setMinutes(0);
@@ -437,11 +491,24 @@ SyntheticEvent를 확인해보면 event.target.value에 <input>의 값이 들어
                     <h1 className="hi">Super Converter</h1>
                     <div>
                         <label htmlFor="minutes">Minutes</label>
-                        <input value={minutes} id="minutes" placeholder="Minutes" type="number" onChange={onChange} disabled={flipped}/>
+                        <input
+                            value={minutes}
+                            id="minutes"
+                            placeholder="Minutes"
+                            type="number"
+                            onChange={onChange}
+                            disabled={flipped}
+                        />
                     </div>
                     <div>
                         <label htmlFor="hours">Hours</label>
-                        <input value={Math.round(minutes/60)} id="hours" placeholder="Hours" type="number" disabled={!flipped} />
+                        <input
+                            value={Math.round(minutes / 60)}
+                            id="hours"
+                            placeholder="Hours"
+                            type="number"
+                            disabled={!flipped}
+                        />
                     </div>
                     <button onClick={reset}>Reset</button>
                     <button onClick={onFlip}>Flip</button>
@@ -456,6 +523,7 @@ SyntheticEvent를 확인해보면 event.target.value에 <input>의 값이 들어
 
 마지막으로 시간을 분으로 바꾸는 계산이 다르기 때문에 input의 value를 수정해줘야 한다.
 flipped의 값에 따라서 계산하는 방법이 바뀌도록 만들어줬다.
+그리고 onchange 함수를 추가해줬다.
 
 ```
 <html>
@@ -478,11 +546,25 @@ flipped의 값에 따라서 계산하는 방법이 바뀌도록 만들어줬다.
                     <h1 className="hi">Super Converter</h1>
                     <div>
                         <label htmlFor="minutes">Minutes</label>
-                        <input value={flipped ? minutes * 60 : minutes} id="minutes" placeholder="Minutes" type="number" onChange={onChange} disabled={flipped}/>
+                        <input
+                            value={flipped ? minutes * 60 : minutes}
+                            id="minutes"
+                            placeholder="Minutes"
+                            type="number"
+                            onChange={onChange}
+                            disabled={flipped}
+                        />
                     </div>
                     <div>
                         <label htmlFor="hours">Hours</label>
-                        <input value={flipped ? minutes : Math.round(minutes/60)} id="hours" placeholder="Hours" type="number" disabled={!flipped} />
+                        <input
+                            value={flipped ? minutes : Math.round(minutes / 60)}
+                            id="hours"
+                            placeholder="Hours"
+                            type="number"
+                            onChange={onChange}
+                            disabled={!flipped}
+                        />
                     </div>
                     <button onClick={reset}>Reset</button>
                     <button onClick={onFlip}>Flip</button>
@@ -543,9 +625,7 @@ flipped의 값에 따라서 계산하는 방법이 바뀌도록 만들어줬다.
 <html>
     ...
     <script type="text/babel">
-        function MinutesToHours() {
-            ...
-        }
+        function MinutesToHours() { ...
         function KmToMiles() {
             return <h3>Km 2 M</h3>
         }
@@ -554,8 +634,8 @@ flipped의 값에 따라서 계산하는 방법이 바뀌도록 만들어줬다.
                 <div>
                     <h1>Super Converter</h1>
                     <select>
-                        <option value="0">Minutes & Hours</options>
-                        <option value="1">Km & Miles </options>
+                        <option value="0">Minutes & Hours</option>
+                        <option value="1">Km & Miles </option>
                     </select>
                 </div>
             )
@@ -588,9 +668,6 @@ flipped의 값에 따라서 계산하는 방법이 바뀌도록 만들어줬다.
                         <option value="0">Minutes & Hours</options>
                         <option value="1">Km & Miles </options>
                     </select>
-                    <hr />
-                    {index === "0" ? <MinutesToHours /> : null}
-                    {index === "1" ? <KmToMiles /> : null}
                 </div>
             )
         }

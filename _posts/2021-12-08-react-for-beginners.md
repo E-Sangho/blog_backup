@@ -45,15 +45,16 @@ React에서 html element를 만드려면 `React.createElement(component, props, 
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
     <script>
         const span = React.createElement('span');
-        const button = React.createElement('button');
+        const btn = React.createElement('button');
     </script>
 </html>
 ```
 
 하지만 이 파일을 실행시켜도 브라우저엔 아무것도 나오지 않을 것이다.
 React로 만든 element를 배치시키려면 ReactDOM을 사용해야 하기 때문이다.
-`ReactDOM.render(element, container [, callback])`를 사용하면 element를 배치할 수 있는데, element에는 배치 시키고 것을 넣고, container는 어디에 배치 시킬지를 정할 수 있다.
+`ReactDOM.render(element, container [, callback])`를 사용하면 element를 배치할 수 있는데, element에는 배치 시킬 것을 넣고, container는 어디에 배치 시킬지를 정할 수 있다.
 body에 배치시키기 위해 `<div id='root'></div>`를 하나 만들어주고 아래처럼 ReactDOM.render()를 사용한다.
+물론 별다른 내용이 없으므로 아래 페이지를 보면 빈 버튼 하나만 있을 것이다.
 
 ```
 <html>
@@ -65,8 +66,8 @@ body에 배치시키기 위해 `<div id='root'></div>`를 하나 만들어주고
     <script>
         const root = document.getElementById('root');
         const span = React.createElement('span');
-        const button = React.createElement('button');
-        ReactDOM.render(span, root);
+        const btn = React.createElement('button');
+        ReactDOM.render(btn, root);
     </script>
 </html>
 ```
@@ -85,7 +86,7 @@ body에 배치시키기 위해 `<div id='root'></div>`를 하나 만들어주고
     <script>
         const root = document.getElementById('root');
         const span = React.createElement('span');
-        const button = React.createElement('button');
+        const btn = React.createElement('button');
         const container = React.createElement('div', null, [span, btn]);
         ReactDOM.render(container, root);
     </script>
@@ -104,7 +105,7 @@ body에 배치시키기 위해 `<div id='root'></div>`를 하나 만들어주고
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
     <script>
         const root = document.getElementById('root');
-        const h3 = React.createElement(
+        const span = React.createElement(
             'span',
             { onMouseEnter: () => console.log('mouse enter') },
             'This is a span'
@@ -114,7 +115,7 @@ body에 배치시키기 위해 `<div id='root'></div>`를 하나 만들어주고
             { onClick: () => console.log('im clicked') },
             'Click me'
         );
-        const container = React.createElement('div', null, [h3, btn]);
+        const container = React.createElement('div', null, [span, btn]);
         ReactDOM.render(container, root);
     </script>
 </html>
@@ -205,7 +206,7 @@ container를 바꿔주려면 어떻게 해야 할까?
                 Click me
             </button>
         );
-        const Container = () => (
+        const Container = (
             <div>
                 <Title />
                 <Button />
