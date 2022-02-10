@@ -100,7 +100,7 @@ toc: true
 </html>
 ```
 
-출력된 props를 확인하면 첫 번째는 {text: "Save Changes", onClick: "Click"}으로 나오고, 두 번째는 {text: "Save Changes"}로 나온다.
+출력된 props를 확인하면 첫 번째는 {text: "Save Changes", onClick: "Click"}으로 나오고, 두 번째는 {text: "Another Btn"}로 나온다.
 다시 말해 props는 <Btn /> 안에서 속성처럼 적힌 것을 모두 가져와서 객체로 만들어준다.
 그리고 이 props는 Btn 안에서 사용할 수 있으므로 button에서 텍스트를 출력하려면 {props.text}를 쓰면 된다.
 
@@ -129,14 +129,91 @@ toc: true
 </html>
 ```
 
-그런데 onClick은 <button>에서 이벤트를 추가할 때 사용된 것인데, <Btn />에서는 이벤트가 추가되지 않는다.
+그런데 onClick을 <Btn />에서 직접 추가해줘도 작동하지 않는다.
+예를 들어 아래처럼 클릭하면 문자를 출력하는 것을 onClick으로 추가해줬다고 하자.
+이때 버튼을 눌러도 아무런 일도 생기지 않는다.
+
+```
+<html>
+    ...
+    <script type="text/babel">
+        function print() {
+            console.log("Im clicked");
+        }
+        function Btn(props) {
+            return (
+                <button>
+                    {props.text}
+                </button>
+            );
+        }
+        function App() {
+            return (
+                <div>
+                    <Btn text="Save Changes" onClick={print} />
+                    <Btn text="Another Btn" />
+                </div>
+            );
+        }
+        const root = document.getElementById('root');
+        ReactDOM.render(<App />, root);
+    </script>
+</html>
+```
+
 이는 <button>이 직접적으로 element를 만들기 때문에 onClick을 사용하면 이벤트가 추가되는 반면, <Btn />은 Component이므로 값을 전달하는 방향으로 해석되기 때문이다.
-다시 말해 Component에서 속성처럼 쓰인 것들은 props 안에 들어가는 객체로써 사용된다.
+그러므로 `<Btn text="Save Changes" onClick={print} />`에서 onClick은 print 함수를 전달하는 용도로 사용되는 것이다.
+그래서 onClick 기능을 추가하려면 <Btn /> 안의 <button>에 만들어줘야 한다.
+이때 함수가 props.onClick에 들어 있으므로 이 값을 전달하면 된다.
+
+```
+<html>
+    ...
+    <script type="text/babel">
+        function print() {
+            console.log("Im clicked");
+        }
+        function Btn(props) {
+            return (
+                <button onClick={props.onClick}>
+                    {props.text}
+                </button>
+            );
+        }
+        function App() {
+            return (
+                <div>
+                    <Btn text="Save Changes" onClick={print} />
+                    <Btn text="Another Btn" />
+                </div>
+            );
+        }
+        const root = document.getElementById('root');
+        ReactDOM.render(<App />, root);
+    </script>
+</html>
+```
 
 props는 단순히 string만 전달하는 것이 아니라 boolean을 포함해서 어떤 것이든 전달할 수 있다.
 아래는 big을 props에 전달해주는 코드로, 이때 props 대신에 {text, big}을 사용했다.
-이는 ES6를 활용한 것으로 props.text, props.big을 text, big으로 받아서 더 편하게 쓸 수 있다.
-이때 주의할 것은 반드시 <Btn />에서 전달하는 것과 funciton Btn() 안의 이름이 동일해야 한다는 것이다.
+이는 ES6를 활용한 것으로 객체의 값을 얻으려면 중괄호를 사용할 수 있다.
+아래 예시는 props의 값을 받아 사용하는 방법으로 ES6를 사용하면 간편하게 값이 전달된다.
+이때 주의할 것은 반드시 props로 전달하는 것과 변수의 이름이 동일해야 한다는 것이다.
+
+```
+const props = {
+    text: "Save Changes"
+    big: true
+}
+
+let text = props.text;
+let big = props.big;
+
+// ES6
+let { text, big } = props
+```
+
+이제 props로 boolean 값을 전달해서 폰트 크기를 바꿔보자.
 
 ```
 <html>
@@ -144,15 +221,7 @@ props는 단순히 string만 전달하는 것이 아니라 boolean을 포함해�
     <script type="text/babel">
         function Btn({ text, big }) {
             console.log(big);
-            return (
-                <button
-                    style={{
-                        fontsize: big ? 18: 16,
-                    }}
-                >
-                    {text}
-                </button>
-            );
+            return <button style={{ fontsize: big ? 18 : 16 }}>{text}</button>;
         }
         function App() {
             return (
@@ -176,13 +245,7 @@ props는 단순히 string만 전달하는 것이 아니라 boolean을 포함해�
     ...
     <script type="text/babel">
         function Btn({ text, onClick }) {
-            return (
-                <button
-                    onClick={onClick}
-                >
-                    {text}
-                </button>
-            );
+            return <button onClick={onClick}>{text}</button>;
         }
         function App() {
             const [value, setValue] = React.useState("Save Changes");
@@ -190,7 +253,7 @@ props는 단순히 string만 전달하는 것이 아니라 boolean을 포함해�
             return (
                 <div>
                     <Btn text={value} onClick={changeValue} />
-                    <Btn text="Continue" }/>
+                    <Btn text="Continue" />
                 </div>
             );
         }
@@ -210,22 +273,16 @@ props는 단순히 string만 전달하는 것이 아니라 boolean을 포함해�
     ...
     <script type="text/babel">
         function Btn({ text, onClick }) {
-            return (
-                <button
-                    onClick={onClick}
-                >
-                    {text}
-                </button>
-            );
+            return <button onClick={onClick}>{text}</button>;
         }
-        const MemorizedBtn = React.memo(Btn);
+        const MemorizeBtn = React.memo(Btn);
         function App() {
             const [value, setValue] = React.useState("Save Changes");
             const changeValue = () => setValue("Revert Changes");
             return (
                 <div>
-                    <MemorizedBtn text={value} onClick={changeValue} />
-                    <MemorizedBtn text="Continue" }/>
+                    <MemorizeBtn text={value} onClick={changeValue} />
+                    <MenorizeBtn text="Continue" />
                 </div>
             );
         }
@@ -236,8 +293,10 @@ props는 단순히 string만 전달하는 것이 아니라 boolean을 포함해�
 ```
 
 말하자면 Props는 Component를 함수처럼 사용하는 것이라 할 수 있다.
-함수처럼 값을 전달해서 기본적인 틀은 유지하고, 값에 따라 서로 다른 값을 보이기 때문이다.
-그런데 함수는 전달되는 값의 타입을 지정할 수 있다.
+기본적인 틀은 유지하고, 전달 받은 값에 따라 서로 다른 결과를 보이기 때문이다.
+그런데 전달되는 값이 원하는 타입이 아닌 경우가 생긴다.
+string과 number 만을 전달 받고 싶은데, 다른 타입이 들어온다면 Component는 정상적으로 보이지 않을 것이다.
+c 같은 언어는 함수에서 전달되는 변수의 타입을 지정한다.
 이와 같은 기능이 Props에도 있는데 이를 사용하려면 prop-types를 사용해야 한다.
 `<script src="https://unpkg.com/prop-types@15.6/prop-types.js"></script>`를 추가해주면 prop-types를 쓸 수 있다.
 
@@ -250,16 +309,8 @@ prop-types를 사용하려면 `Component.propTypes = {}` 형태로 적어준다.
     ...
     <script src="https://unpkg.com/prop-types@15.6/prop-types.js"></script>
     <script type="text/babel">
-        function Btn({ text, fontSize = 16}) {
-            return (
-                <button
-                    style={{
-                        fontSize,
-                    }}
-                >
-                    {text}
-                </button>
-            );
+        function Btn({ text, fontSize }) {
+            return <button style={{ fontSize }}>{text}</button>;
         }
         Btn.propTypes = {
             text: PropTypes.string,
@@ -270,8 +321,8 @@ prop-types를 사용하려면 `Component.propTypes = {}` 형태로 적어준다.
             const changeValue = () => setValue("Revert Changes");
             return (
                 <div>
-                    <Btn text="Save Changes" fontsize={18} />
-                    <Btn text="Continue" }/>
+                    <Btn text={value} fontSize={18} />
+                    <Btn text="Continue" />
                 </div>
             );
         }
@@ -294,16 +345,8 @@ isRequired와 디폴트값을 잘 사용하면 Component를 우리가 원하는 
     ...
     <script src="https://unpkg.com/prop-types@15.6/prop-types.js"></script>
     <script type="text/babel">
-        function Btn({ text, fontSize = 16}) {
-            return (
-                <button
-                    style={{
-                        fontSize,
-                    }}
-                >
-                    {text}
-                </button>
-            );
+        function Btn({ text, fontSize = 16 }) {
+            return <button style={{ fontSize }}>{text}</button>;
         }
         Btn.propTypes = {
             text: PropTypes.string.isRequired,
@@ -314,8 +357,8 @@ isRequired와 디폴트값을 잘 사용하면 Component를 우리가 원하는 
             const changeValue = () => setValue("Revert Changes");
             return (
                 <div>
-                    <Btn text="Save Changes" fontsize={18} />
-                    <Btn text="Continue" }/>
+                    <Btn text={value} fontSize={18} />
+                    <Btn text="Continue" />
                 </div>
             );
         }
