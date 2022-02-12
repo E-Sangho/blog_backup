@@ -258,7 +258,6 @@ export default App;
 key가 왜 필요한지를 알기 위해선 React가 페이지를 갱신하는 법을 이해해야 한다.
 React의 render()는 React element tree를 만드는 것이다.
 무슨 의미인가 하면, 부모 노드에서 자식 노드로 이어지는 구조가 tree 형태가 된다는 의미다.
-구글에서 tree를 검색해서 이미지를 보면 어떤 의미인지 알 수 있을 것이다.
 
 React는 tree를 바탕으로 이전과 이후에 차이점이 없는지를 확인한다.
 만약 element의 타입이 다르다면, 그 아래로는 새로운 tree를 만든다.

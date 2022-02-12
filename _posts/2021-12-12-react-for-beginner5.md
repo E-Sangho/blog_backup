@@ -7,6 +7,8 @@ tag:
 toc: true
 ---
 
+이전의 버튼을 누르면 counter가 증가하는 예로 돌아가보자.
+
 ```
 import { useState } from "react";
 
@@ -25,9 +27,9 @@ function App() {
 export default App;
 ```
 
-현재 우리 코드는 state가 바뀔 때마다 App이 다시 랜더링 된다.
-그리고 "i run all the time"이 콘솔에 계속 출력된다.
-다시말해 App 내부의 모든 코드가 다시 실행되는 것이다.
+위 코드를 `npm start`로 시작한 후 브라우저에서 콘솔을 열자.
+그리고 버튼을 누르면 매 번 콘솔에 "i run all the time"이 출력된다.
+이는 우리가 counter를 바꿀 때마다 <App />이 다시 랜더링 되는 것이다.
 
 그런데 경우에 따라서 처음에만 실행되고 다시 실행되지 않는 함수가 필요할 수 있다.
 예를 들어 API를 가져오는 기능은 처음 한 번에만 작동하면 된다.
@@ -165,7 +167,13 @@ function App() {
 export default App;
 ```
 
-마지막으로 cleanup을 알아보겠다.
+deps를 생략하고 useEffect를 사용할 수도 있다.
+이때는 리랜더링 될 때마다 useEffect가 실행된다.
+그런데 이 경우는 굳이 useEffect로 사용할 이유가 없다.
+useEffect의 effect 함수를 적어놓기만 하면 랜더링 될때마다 동일한 일을 하기 때문이다.
+그래서 deps를 생략하는 경우는 다루지 않겠다.
+
+마지막으로 cleanup을 알아보자.
 cleanup은 component가 없어질 때, 작동하는 함수로 effect에서 return으로 받은 함수가 사용된다.
 아래는 버튼을 누르면 <Hello /> component가 생성되고 없어지는 코드다.
 <Hello />가 없어지면 useEffect()에서 받은 cleanup이 실행되므로, 콘솔에는 "bye :("가 출력된다.
@@ -180,14 +188,13 @@ function Hello() {
     }, []);
     return <h1>Hello</h1>;
 }
-
 function App() {
     const [showing, setShowing] = useState(false);
     const onClick = () => setShowing((prev) => !prev);
     return (
         <div>
-        {showing ? <Hello /> : null}
-        <button onClick={onClick}>{showing ? "Hide" : "Show"}</button>
+            {showing ? <Hello /> : null}
+            <button onClick={onClick}>{showing ? "Hide" : "Show"}</button>
         </div>
     );
 }
@@ -196,7 +203,7 @@ export default App;
 ```
 
 지금까지 써왔던 것을 정리하기에 앞서 React가 정확히 어떤 단계로 작동하는지 알아보자.
-React는 크게 3단계로 생성, 업데이트, 제거로 나뉜다.
+React는 크게 3단계로 생성(Mount), 업데이트, 제거(Unmount)로 나뉜다.
 
 < 생성 >
 
@@ -206,7 +213,7 @@ React는 크게 3단계로 생성, 업데이트, 제거로 나뉜다.
 4. component의 props를 가져온다.
 5. component 안의 코드가 실행 된 후에 render()이 호출된다.
 6. DOM을 업데이트 한다.
-7. Mount
+7. componentDidMount() 실행
 
 < 업데이트 >
 
@@ -219,3 +226,45 @@ React는 크게 3단계로 생성, 업데이트, 제거로 나뉜다.
 < 제거 >
 
 -   Unmount
+
+clean-up은 이 중에서 Unmount나 Update가 일어나기 전에 실행된다.
+이때 useEffect의 형태에 따라 실행되는 시기가 다르다.
+
+-   Unmount: useEffect(effect, [])
+-   Update: useEffect(effect, dep)
+
+뒤에 빈 배열이 있을 경우는 Unmount가 발생할 경우에만 clean-up이 실행된다.
+dep가 존재할 경우엔 deps 안의 값이 업데이트 되기 전에 clean-up 함수를 실행한다.
+
+지금까지 배운 내용을 모두 정리해보겠다.
+
+> useEffect(effect, dep)
+
+useEffect는 두 변수 effect와 dep를 사용하는데, Component가 Mount, Update, Unmount 될 때 실행된다.
+어떤 경우에 실행되는지는 effect와 dep에 따라 다르며 이는 조금 뒤에 정리하겠다.
+effect는 실행되는 함수, dep는 변경을 확인할 내용이 들어간다.
+useEffect는 dep에 들어가는 내용에 따라 3가지 형태가 있다.
+
+-   useEffect(effect): 처음 랜더링 시, 변화가 생길 때마다 실행
+-   useEffect(effect, []): 처음 한 번만 실행
+-   useEffect(effect, dep): 처음 랜더링 시 실행, 변수가 바뀔 때마다 실행
+
+우선 어떤 경우라도 useEffect는 최소 한 번은 실행된다.
+그리고 dep의 내용에 따라 추가적으로 실행 여부가 갈린다.
+dep가 없다면 매 랜더링마다 실행된다.
+그렇지만 이는 useEffect를 사용하지 않아도 가능하므로 굳이 useEffect를 사용할 필요가 없다.
+이 경우는 후술할 clean-up을 사용하는 케이스다.
+dep가 존재한다면 dep 안의 내용이 바뀔 때마다 다시 실행된다.
+그런데 dep가 빈 배열이라면 바뀔 내용이 없으므로 처음 한 번만 실행된다.
+
+다음으로 clean-up 함수는 effect에서 리턴되는 함수로 Update, Unmount 시에 실행되는 함수다.
+이 역시 dep의 값에 따라 형태가 나뉜다.
+dep가 없으면 Component가 Unmount 될 때 clean-up이 실행된다.
+dep가 있으면 안의 내용이 바뀌기 전에 clean-up 함수가 호출된다.
+위 내용과 종합하면 아래와 같다.
+
+-   useEffect(effect): 처음, 변화가 생길 때마다 effect 실행.
+-   useEffect(effect, []): 처음 한 번만 effect 실행. 컴포넌트가 Unmount될 때 clean-up이 실행.
+-   useEffect(effect, dep): 랜더링 시 실행, dep로 지정한 내용 변경시 clean-up 실행. 그 후 effect 실행.
+
+마지막으로 clean-up 함수가 이전 effect 함수의 리턴값인 것에 주의하자.
