@@ -398,12 +398,13 @@ loading과 coins를 useState()로 만든다.
 import { useEffect, useState } from "react";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  return (
-    <div>
-      <h1>The Coins!</h1>
-    </div>
+    const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState([]);
+    return (
+        <div>
+            <h1>The Coins!</h1>
+        </div>
+    );
   );
 }
 
@@ -417,13 +418,14 @@ export default App;
 import { useEffect, useState } from "react";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  return (
-    <div>
-      <h1>The Coins!</h1>
-      {loading ? <string>Loading</strong> : null}
-    </div>
+    const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState([]);
+    return (
+        <div>
+            <h1>The Coins!</h1>
+            {loading ? <strong>Loading</strng> : null}
+        </div>
+    );
   );
 }
 
@@ -437,24 +439,22 @@ null 부분을 작성하기 전에 fetch로 코인의 가격을 받아오는 부
 다음으로 정보를 .json으로 처리한 후에 콘솔에 출력시킨다.
 
 ```
-import { useEffect, useState } from "react";
-
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  useEffect(
-      fetch("https://api.coinpaprika.com/v1/tickers")
-      .then((response) => response.json)
-      .then((json) => {
-          console.log(json);
-      });
-  , []);
-  return (
-    <div>
-      <h1>The Coins!</h1>
-      {loading ? <string>Loading</strong> : null}
-    </div>
-  );
+    const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState([]);
+    useEffect(() => {
+        fetch("https://api.coinpaprika.com/v1/tickers")
+            .then((response) => response.json())
+            .then((json) => {
+                console.log(json);
+            });
+    }, []);
+    return (
+        <div>
+            <h1>The Coins!</h1>
+            {loading ? <strong>Loading</strong> : null}
+        </div>
+    );
 }
 
 export default App;
@@ -468,22 +468,22 @@ export default App;
 import { useEffect, useState } from "react";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  useEffect(
-      fetch("https://api.coinpaprika.com/v1/tickers")
-      .then((response) => response.json)
-      .then((json) => {
-          setCoins(json);
-          setLoading(false);
-      });
-  , []);
-  return (
-    <div>
-      <h1>The Coins!</h1>
-      {loading ? <string>Loading</strong> : null}
-    </div>
-  );
+    const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState([]);
+    useEffect(() => {
+        fetch("https://api.coinpaprika.com/v1/tickers")
+            .then((response) => response.json())
+            .then((json) => {
+                setCoins(json);
+                setLoading(false);
+            });
+    }, []);
+    return (
+        <div>
+            <h1>The Coins!</h1>
+            {loading ? <strong>Loading</strong> : null}
+        </div>
+    );
 }
 
 export default App;
@@ -497,32 +497,23 @@ coins에 json 형태로 정보가 저장되어 있으므로, coins에 map을 적
 import { useEffect, useState } from "react";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  useEffect(
-      fetch("https://api.coinpaprika.com/v1/tickers")
-      .then((response) => response.json)
-      .then((json) => {
-          setCoins(json);
-          setLoading(false);
-      });
-  , []);
-  return (
-    <div>
-        <h1>The Coins!</h1>
-        {loading ? (
-          <string>Loading</strong>
-        ) : (
-            <ul>
-                coins.map((coin) => {
-                    <li key={coin.id}>
-                        {coin.name} {coin.symbol}: ${coin.quotes.USD.price} USD
-                    </li>
-                })
-            </ul>
-        )}
-    </div>
-  );
+    ...
+    return (
+        <div>
+            <h1>The Coins!</h1>
+            {loading ? (
+                <strong>Loading</strong>
+            ) : (
+                <ul>
+                    {coins.map((coin) => (
+                        <li>
+                            {coin.name} {coin.symbol}: ${coin.quotes.USD.price} USD
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
 }
 
 export default App;
@@ -535,32 +526,24 @@ export default App;
 import { useEffect, useState } from "react";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  useEffect(
-      fetch("https://api.coinpaprika.com/v1/tickers")
-      .then((response) => response.json)
-      .then((json) => {
-          setCoins(json);
-          setLoading(false);
-      });
-  , []);
-  return (
-    <div>
-        <h1>The Coins! {loading ? "" : `${coins.length}`}</h1>
-        {loading ? (
-          <string>Loading</strong>
-        ) : (
-            <select>
-                coins.map((coin) => {
-                    <option>
-                        {coin.name} {coin.symbol}: ${coin.quotes.USD.price} USD
-                    </option>
-                })
-            </select>
-        )}
-    </div>
-  );
+    ...
+    return (
+        <div>
+            <h1>The Coins!</h1>
+            {loading ? (
+                <strong>Loading</strong>
+            ) : (
+                <select>
+                    {coins.map((coin) => (
+                        <option>
+                            {coin.name} {coin.symbol}: ${coin.quotes.USD.price}{" "}
+                            USD
+                        </option>
+                    ))}
+                </select>
+            )}
+        </div>
+    );
 }
 
 export default App;
