@@ -102,7 +102,7 @@ Chaining과 Open Addressing의 차이점은, Chaining은 별다른 연산 없이
 -   해시 충돌이 발생해서 많이 저장할수록 느려진다.
 -   key간의 거리 개념이 없어서 가까운 key를 찾을 수 없다.(이 경우 배열을 사용해야 한다.)
 
-## Hash Table 사용
+## JavaScript
 
 JavaScript에서 해시테이블을 사용하려면 Map, Set을 주로 사용한다.
 여기서 둘의 차이점은 Map은 key-value 구조고, Set은 key 값만 사용한다는 차이점이 있다.
@@ -273,3 +273,38 @@ map 메소드로 배열로 만든 다음 sort를 사용하면 쉽게 정렬할 �
 결론을 정리하자면 선언과 동시에 값을 만들어야 하는 경우 reduce가 유용하다.
 이미 선언된 Map을 수정하는 경우는 forEach를 사용하는 것이 좋다.
 그 외에 정렬과 같이 배열이 필요한 경우는 map을 쓰면 된다.
+
+## C++
+
+C++에서 Hash Table을 사용하려면 unordered_map을 사용해야 한다.
+unordered_map은 중복된 데이터를 허용하지 않고, map과는 달리 key 값이 정렬되어 있지 않다.
+사용하기 위해선 `#include <unordered_map>`으로 불러와야 한다.
+아래는 unordered_map의 함수다.
+
+-   empty(): 비어있는지 여부를 true, false로 반환한다.
+-   size(): 현재 해시 테이블의 크기를 리턴한다.
+-   begin(): 첫 iterator를 리턴한다.
+-   end(): 마지막 + 1 iterator를 리턴한다.
+-   umap[key] = value: umap에 key, value를 추가한다.
+-   insert({key, value}): {key, value}를 해시 테이블에 추가한다. 이때 make_pair를 사용해서 {key, value}를 만들 수도 있다.
+-   find(key): key의 iterator를 리턴한다. 만약 존재하지 않는다면 end를 리턴한다.
+-   count(key): key의 원소의 수를 리턴한다.
+-   erase(key): key를 지운다.
+-   clear(): 해시 테이블을 초기화한다.
+
+unordered_map의 내용을 모두 출력하려면 for문을 사용한다.
+그런데 unordered_map은 정렬되어 있지 않으므로 index로 값을 찾을 수 없다.
+대신에 iterator를 사용해야 하는데 first에 key가 저장되어 있고, second에 value가 저장되어 있다.
+아래처럼 iterator를 선언하고, begin()에서 end()까지 사용하면 unordered_map의 내용을 출력할 수 있다.
+
+```
+unordered_map<string, int> umap;
+
+umap.insert(make_pair("a", 1));
+umap["b"] = 2;
+
+unordered_map<string, int>::iterator itr;
+for(itr = umap.begin(); itr != umap.end(); ++itr) {
+    cout << itr -> first << " " << itr -> second << endl;
+}
+```
