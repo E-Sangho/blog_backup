@@ -308,3 +308,9 @@ for(itr = umap.begin(); itr != umap.end(); ++itr) {
     cout << itr -> first << " " << itr -> second << endl;
 }
 ```
+
+unordered_map은 umap[key] 항목이 없으면 자동으로 초기값을 만든다.
+이때 초기값은 가장 기본값으로 int라면 0, double이라면 0.0, string이면 ""이 된다.
+이 때문에 별도로 초기값을 쓰지 않아도 된다는 장점도 있지만, 동시에 체크 하려는 상황에서 문제가 되기도 한다.
+예를 들어서 `if(map[key] != ###)` 같이 체크하려는 경우에, map[key]가 없으면 자동으로 생성한다.
+그러므로 위 같은 경우 `if(map.find(key) != map.end())`를 사용해야 한다.
