@@ -457,3 +457,18 @@ let c = a.filter((element) => element === 3);
 console.log(c);
 // [3]
 ```
+
+# C++
+
+## sort
+
+C++는 배열을 정렬하는데 sort를 사용한다.
+sort는 <algorithm> 헤더 파일에 있는데, 함수의 형태는 아래와 같다.
+
+> sort(start, end, [comp]);
+
+처음 두 변수는 정렬하는 범위를 정해준다.
+sort의 범위는 [start, end) 까지므로 보통 sort(v.begin(), v.end())로 사용한다.
+세 번째 변수 없이 사용하면 자동으로 오름차순으로 정렬해준다.
+그 외의 경우는 비교 함수를 만들어서 세 번째 변수에 전달해야 한다.
+비교 함수는 bool을 반환하는 함수로, false를 반환하면 자리를 바꾸고, true가 반환되면 순서를 바꾸지 않는다.
