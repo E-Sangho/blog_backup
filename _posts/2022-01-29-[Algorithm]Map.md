@@ -105,6 +105,10 @@ Chaining과 Open Addressing의 차이점은, Chaining은 별다른 연산 없이
 ## JavaScript
 
 JavaScript에서 해시테이블을 사용하려면 Map, Set을 주로 사용한다.
+다르게 말하면 Map, Set은 내부적으로 해시테이블로 구현되어 있다.
+그래서 시간 복잡도가 삽입, 삭제, 읽기, 검색 시에 $O(1)$에 불과하다.
+하지만 크기가 커질수록 충돌이 발생해서 최악의 경우엔 $O(n)$이 된다.
+보통은 Map, Set이 꽉찰 일이 없으므로 $O(1)$이라 생각해도 된다.
 여기서 둘의 차이점은 Map은 key-value 구조고, Set은 key 값만 사용한다는 차이점이 있다.
 
 ### Map
