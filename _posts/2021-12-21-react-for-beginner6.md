@@ -1123,50 +1123,36 @@ function Users() {
 그런데 v6로 바뀌면서 상대주소로 찾게 만들어졌고, match.path나 match.url을 적을 필요가 없어졌다.
 
 ```
-// This is a React Router v5 app
+// This is a React Router v6 app
 import {
   BrowserRouter,
-  Switch,
+  Routes,
   Route,
   Link,
-  useRouteMatch
 } from "react-router-dom";
 
 function App() {
   return (
     <BrowserRouter>
-      <Switch>
-        <Route exact path="/">
-          <Home />
-        </Route>
-        <Route path="/users">
-          <Users />
-        </Route>
-      </Switch>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="users/*" element={<Users />} />
+      </Routes>
     </BrowserRouter>
   );
 }
 
 function Users() {
-  // In v5, nested routes are rendered by the child component, so
-  // you have <Switch> elements all over your app for nested UI.
-  // You build nested routes and links using match.url and match.path.
-  let match = useRouteMatch();
-
   return (
     <div>
       <nav>
-        <Link to={`${match.url}/me`}>My Profile</Link>
+        <Link to="me">My Profile</Link>
       </nav>
 
-      <Switch>
-        <Route path={`${match.path}/me`}>
-          <OwnUserProfile />
-        </Route>
-        <Route path={`${match.path}/:id`}>
-          <UserProfile />
-        </Route>
-      </Switch>
+      <Routes>
+        <Route path=":id" element={<UserProfile />} />
+        <Route path="me" element={<OwnUserProfile />} />
+      </Routes>
     </div>
   );
 }
