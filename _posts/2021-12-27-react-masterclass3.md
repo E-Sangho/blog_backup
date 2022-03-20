@@ -176,10 +176,10 @@ Reset CSS를 사용하면 간단한데, styled-reset을 사용해도 된다.
 그런데 styled-reset 파일을 들여다보면, Reset CSS를 그대로 사용한 것이므로 사실상 동일한 것이다.
 하지만 이렇게 간단히 해결하기보다는 직접 만들어서 어떻게 작동하는지 알아보자.
 
-전체 도큐먼트에 스타일을 적용하기 위해선어떻게 해야 할까?
+전체 도큐먼트에 스타일을 적용하기 위해선 어떻게 해야 할까?
 이전에 styled-components를 사용할 때를 생각해보자.
 스타일 컴포넌트를 만들면 해당 컴포넌트에만 스타일이 적용된다.
-하지만 폰트나, Reset CSS처럼 전체적으로 적용시켜야 하는 경우가 있따.
+하지만 폰트나, Reset CSS처럼 전체적으로 적용시켜야 하는 경우가 있다.
 이때 사용하는 것이 createGlobalStyle이다.
 
 createGlobalStyle을 styled-components에서 import 해준다.
@@ -217,11 +217,12 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function App() {
-  return
-  <div>
-    <GlobalStyle />
-    <Router />;
-  </div>
+  return (
+    <div>
+      <GlobalStyle />
+      <Router />
+    </div>
+  );
 }
 
 export default App;
@@ -243,11 +244,12 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function App() {
-  return
-  <>
-    <GlobalStyle />
-    <Router />;
-  </>
+  return (
+    <>
+      <GlobalStyle />
+      <Router />
+    </>
+  );
 }
 
 export default App;
@@ -460,9 +462,7 @@ function Coins() {
       </Header>
       <CoinsList>
         {coins.map((coin) => (
-          <Coin key={coin.id}>
-            {coin.name} &rarr
-          </Coin>
+          <Coin key={coin.id}>{coin.name} &rarr;</Coin>
         ))}
       </CoinsList>
     </Container>
@@ -683,7 +683,7 @@ const Img = styled.img`
 function Coins() {
             ...
               <Link to={`/${coin.id}`}>{coin.name}
-                <Img
+                <img
                   src={`https://cryptoicon-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
                 />
               </Link>
@@ -1322,8 +1322,8 @@ React Query가 promise를 사용하므로 promise를 반환해줬다.
 react-query에서 `useQuery(queryKey, queryFn)`를 import한다.
 [useQuery](https://react-query.tanstack.com/reference/useQuery)에 관한 설명은 링크를 보면 알 수 있다.
 
--   queryKey(Required): 유일해야하고, queryKey를 기반으로 만들기 때문에 바뀔경우 새로 업데이트 한다.
--   queryFn(Required): 프로미스를 반환하는 함수가 되어야 하는데, 위에서 만든 fetch 함수가 들어가면 된다.
+- queryKey(Required): 유일해야하고, queryKey를 기반으로 만들기 때문에 바뀔경우 새로 업데이트 한다.
+- queryFn(Required): 프로미스를 반환하는 함수가 되어야 하는데, 위에서 만든 fetch 함수가 들어가면 된다.
 
 useQuery는 isLoading과 data를 반환하는데, isLoading에는 로딩중인지 boolean 값이 들어있고, data에는 fetch로 받아온 데이터가 들어간다.
 isLoading과 data를 사용하면 별도로 useState로 state를 만들 필요가 없다.
