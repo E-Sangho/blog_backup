@@ -903,11 +903,28 @@ function Coin() {
 }
 ```
 
+문는 infoData와 priceData의 타입을 지정해주지 않았다.
+타입스크립트에서 사용하려면 둘의 타입을 만들어줘야 한다.
+
 ### 7. Data Types
 
 불러온 데이터의 interface를 만들어줘야 한다.
-"https://app.quicktype.io/?l=ts"나 "http://json2ts.com/"에서 데이터를 넣어주면 자동으로 만들어준다.
-다 만들고 적용하면 useState({})에서 데이터 내용을 알게 되므로 {}는 필요 없다.
+데이터를 넣어주면 자동으로 interface를 만들어주는 사이트가 있으므로 이를 사용한다.
+그 전에 우선 데이터를 가져와야 한다.
+위의 useEffect 안에서 `console.log(infoData)`, `console.log(priceData)`로 값을 콘솔에 출력해준다.
+다음으로 브라우저의 콘솔에서 출력된 결과물에 우클릭을 한다.
+object 복사를 누른다.
+복사된 값을 "https://app.quicktype.io/?l=ts"나 "http://json2ts.com/"에 넣어주면 자동으로 interface를 만들어준다.
+Coin.tsx에 만들어진 interface를 넣어준다.
+이때 export가 적혀 있으므로 따로 파일을 만들어서 불러와도 되고, export를 지우고 사용해도 된다.
+interface의 이름을 지을 때, 앞에 I를 붙여서 짓는 경우가 있다.
+예를 들어 위의 경우 IinfoData, IpriceData로 적는 것인데, 이렇게 하면 interface라는 것을 이름만 보고도 알 수 있다.
+여기까지 하면 useState({})에 밑줄이 생긴다.
+이는 {}로 초기화를 하는데 interface와 다르기 때문에 생긴다.
+지금까지 초기값을 사용했던 이유는 초기값으로 타입을 유추하기 때문이다.
+그래서 앞서 `const [loading, setLoading] = useState(true)`에서 타입을 지정하지 않고도 사용할 수 있었다.
+useState를 사용할 때, state의 타입을 지정해주면 초기값을 정할 필요가 없다.
+interface를 지정해주고 있으므로 {}를 지워준다.
 
 ```
 import { useEffect, useState } from "react";
@@ -1030,8 +1047,12 @@ function Coin() {
 export default Coin;
 ```
 
-그런데 useEffect()를 보면 경고문이 있다.
-읽어보면 [] 안에 내용을 넣어라는 뜻인데, coinId를 넣어주면 된다.
+useEffect()를 보면 경고문이 있다.
+읽어보면 [] 안에 내용을 넣어라는 뜻이다.
+우리는 useEffect(effect, [])로 작성해야 한 번만 작동하는 것을 알고 있다.
+그런데 hook의 최적화를 위해선 hook 안에서 사용된 것을 dependency에 적어줘야 한다.
+위의 useEffect를 보면 coinId를 사용하고 있으므로 []를 [coinId]로 수정해야 한다.
+우리는 coinId가 바뀌는 것이 곧 url이 변하는 경우이므로 아무런 문제가 없다.
 
 나머지 코인 설명, 가격 등은 비슷한 방법으로 만들 수 있고, 스타일링도 styled-components로 할 수 있으므로 생략하고 결과만 적는다.
 
@@ -1322,8 +1343,8 @@ React Query가 promise를 사용하므로 promise를 반환해줬다.
 react-query에서 `useQuery(queryKey, queryFn)`를 import한다.
 [useQuery](https://react-query.tanstack.com/reference/useQuery)에 관한 설명은 링크를 보면 알 수 있다.
 
-- queryKey(Required): 유일해야하고, queryKey를 기반으로 만들기 때문에 바뀔경우 새로 업데이트 한다.
-- queryFn(Required): 프로미스를 반환하는 함수가 되어야 하는데, 위에서 만든 fetch 함수가 들어가면 된다.
+-   queryKey(Required): 유일해야하고, queryKey를 기반으로 만들기 때문에 바뀔경우 새로 업데이트 한다.
+-   queryFn(Required): 프로미스를 반환하는 함수가 되어야 하는데, 위에서 만든 fetch 함수가 들어가면 된다.
 
 useQuery는 isLoading과 data를 반환하는데, isLoading에는 로딩중인지 boolean 값이 들어있고, data에는 fetch로 받아온 데이터가 들어간다.
 isLoading과 data를 사용하면 별도로 useState로 state를 만들 필요가 없다.
