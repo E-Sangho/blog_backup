@@ -231,7 +231,7 @@ export default Circle;
 import styled from "styled-components";
 
 interface CircleProps {
-    bgColor: strkng;
+    bgColor: string;
 }
 
 const Container = styled.div``;
@@ -252,7 +252,7 @@ export default Circle;
 import styled from "styled-components";
 
 interface CircleProps {
-    bgColor: strkng;
+    bgColor: string;
 }
 
 const Container = styled.div``;
@@ -272,7 +272,7 @@ export default Circle;
 import styled from "styled-components";
 
 interface CircleProps {
-    bgColor: strkng;
+    bgColor: string;
 }
 
 const Container = styled.div``;

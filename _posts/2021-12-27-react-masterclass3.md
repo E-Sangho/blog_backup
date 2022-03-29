@@ -449,7 +449,7 @@ function Coins() {
 ```
 
 이제 위의 데이터로 링크를 만들어야 하는데 coins에 map을 사용해서 만들어준다.
-이때 map을 사용했으므로 <Coin>에는 key가 필요하다.
+이때 map을 사용했으므로 \<Coin>에는 key가 필요하다.
 key로는 coin.id를 사용한다.
 
 ```
@@ -470,9 +470,9 @@ function Coins() {
 }
 ```
 
-이제 <Coin>에 링크를 만들어야 하는데, <a>를 사용하면 페이지가 새로고침 되므로 <Link>를 사용했었다.
+이제 \<Coin>에 링크를 만들어야 하는데, \<a>를 사용하면 페이지가 새로고침 되므로 \<Link>를 사용했었다.
 
-<Link>에 연결되는 경로는 coin.id를 사용했으므로 아래처럼 만든다.
+\<Link>에 연결되는 경로는 coin.id를 사용했으므로 아래처럼 만든다.
 
 ```
 // Coins.tsx
@@ -532,7 +532,7 @@ const Coin = styled.li`
 `;
 ```
 
-여기서 <Coin>의 스타일을 보면 <Link>가 최종적으로 <a>로 바뀌기 때문에, <Link> 대신에 <a>를 썼다.
+여기서 \<Coin>의 스타일을 보면 \<Link>가 최종적으로 \<a>로 바뀌기 때문에, \<Link> 대신에 \<a>를 썼다.
 
 추가로 a의 색 때문에 App.tsx를 조금 수정했다.
 
@@ -670,7 +670,7 @@ export default Coins;
 코인의 이미지를 가져오는 API는 [Cryptoion](https://cryptoicon-api.vercel.app/)을 사용했다.
 
 우선 이미지를 넣을 styled component를 만들어준다.
-그리고 만든 컴포넌트를 <Link> 안에 추가시키고 링크를 추가해준다.
+그리고 만든 컴포넌트를 \<Link> 안에 추가시키고 링크를 추가해준다.
 
 ```
 // Coins.tsx
@@ -697,7 +697,7 @@ function Coins() {
 export default Coins;
 ```
 
-그리고 스타일을 수정해주면 되는데 <Link>의 스타일을 수정하려면 <a>를 수정해줘야 한다.
+그리고 스타일을 수정해주면 되는데 Link의 스타일을 수정하려면 a를 수정해줘야 한다.
 
 ```
 // Coins.tsx
@@ -727,7 +727,7 @@ const Coin = styled.li`
 그리고 API를 추가하면 로딩을 한 후에 페이지를 보여준다.
 그런데 Home에서 페이지로 넘어간 경우를 생각해보면, 이미 코인의 정보를 어느 정도 알고 있다.
 이미 알고 있는 정보를 사용해서 미리 정보를 보내주면, 페이지가 더 빠르게 작동하도록 만들 수 있다.
-이를 위해서 사용하는 것이 <Link>의 state다.
+이를 위해서 사용하는 것이 Link의 state다.
 state는 다음 페이지로 전달하고 싶은 정보를 담는 곳으로, 여기에 담은 내용은 다음 페이지에서 useLocation()으로 쓸 수 있다.
 
 우선 Coin.tsx에 Coins.tsx의 styled-component를 옮기고 같은 모양으로 만든다.
@@ -782,7 +782,7 @@ export default Coin;
 ```
 
 이제 Home에서 코인의 이름을 가져오기 위해 state를 사용한다.
-state로 전달하려면 <Link>에 state를 추가하고 정보를 적어주면 된다.
+state로 전달하려면 \<Link>에 state를 추가하고 정보를 적어주면 된다.
 
 ```
 // Coins.tsx
@@ -821,7 +821,7 @@ export default Coin;
 
 정보를 보면 useLocation에는 state가 있고, 그 안에 우리가 넣어준 name이 있다.
 그러므로 이를 가져와서 사용해야 하는데, 타입이 지정되어 있지 않으므로 interface를 만들어서 적용시켜야 한다.
-그리고 <Title>에서 이름을 보여준다.
+그리고 \<Title>에서 이름을 보여준다.
 
 ```
 // Coin.tsx
@@ -1145,8 +1145,14 @@ const Description = styled.p`
 그런데 이렇게 되면 라우트가 중첩되기 때문에 Nested Routes라는 표현을 사용하는 것이다.
 
 Nested Routes를 사용하면 원하는 위치에서 URL을 나눌 수 있고, 끝부분을 바꾸는 것만으로 다른 정보를 보여줄 수 있다.
+한 가지 상황을 가정해보자.
+화면에서 가격을 보여주고 싶은데, 차트나 표로 보이도록 선택할 수 있도록 하려고 한다.
+이는 state를 사용해서 해결할 수 있지만, URL을 나누는 것으로도 가능하다.
+"/price/chart"에서는 차트를 보여주고, "/price/table"에서는 표로 보여주면 된다.
+이 중 URL로 나누는 방식이 더 유용한데, URL로 원하는 자료형으로 바로 볼 수 있기 때문이다.
+
 이를 사용해서 Coin.tsx에서 Price와 Chart를 보여주는 라우트를 만들겠다.
-만드는 법은 이전에 라우트를 만들었듯이 <Switch>와 <Route>를 사용하면 된다.
+만드는 법은 이전에 라우트를 만들었듯이 \<Switch>와 \<Route>를 사용하면 된다.
 다만 주소는 \`/${coinId}/price\`나 \`/${coinId}/chart\`로 다르게 해주면 된다.
 물론 라우트에서 쓰일 컴포넌트도 Price.tsx와 Chart.tsx에 만들어준다.
 
@@ -1200,9 +1206,54 @@ import Price from "./Price";
           </Switch>
 ```
 
+react-router-dom v6는 nested routes 작성법이 달라졌다.
+v6에서 nested routes를 사용하는 방법은 2가지가 있다.
+첫 번째 방법부터 알아보자.
+부모 route의 path의 뒷 부분에 /\*를 적게 되면, 해당 route 내부에 nested routes가 생긴다는 것을 알려줄 수 있다.
+그리고 자식 route에서는 나눠지는 path와 element를 작성하면 된다.
+앞서 우리가 작성한 코드로 알아보면 아래처럼 만들 수 있다.
+
+```
+// Router.tsx
+<Route path="/:coinId/*" element={<Coin />} />
+
+// Coin.tsx
+<Routes>
+  <Route path="chart" element={<Chart />} />
+  <Route path="price" element={<Price />} />
+</Routes>
+```
+
+두 번째 방법은 Outlet을 사용하는 방법이다.
+자식 route를 element 내부에 작성하지 않고, route 내부에 직접 작성한다.
+이 경우 URL이 갈리는 것은 쉽게 표현할 수 있다.
+문제는 자식 컴포넌트가 어디에 표시될지다.
+이는 컴포넌트 내부에 Outlet 컴포넌트를 사용해서 표시할 수 있다.
+
+```
+// Router.tsx
+<Route path="/:coinId/*: element={<Coin />}>
+  <Route path="chart" element={<Chart />} />
+  <Route path="price" element={<Price />} />
+</Route>
+
+// Coin.tsx
+import { Outlet } from "react-router-dom";
+...
+    <Outlet />
+```
+
+두 방법은 각기 장단점이 있다.
+첫 번째 방법은 라우트를 직접 사용하는 위치에서 어떤 내용이 보일지 알 수 있다.
+위의 경우 Coin.tsx에서 chart나 price가 보인다는 것을 알 수 있다.
+반면 부모 라우트에서는 자식 라우트에 어떤 내용이 들어올지 모른다.
+두 번째 방법은 이와 반대로 부모 라우트에서 어떤 내용이 들어가는지 명확하게 확인할 수 있다.
+그렇지만 자식 라우트에서는 Outlet으로 표시하므로 표시되는 내용을 볼 수 없다.
+결국 부모에서 내용을 볼지, 자식에서 볼지에 따라 편한 방법이 달라진다.
+
 다음으로 Price와 Chart를 바꿔주는 탭을 만들겠다.
-<Tab> 컴포넌트를 만들고 스타일을 만들어준다.
-그리고 <Tab> 안에 <Link>를 사용해서 경로를 지정해주면 된다.
+\<Tab> 컴포넌트를 만들고 스타일을 만들어준다.
+그리고 \<Tab> 안에 \<Link>를 사용해서 경로를 지정해주면 된다.
 
 ```
 //Coin.tsx
@@ -1265,6 +1316,8 @@ function Coin() {
 만약 URL이 일치하지 않는다면, null이 나온다.
 URL이 일치하는 경우엔 객체를 반환하는데, 그 안에 isExact, params, path, url 등의 정보가 들어가 있다.
 이를 사용해서 null이 아닌 경우에만 색을 바꿔주도록 하겠다.
+추가로 a에 display: block을 추가하지 않으면 제대로 업데이트 되지 않는다.
+이유는 잘 모르겠지만, block 안의 inline 속성은 제대로 업데이트 되지 않는 모양이다.
 
 ```
 // Coin.tsx
@@ -1287,16 +1340,20 @@ function Coin() {
             </Tabs>
 ```
 
+react-router-dom v6는 useRouteMatch의 이름이 useMatch로 바뀌었다.
+위 코드에서 이름만 바꿔주면 v6에서 그대로 사용할 수 있다.
+추가로 "Link" 안의 주소를 상대주소를 사용하므로 coinId 없이 chart나 price만 적어줘도 된다.
+
 ### 9. React Query
 
 지금까지 API로 정보를 받아올 때 fetch를 사용하고, useState, useEffect를 써서 해결했다.
 이 모든 것을 간단하게 해결할 수 있는데, [React Query](https://react-query.tanstack.com/)를 사용하면 된다.
 `npm i react-query`로 설치할 수 있는데, 우리는 이미 이전에 설치했줬다.
-React Query의 페이지에서 설명을 읽어보면, <QueryClient>와 <QueryClientProvider>를 쓴다.
-이는 이전에 <ThemeProvider>를 쓴 것과 동일한 것으로, React Query를 사용하려면 <QueryClientProvider>를 사용해야 한다.
+React Query의 페이지에서 설명을 읽어보면, \<QueryClient>와 \<QueryClientProvider>를 쓴다.
+이는 이전에 \<ThemeProvider>를 쓴 것과 동일한 것으로, React Query를 사용하려면 \<QueryClientProvider>를 사용해야 한다.
 
-index.tsx로 가서 <QueryClient>와 <QueryClientProvider>를 추가해주자.
-이때 <QueryClientProvider>에 client로 QueryClient()를 줘야 한다.
+index.tsx로 가서 \<QueryClient>와 \<QueryClientProvider>를 추가해주자.
+이때 \<QueryClientProvider>에 client로 QueryClient()를 줘야 한다.
 
 ```
 // index.tsx
@@ -1323,8 +1380,14 @@ ReactDOM.render(
 
 그리고 모든 api를 컨트롤하는 api.ts 파일을 만들었다.
 모든 파일의 api는 이곳에서 작성하고 다른 곳에서 import해서 사용한다.
+파일 확장자명이 ts인 이유는 타입스크립트만 사용하기 때문이다.
+tsx는 ts(TypeScript) + x(React)를 의미한다.
+지금까지 tsx를 사용한 것은 타입스크립트와 리액트를 같이 사용해서다.
+api.ts 파일에서는 타입스크립트만 사용하므로 확장자명을 ts를 썼다.
 
-우선 Coins.tsx의 fetch코드를 가져와서 넣어준다.
+Coins.tsx의 fetch 코드를 가져와서 넣어준다.
+async/await 문법을 사용해도 되지만, 한 줄로 적어주기 위해 아래처럼 바꿨다.
+이때 React Query가 Promise를 사용하므로, Promise를 반환했다.
 
 ```
 // src/api.tsx
@@ -1335,9 +1398,6 @@ export function fetchCoins() {
 }
 ```
 
-React Query가 promise를 사용하므로 promise를 반환해줬다.
-그리고 async/await을 사용하면 코드가 길어지므로, .then을 썼다.
-
 이제 Coins.tsx로 돌아가서 코드를 수정해보자.
 우리는 React Query를 사용하기 때문에, 더이상 useState나 useEffect가 필요없다.
 react-query에서 `useQuery(queryKey, queryFn)`를 import한다.
@@ -1347,7 +1407,7 @@ react-query에서 `useQuery(queryKey, queryFn)`를 import한다.
 -   queryFn(Required): 프로미스를 반환하는 함수가 되어야 하는데, 위에서 만든 fetch 함수가 들어가면 된다.
 
 useQuery는 isLoading과 data를 반환하는데, isLoading에는 로딩중인지 boolean 값이 들어있고, data에는 fetch로 받아온 데이터가 들어간다.
-isLoading과 data를 사용하면 별도로 useState로 state를 만들 필요가 없다.
+isLoading과 data를 사용하면 별도로 state를 만들 필요가 없다.
 그러므로 코드를 isLoading과 data를 사용하도록 수정해준다.
 
 ```
@@ -1371,9 +1431,9 @@ function Coins() {
                 to={{
 ```
 
-그런데 data가 어떤 형태인지 설명하지 않아서, 에러가 난다.
-그래서 interface를 지정해줘야 하는데, 이전의 CoinInterface를 ICoin으로 이름만 바꿔서 사용했다.
-그리고 data가 위에 마우스를 올리면 ICoin || undefined로 나오는데, 이는 data 유무가 확실하지 않아서 그렇다.
+그런데 data가 어떤 형태인지 설명하지 않아서 에러가 난다.
+interface를 지정해줘야 하는데, 이전의 CoinInterface를 ICoin으로 이름만 바꿔서 사용했다.
+data가 위에 마우스를 올리면 ICoin || undefined로 나오는데, 이는 data 유무가 확실하지 않아서 그렇다.
 그러므로 ?를 붙여서 없는 경우엔 실행되지 않도록 한다.
 
 ```
@@ -1410,7 +1470,7 @@ function Coins() {
 앞서 useQuery에서 설명했듯이 queryKey를 설정하면 계속해서 내용을 추적하기 때문이다.
 
 다음 단계로 넘어가기 전에 [Devtools](https://react-query.tanstack.com/devtools#_top)를 소개하려고 한다.
-Devtools는 캐시의 query를 보여주는 컴포넌트를 만들어주는데, 위의 링크에서 사용법을 볼 수 있다.
+Devtools는 캐시에 저장돼 있는 query를 보여주는 컴포넌트를 만들어준다.
 App.tsx에서 ReactQueryDevtools를 import하고, 아래처럼 initialIsOpen={true} 속성을 줘서 만들어준다.
 
 ```
@@ -1595,6 +1655,122 @@ refetchInterval은 이름 그대로 정해진 시간마다 fetch를 해준다.
     }
   );
 ```
+
+위 과정을 react-router-dom v6로 하려고 하면 useParams에서 문제가 생긴다.
+v6로 업데이트 되면서 useParams는 타입이 string | undefined로 설정된다.
+이때 undefined가 존재하는 이유는 없는 주소로 들어가는 경우가 있기 때문이다.
+타입이 string | undefined가 되면서 골치가 아파진다.
+interface를 지정하지 않으면 `const { coinId } = useParams()`로 받아온 coinId의 타입이 string | undefined가 된다.
+undefined가 들어가면 함수에서 사용되면 에러를 일으키므로 곤란할 수 있다.
+그렇다고 interface를 지정하자니 여간 까다로운 것이 아니다.
+이를 해결할 수 있는 방법을 차례로 정리했다.
+
+우선 interface를 만들지 않는 방법부터 설명하겠다.
+이 경우 coinId의 타입이 string | undefined가 된다.
+그러므로 coinId를 사용하는 함수에서 타입을 string | undefined로 지정하면 된다.
+
+```
+// Coin.tsx
+function Coin() {
+	const params = useParams();
+  ...
+
+// api.tx
+export function fetchCoinInfo(coinId: string | undefined) {
+  ...
+}
+
+export function fetchCoinPrice(coinId: string | undefined) {
+  ...
+}
+```
+
+이 방법은 간단하고 현재 코드에선 문제가 없다.
+하지만 useParams에서 받아온 값이 항상 존재하는 것은 아니다.
+undefined인 경우 이를 무작정 사용하면 문제가 된다.
+
+다음으로 interface를 만들어주는 법을 알아보자.
+타입스크립트에는 as라는 키워드가 있다.
+as는 앞의 것을 뒤의 타입으로 해석한다는 의미다.
+아래는 a를 string으로 취급하는 예다.
+
+```
+let a = "abc"
+let b = a as string
+```
+
+as는 타입스크립트 컴파일러가 인식하는 방법을 정해줄 뿐이다.
+위를 `let a = 1`로 적어준다면 컴파일러는 a를 string으로 생각한다.
+이때 변경될 수 없는 타입이 지정되면 에러가 발생하게 된다.
+
+as를 사용해서 interface를 지정해보자.
+
+```
+interface RouteParams {
+	coinId: string;
+}
+
+function Coin() {
+	const { coinId } = useParams() as RouteParams;
+```
+
+하지만 위와 같이 사용하면 "Readonly\<Params\<string\>\>" 타입에 coinId에 없다는 에러가 생긴다.
+useParams가 어떻게 작동하는지 이해해보자.
+useParams는 아래와 같다.
+
+```
+function useParams<K extends string, V extends string | undefined = string | undefined>(): {[key in K]: V} {
+    // ...
+}
+```
+
+조금 복잡하지만 K로 들어오는 내용으로 {[key in K]: string | undefined}를 만든다고 생각하면 된다.
+아래의 예를 보자.
+
+```
+const p1 = useParams(); // = {[key: string]: string | undefined}
+const p2 = useParams<"foo" | "bar">(); // = {foo: string | undefined, bar: string | undefined}
+const p3 = useParams<"foo" | "bar", string>(); // = {foo: string, bar: string}
+```
+
+우리의 경우 `useParams<"coinId">`라고 적으면 { coinId: string | undefined }로 만들어지게 된다.
+그리고 이 뒤에 as를 사용해서 이를 { coinId: string }으로 생각하도록 만드는 것이다.
+
+```
+interface RouteParams {
+	coinId: string;
+}
+
+function Coin() {
+	const { coinId } = useParams<"coinId">() as RouteParams;
+```
+
+이때 RouteParams의 내용이 적으면 위처럼 |를 사용해서 여러 개 적을 수 있다.
+그렇지만 너무 많아지게 되면 일일이 저기 힘들다.
+이때 사용하는 것이 "keyof" 키워드다.
+
+keyof는 타입의 key를 만들어준다.
+아래의 type P는 "x" | "y"가 된다.
+
+```
+type Point = { x: number; y: number };
+type P = keyof Point;
+```
+
+keyof는 간단하게 interface의 key를 가져와 준다.
+그리고 이를 as와 함께 사용해서 아래처럼 적어준다.
+
+```
+interface RouteParams {
+	coinId: string;
+}
+
+function Coin() {
+	const { coinId } = useParams<keyof RouteParams>() as RouteParams;
+  ...
+```
+
+정리하면 v6에서 useParams를 사용할 때, `const { coinId } = useParams<keyof RouteParams>() as RouteParams`처럼 keyof와 as를 사용하면 된다.
 
 ### 10. Price Chart
 
