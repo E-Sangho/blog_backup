@@ -1772,6 +1772,18 @@ function Coin() {
 
 정리하면 v6에서 useParams를 사용할 때, `const { coinId } = useParams<keyof RouteParams>() as RouteParams`처럼 keyof와 as를 사용하면 된다.
 
+마지막으로 reactQuery의 refetchInterval을 정하는 법을 알아보자.
+주기적으로 fetch 함수를 실행시키고 싶으면 useQuery의 세 번째 변수에 refetchInterval을 주면된다.
+
+```
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ["tickers", coinId],
+    () => fetchCoinTickers(coinId),
+    {
+      refetchInterval: 5000,
+    }
+```
+
 ### 10. Price Chart
 
 차트 기능을 만들텐데, 그러기 위해서 가격을 가져오는 api가 필요하다.
@@ -1904,7 +1916,99 @@ function Chart({ coinId }: ChartProps) {
 }
 ```
 
-그리고 options의 여러 기능을 소개하겠다.
+위와 같이 적으면 에러가 발생하는데, ApexChart에서 지정한 타입과 data가 다르기 때문에 생긴다.
+첫 번째 문제점은 useQuery의 data가 IHistorical[] | undefined라는 점이다.
+이때문에 price.close의 타입이 number | undefined가 된다.
+이를 해결하기 위해선 data가 IHistorical[] 타입이란 것을 전달해줘야 한다.
+as를 사용해서 아래처럼 고치면 된다.
+
+```
+// Chart.tsx
+interface tsChart {
+	isLoading: boolean;
+	data: IHistorical[];
+}
+
+function Chart({ coinId }: ChartProps) {
+  const { isLoading, data } = useQuery<IHistorical[]>(["ohlcv", coinId], () =>
+    fetchCoinHistory(coinId)
+  ) as tsChart;
+```
+
+다음으로 series의 data에 어떤 타입이 들어가는지 확인해보자.
+series를 우클릭해서 Go to Definition을 누른다.
+그러면 `series?: ApexOptions['series'],` 가 있다.
+ApexOptions에서 다시 Go to Definition을 눌러보면, `series?: ApexAxisChartSeries | ApexNonAxisChartSeries`가 나온다.
+ApexAxisChartSeries도 Go to Defninition을 누르면 아래 내용이 나온다.
+
+```
+type ApexAxisChartSeries = {
+  ...
+  data:
+    | (number | null)[]
+    | {
+        x: any;
+        y: any;
+        fillColor?: string;
+        strokeColor?: string;
+        meta?: any;
+        goals?: any;
+      }[]
+    | [number, number | null][]
+    | [number, (number | null)[]][];
+}[]
+```
+
+위를 보면 data의 타입을 어떻게 지정해야 할지 알 수 있다.
+차트의 타입에 따라 data의 형태가 다르기 때문에 그에 맞게 지정해줘야 한다.
+한 가지 예를 들어보자면, candlestick 타입에선 데이터를 [number, number[]] 형태를 사용한다.
+이를 data로 넣어주려면 아래 코드를 사용해야 한다.
+
+```
+// Chart.tsx
+					series={[
+						{
+							data: data?.map((info) => {
+								return [
+									new Date(info.time_open).getTime(),
+									[
+										info.open,
+										info.high,
+										info.low,
+										info.close,
+									],
+								];
+							}),
+						},
+					]}
+```
+
+하지만 위와 같이 적어도 타입스크립트는 data가 number여야 한다고 생각한다.
+그러므로 뒤에 as를 사용해서 타입이 [number, (number | null)[]][]라는 것을 알려줘야 한다.
+
+```
+// Chart.tsx
+					series={[
+						{
+							data: data?.map((info) => {
+								return [
+									new Date(info.time_open).getTime(),
+									[
+										info.open,
+										info.high,
+										info.low,
+										info.close,
+									],
+								];
+							}) as [number, (number | null)[]][],
+						},
+					]}
+```
+
+로
+이 외에 다른 차트를 사용하는 경우에도 as로 타입의 형태를 맞춰주면 된다.
+
+다음으로 options의 여러 기능을 소개하겠다.
 APEXCHARTS의 DOCS에서 왼쪽을 보면 Options에서 내용을 볼 수 있다.
 
 ```
@@ -2054,3 +2158,9 @@ gh-pages를 사용해서 배포
 그 문제는 https://{userName}.github.io/{repository}가 우리가 실제 경로인데, /는 https://{userName}.github.io로 설정되어서 생긴다.
 그래서 basename을 설정하면 해결된다.
 이때 PUBLIC_URL은 package.json의 hompage URL로 설정된다.
+
+## 참고
+
+1. [useParams](https://github.com/remix-run/react-router/issues/8200)
+2. [extends](https://stackoverflow.com/questions/57342018/extending-a-string-in-typescript)
+3. [nested-routes](https://ui.dev/react-router-nested-routes)
