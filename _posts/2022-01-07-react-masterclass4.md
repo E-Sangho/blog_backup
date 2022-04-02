@@ -34,12 +34,12 @@ ReactDOM.render(
         </ThemeProvider>
 ```
 
-<ThemeProvider>는 theme props를 전달받아서 테마를 변경한다.
+\<ThemeProvider>는 theme props를 전달받아서 테마를 변경한다.
 그런데 버튼을 눌러서 테마를 변경하려면 theme에 전달되는 값이 바뀌어야 한다.
 값의 변화를 다룰 때는 state를 사용하는 것이 제일 간편하므로 state를 사용해야 한다.
-여기서 문제가 생기는데, <App>이 <ThemeProvider>보다 아래에 있다.
-props는 부모에서 자식으로 보내주고, state는 컴포넌트 안에서 작동하므로, <App>의 정보를 <ThemeProvider>에 보낼 수 없다.
-이를 해결하기 위해선 <ThemeProvider>를 <App> 안에 넣어줘야 한다.
+여기서 문제가 생기는데, \<App>이 \<ThemeProvider>보다 아래에 있다.
+props는 부모에서 자식으로 보내주고, state는 컴포넌트 안에서 작동하므로, \<App>의 정보를 \<ThemeProvider>에 보낼 수 없다.
+이를 해결하기 위해선 \<ThemeProvider>를 \<App> 안에 넣어줘야 한다.
 
 ```
 // index.tsx
@@ -67,7 +67,7 @@ function App() {
         </>
 ```
 
-이제 <ThemeProvider>가 <App> 안에 있으므로 state로 테마 변화를 다룰 수 있게 되었다.
+이제 \<ThemeProvider>가 \<App> 안에 있으므로 state로 테마 변화를 다룰 수 있게 되었다.
 간단한 버튼과 state를 사용하면 테마를 바꾸는 기능을 만들 수 있다.
 
 ```
@@ -113,14 +113,14 @@ export const lightTheme: DefaultTheme = {
 ```
 
 이렇게해서 state로 theme을 바꿀 수 있었다.
-문제는 이렇게 해결할 경우 theme을 바꾸는 버튼이 항상 <App> 안에 있어야 한다는 점이다.
+문제는 이렇게 해결할 경우 theme을 바꾸는 버튼이 항상 \<App> 안에 있어야 한다는 점이다.
 만약 버튼을 다른 위치에 만든다면 이처럼 해결할 수는 없다.
 
-버튼을 <Coins>의 header에 만들어줬다고 생각해보자.
+버튼을 \<Coins>의 header에 만들어줬다고 생각해보자.
 테마를 바꿔주려면 버튼을 눌렀을 때 toggleDark가 실행돼야 한다.
-그런데 toggleDark는 <App> 내부에 있으므로 props로 전달해줘야 한다.
-<App>에서 <Coins>까지 데이터를 전달하려면 <App> -> <Router> -> <Coins>로 전달해줘야 한다.
-props를 사용해서 toggleDark를 전달해주면 되겠지만, 이 경우 <Router>과 <Coins>에서 interface를 수정해줘야 한다.
+그런데 toggleDark는 \<App> 내부에 있으므로 props로 전달해줘야 한다.
+\<App>에서 \<Coins>까지 데이터를 전달하려면 \<App> -> \<Router> -> \<Coins>로 전달해줘야 한다.
+props를 사용해서 toggleDark를 전달해주면 되겠지만, 이 경우 \<Router>과 \<Coins>에서 interface를 수정해줘야 한다.
 
 다른 것은 큰 문제가 없지만 interface에서 문제가 생긴다.
 toggleDark의 타입을 지정해줘야 하는데, string, number 같은 기본적인 타입으로는 해결되지 않기 때문이다.
@@ -155,7 +155,7 @@ function Router({ toggleDark }: IRouterProps) {
           <Coins toggleDark={toggleDark} />
 ```
 
-다음으로 <Coins>에서 toggleDark를 받아와서 onClick에 넣어주면 된다.
+다음으로 \<Coins>에서 toggleDark를 받아와서 onClick에 넣어주면 된다.
 
 ```
 // Coins.tsx
@@ -170,11 +170,11 @@ function Coins({ toggleDark }: ICoinsProps) {
       </Header>
 ```
 
-이렇게 해서 <App> -> <Router> -> <Coins> -> <button>으로 toggleDark를 옮겨줬다.
+이렇게 해서 \<App> -> \<Router> -> \<Coins> -> \<button>으로 toggleDark를 옮겨줬다.
 보다시피 한 경우만 해도 여러 경로를 거처야 해서 번거롭다.
-문제는 우리는 <Coin>의 <Chart>에도 똑같은 일을 해야 한다는 것이다.
-<Chart>에서 필요한 것은 isDark state이므로 다시 <App>에서 부터 전달해줘야 한다.
-먼저 <App>에서 isDark를 <Router>로 보내준다.
+문제는 우리는 \<Coin>의 \<Chart>에도 똑같은 일을 해야 한다는 것이다.
+\<Chart>에서 필요한 것은 isDark state이므로 다시 \<App>에서 부터 전달해줘야 한다.
+먼저 \<App>에서 isDark를 \<Router>로 보내준다.
 
 ```
 // App.tsx
@@ -182,8 +182,8 @@ function Coins({ toggleDark }: ICoinsProps) {
         <Router isDark={isDark} toggleDark={toggleDark} />
 ```
 
-<Router>에서는 이를 받아주고, interface를 고쳐야 한다.
-그리고 <Coin>에 isDark를 보내주고, <Coin>에서는 이를 다시 <Chart>로 전달한다.
+\<Router>에서는 이를 받아주고, interface를 고쳐야 한다.
+그리고 <Coin>에 isDark를 보내주고, \<Coin>에서는 이를 다시 \<Chart>로 전달한다.
 
 ```
 // Router.tsx
@@ -214,7 +214,7 @@ function Coin({ isDark }: ICoinProps) {
             </Route>
 ```
 
-마지막으로 <Chart>에서 mode 에서 isDark의 값에 따라 모드를 바꿔준다.
+마지막으로 \<Chart>에서 mode 에서 isDark의 값에 따라 모드를 바꿔준다.
 
 ```
 // Chart.tsx
@@ -230,10 +230,10 @@ function Chart({ coinId, isDark }: ChartProps) {
             },
 ```
 
-우리는 <Coins>와 <Chart>에 state를 전달하기 위해 아래와 같은 과정을 거쳤다.
+우리는 \<Coins>와 \<Chart>에 state를 전달하기 위해 아래와 같은 과정을 거쳤다.
 
--   <Coins>: <App> -> <Router> -> <Coins> -> <button>
--   <Chart>: <App> -> <Router> -> <Coin> -> <Chart>
+-   \<Coins>: \<App> -> \<Router> -> \<Coins> -> \<button>
+-   \<Chart>: \<App> -> \<Router> -> \<Coin> -> \<Chart>
 
 보다시피 몇 단계나 거쳐야 했다.
 만약 우리가 페이지를 더 복잡하게 만든다면 더 많은 단계를 거쳐야 한다.
@@ -241,17 +241,17 @@ function Chart({ coinId, isDark }: ChartProps) {
 그리고 거기에 맞춰 새로운 interface를 만들어야 하는 등 해야할 일이 산더미 같이 쌓인다.
 
 이제 여기서 이런 생각이 들 것이다.
-<App>에서 위처럼 많은 단계를 거치는 것이 아니라, 중간 단계를 만들어서 바로 전달하면 쉽지 않을까 하는 생각.
-다시 말해 아래처럼 <Atom>라는 단계를 하나만 넣어서 해결하는 것이다.
+\<App>에서 위처럼 많은 단계를 거치는 것이 아니라, 중간 단계를 만들어서 바로 전달하면 쉽지 않을까 하는 생각.
+다시 말해 아래처럼 \<Atom>라는 단계를 하나만 넣어서 해결하는 것이다.
 
--   <Coins>: <App> -> <Atom> -> <button>
--   <Chart>: <App> -> <Atom> -> <Chart>
+-   \<Coins>: \<App> -> \<Atom> -> \<button>
+-   \<Chart>: \<App> -> \<Atom> -> \<Chart>
 
 위 아이디어의 핵심은 3가지다.
 
--   <Atom>에 모든 state를 저장
--   <Atom>의 state를 수정
--   <Atom>의 state를 출력
+-   \<Atom>에 모든 state를 저장
+-   \<Atom>의 state를 수정
+-   \<Atom>의 state를 출력
 
 Recoil은 조금 다르긴 하지만 위의 아이디어를 실현한 것으로 global state를 만들고, 이를 수정, 출력하는 기능을 만든 것이다.
 
