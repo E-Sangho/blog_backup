@@ -920,3 +920,509 @@ function ToDoList() {
 
 export default ToDoList;
 ```
+
+## Recoil
+
+ToDoList를 만들던 일로 돌아가보자.
+ToDoList.tsx 파일을 components 폴더로 옮겨줬다.
+그리고 ToDo를 Recoil을 이용해서 만들어줘야 한다.
+먼저 atom을 새로 만들고 useRecoilState로 atom을 불러온다.
+
+```
+// ToDoList.tsx
+import { atom, useRecoilState } from "recoil";
+
+
+const toDoState = atom({
+	key: "toDo",
+	default: [],
+});
+
+function ToDoList() {
+	const [toDos, setToDos] = useRecoilState(toDoState);
+	...
+}
+```
+
+Add 버튼을 눌렀을 때 atom에 추가하기 위해 onValid 안에서 setToDos를 사용한다.
+이때 추가할 내용은 해야할 일(text), key를 위한 id, category(진행 상태 표시)를 포함하도록 만든다.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	const [toDos, setToDos] = useRecoilState(toDoState);
+	...
+	const onValid = (data: IForm) => {
+		setToDos((prev) => [
+			...prev,
+			{ text: data.toDo, id: Date.now(), category: "ToDo" },
+		]);
+		setValue("toDo", "");
+	};
+	/*
+		Argument of type '(prev: never[]) => { text: string; id: number; category: string; }[]' is not assignable to parameter of type 'never[] | ((currVal: never[]) => never[])'.
+	 */
+	...
+}
+```
+
+그런데 toDos의 타입이 never[]로 지정되어 있어서 에러가 나온다.
+interface로 toDo의 타입을 정한 다음 atom의 generic으로 넘겨줘야 한다.
+
+```
+// ToDoList.tsx
+
+interface IToDos {
+	text: string;
+	id: number;
+	category: "ToDo" | "Doing" | "Done";
+}
+
+const toDoState = atom<IToDos[]>({
+	key: "toDo",
+	default: [],
+});
+```
+
+여기서 category를 보면 `"ToDo" | "Doing" | "Done"`라고 입력했다.
+만약 category를 string으로 정하면 어떤 것이든 입력할 수 있다.
+하지만 우리는 category로 현재 진행 상태를 표시하고 싶다.
+그러므로 입력받는 것은 제한해야 하는데, 위와 같이 적으면 셋 중에 하나만 입력값으로 받게 된다.
+추가로 onValid에서 data를 입력 받을 때 간단히 하기 위해서 `{ toDo }: IForm`으로 바꿔준다.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	const [toDos, setToDos] = useRecoilState(toDoState);
+	...
+	const onValid = ({ toDo }: IForm) => {
+		setToDos((prev) => [
+			...prev,
+			{ text: toDo, id: Date.now(), category: "ToDo" },
+		]);
+		setValue("toDo", "");
+	};
+	...
+}
+```
+
+## Refactoring
+
+지금까지 작성한 코드를 각 종류별로 나눠주려고 한다.
+우선 ToDo를 만드는 form을 저장할 CreateToDo.tsx를 만든다.
+이 파일엔 form에서 쓰는 내용을 모두 저장시켜줬다.
+
+```
+// CreateToDo.tsx
+import { useForm } from "react-hook-form";
+import { useSetRecoilState } from "recoil";
+import { toDoState } from "../atoms";
+
+interface IForm {
+	toDo: string;
+}
+
+function CreateToDo() {
+	const setToDos = useSetRecoilState(toDoState);
+	const { register, handleSubmit, setValue } = useForm({
+		defaultValues: {
+			toDo: "Write a ToDo",
+		},
+	});
+	const onValid = ({ toDo }: IForm) => {
+		setToDos((prev) => [
+			...prev,
+			{ text: toDo, id: Date.now(), category: "ToDo" },
+		]);
+		setValue("toDo", "");
+	};
+	return (
+		<form onSubmit={handleSubmit(onValid)}>
+			<input
+				{...register("toDo", {
+					required: "Please write a ToDo",
+				})}
+			/>
+			<button>Add</button>
+		</form>
+	);
+}
+```
+
+다음으로 atom 파일을 저장할 atoms를 만들었다.
+
+```
+// atoms.tsx
+import { atom } from "recoil";
+
+export interface IToDos {
+	text: string;
+	id: number;
+	category: "ToDo" | "Doing" | "Done";
+}
+
+export const toDoState = atom<IToDos[]>({
+	key: "toDo",
+	default: [],
+});
+```
+
+ToDo.tsx 파일을 만들어서 해야할 리스트를 만들었다.
+
+```
+// ToDo.tsx
+import { IToDos } from "../atoms";
+
+function ToDo({ text }: IToDos) {
+	return (
+		<li>
+			<span>{text}</span>
+			<button>ToDo</button>
+			<button>Doing</button>
+			<button>Done</button>
+		</li>
+	);
+}
+```
+
+마지막으로 ToDoList.tsx 파일에서 필요 없는 내용을 지워줬다.
+
+```
+// ToDoList.tsx
+import { useRecoilValue } from "recoil";
+import { toDoState } from "../atoms";
+import CreateToDo from "./CreateToDo";
+import ToDo from "./ToDo";
+
+function ToDoList() {
+	const toDos = useRecoilValue(toDoState);
+
+	return (
+		<div>
+			<CreateToDo />
+			<hr />
+			<ul>
+				{toDos.map((toDo) => (
+					<ToDo key={toDo.id} {...toDo} />
+				))}
+			</ul>
+		</div>
+	);
+}
+```
+
+이때 ToDo에 toDo의 내용을 속성으로 보내줘야 한다.
+일반적으론 `text={toDo.text} id={toDo.id} category={toDo.category}`를 사용해야 한다.
+하지만 {...toDo}의 내용이 위와 동일하므로 간편하게 {...toDo}를 사용했다.
+
+## ToDo
+
+이제 ToDo의 버튼을 눌러서 카테고리를 변경하는 기능을 만들어보겠다.
+현재 카테고리를 확인해서 보일 버튼과 보이지 않을 버튼을 구분한다.
+
+```
+// ToDo.tsx
+import { IToDos } from "../atoms";
+
+function ToDo({ text, id, category }: IToDos) {
+	return (
+		<li>
+			<span>{text}</span>
+			{category !== "ToDo" && <button>ToDo</button>}
+			{category !== "Doing" && <button>Doing</button>}
+			{category !== "Done" && <button>Done</button>}
+		</li>
+	);
+}
+```
+
+각 버튼을 눌렀을 때 onClick으로 카테고리를 변경해줘야한다.
+우선은 버튼을 눌렀을 때 바뀔 카테고리를 출력해주도록 한다.
+이를 위해선 event.currentTarget.textContent를 사용하거나, button에 name 속성을 따로 줘서 사용해도 된다.
+
+```
+// ToDo.tsx
+function ToDo({ text, id, category }: IToDos) {
+	const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+		console.log(event.currentTarget.textContent);
+	};
+	return (
+		<li>
+			<span>{text}</span>
+			{category !== "ToDo" && <button onClick={onClick}>ToDo</button>}
+			{category !== "Doing" && <button onClick={onClick}>Doing</button>}
+			{category !== "Done" && <button onClick={onClick}>Done</button>}
+		</li>
+	);
+}
+```
+
+이제 Recoil을 사용해서 버튼을 눌렀을 때 카테고리를 변경시켜야 한다.
+toDos에서 findIndex로 바꿀 위치를 찾고 setToDos로 값을 변경시켜야 한다.
+이때 toDos는 읽기 전용이기 때문에 `toDos[Index] = {...}`처럼 직접 값을 바꾸는 방법은 쓸 수 없다.
+그러므로 slice를 사용해서 깊은 복사를 시행한 다음 값을 변경 시켜야 한다.
+
+```
+// ToDo.tsx
+function ToDo({ text, id, category }: IToDos) {
+	const setToDos = useSetRecoilState(toDoState);
+	const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+		const {
+			currentTarget: { textContent },
+		} = event;
+		setToDos((toDos) => {
+			const toDoIndex = toDos.findIndex((toDo) => toDo.id === id);
+			let newToDos = toDos.slice();
+			newToDos[toDoIndex] = {
+				text: text,
+				id: id,
+				category: textContent
+			};
+			return newToDos;
+		});
+	};
+	...
+}
+```
+
+이렇게 하면 category의 타입이 문제가 된다.
+textContent는 string인데, IToDos 때문에 "ToDo" | "Doing" | "Done"만 가져야 하기 때문이다.
+그래서 as를 사용해서 타입을 지정해줬다.
+
+```
+// ToDo.tsx
+function ToDo({ text, id, category }: IToDos) {
+	...
+	const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+		...
+		setToDos((toDos) => {
+			...
+			newToDos[toDoIndex] = {
+				...
+				category: textContent as IToDos["category"],
+			};
+			return newToDos;
+		});
+	};
+	...
+}
+```
+
+ToDo의 카테고리를 변경하는 것을 완성했다.
+이어서 각 카테고리별로 보여주는 기능을 만들려고 한다.
+이는 조건문을 사용해서 가능하지만 Recoil의 selector를 사용해서 해결하려 한다.
+그 전에 selector이 무엇이며 왜 필요한지 알아보자.
+
+toDos를 카테고리별로 모으려면 filter를 사용하면 된다.
+filter로 거르면 "ToDo", "Doing", "Done" 3개의 배열에 각각 나뉘어 담기게 된다.
+현재는 이렇게 나뉜 배열이 동일한 곳에서 사용되므로 이로도 충분하다.
+그렇지만 조금 더 규모가 큰 프로젝트를 상상해보자.
+각 카테고리로 나눴지만 서로 다른 곳에서 사용해야 한다면, 매 번 카테고리를 나누는 코드를 작성해야 한다.
+이렇게 반복되는 코드는 함수를 만들어서 반복되는 작업을 줄여줘야 한다.
+그런데 함수에 사용되는 변수가 state인 점이 일반 함수와 다르다.
+현재 우리가 아는 방법으론 useRecoilState를 사용해서 state를 받아와야 한다.
+문제는 사용하는 state가 많을수록 이 작업이 굉장히 번거롭다.
+여기다 더해서 state를 변경시켜야 하는 경우까지 추가되면 곤란하다.
+결국 state를 전문적으로 읽어오고 변경시키는 함수가 필요하다.
+그래서 Recoil은 state를 다루는 함수 **selector**를 만들었다.
+
+selector는 이름을 구분하기 위해 key를 사용하고, get을 사용해서 정보를 받아온다.
+아래는 간단한 selector를 만든 것이다.
+
+```
+// atoms.tsx
+import { selector } from "recoil";
+
+export const toDoSelector = selector({
+	key: "toDoSelector",
+	get: ({ get }) => {
+		..선
+	},
+});
+```
+
+여기서 `({ get })` 부분에서 get은 state를 읽어들이는 함수다.
+그래서 get(stateName) 형태로 state를 읽어올 수 있다.
+selector는 get을 사용해서 값을 읽어들인다.
+그리고 return으로 값을 반환하는데, 이 값은 useRecoilValue를 사용해서 읽을 수 있다.
+
+```
+export const toDoSelector = selector({
+	key: "toDoSelector",
+	get: ({ get }) => {
+		const toDos = get(toDoState);
+		return toDos;
+	},
+});
+
+const selValue = useRecoilValue(toDoSelector);
+console.log(selValue);
+/*
+	selValue = toDos
+ */
+```
+
+이제 이 기능을 사용해서 현재 카테고리별로 보여주려고 한다.
+우선 현재 카테고리를 저장할 state를 하나 만든다.
+
+```
+// atoms.tsx
+export const categoryState = atom({
+	key: "category",
+	default: "ToDo",
+});
+```
+
+그리고 selector에서 category와 일치하는 toDos만 걸러낸다.
+
+```
+// atoms.tsx
+export const toDoSelector = selector({
+	key: "toDoSelector",
+	get: ({ get }) => {
+		const category = get(categoryState);
+		const toDos = get(toDoState);
+		return toDos.filter((toDo) => toDo.category === category);
+	},
+});
+```
+
+이제 ToDoList.tsx에서 카테고리를 바꾸는 기능과 현재 카테고리의 내용을 출력하도록 만든다.
+select를 만들어서 option으로 카테고리를 만든다.
+그리고 select의 값이 변경되면 카테고리를 변경시킨다.
+
+```
+// ToDoList.tsx
+import { categoryState } from "../atoms";
+...
+function ToDoList() {
+	...
+	const [category, setCategory] = useRecoilState(categoryState);
+	const onChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+		setCategory(event.currentTarget.value);
+	};
+	return (
+		<div>
+			<h1>ToDoList</h1>
+			<hr />
+			<select value={category} onChange={onChange}>
+				<option value="ToDo">ToDo</option>
+				<option value="Doing">Doing</option>
+				<option value="Done">Done</option>
+			</select>
+			...
+		</div>
+	);
+}
+```
+
+이제 보여지는 내용을 바꿔야 하는데, 이는 toDoSelector의 내용을 보여주면 된다.
+
+```
+// ToDoList.tsx
+import { toDoSelector, categoryState } from "../atoms";
+...
+
+function ToDoList() {
+	const toDos = useRecoilValue(toDoSelector);
+	...
+	return (
+		<div>
+			...
+			<ul>
+				{toDos.map((toDo) => (
+					<ToDo key={toDo.id} {...toDo} />
+				))}
+			</ul>
+		</div>
+	);
+}
+```
+
+현재 ToDo를 만들면 카테고리가 항상 "ToDo"가 된다.
+물론 ToDoList이므로 항상 ToDo로 만들어지는 것은 아무런 문제가 없다.
+그렇지만 다른 것을 만들 경우, 예를 들어 종류별로 분류해야 하는 경우도 있을 수 있다.
+또한 현재 페이지의 카테고리를 따라 만들어지지 않으므로 직관적이지 않다.
+그러므로 category 값에 따라 만들어지도록 코드를 조금 수정해준다.
+CreateToDo.tsx에서 category를 받아온 다음 생성될 ToDo의 카테고리 값으로 만들어준다.
+
+```
+import { useSetRecoilState, useRecoilValue} from "recoil";
+...
+function CreateToDo() {
+	...
+	const category = useRecoilValue(categoryState);
+	...
+	const onValid = ({ toDo }: IForm) => {
+		setToDos((prev) => [
+			...prev,
+			{ text: toDo, id: Date.now(), category },
+		]);
+		setValue("toDo", "");
+	};
+	...
+}
+```
+
+이렇게하면 에러가 생긴다.
+이는 category의 타입 때문에 생기는 문제다.
+category의 타입이 string인 반면 setToDos에서 요구하는 타입은 "ToDo" | "Doing" | "Done"다.
+그러므로 atoms.tsx에서 categoryState의 타입을 변경해줘야 한다.
+
+```
+// atoms.tsx
+export const categoryState = atom<"ToDo" | "Doing" | "Done">({
+	key: "category",
+	default: "ToDo",
+});
+```
+
+그리고 ToDoList.tsx의 event.currentTarget.value의 타입도 변경해줘야 한다.
+as를 사용해서 타입을 "ToDo" | "Doing" | "Done"로 여기도록 만든다.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	...
+	const onChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+		setCategory(event.currentTarget.value as "ToDo" | "Doing" | "Done");
+	};
+	...
+}
+```
+
+이렇게하면 모든게 해결된다.
+하지만 atoms의 타입을 지정하는 것이 계속 문제가 되고 있다.
+프로젝트가 간단해서 문제가 없지만, 복잡하면 오타의 위험이 있다.
+"ToDo" | "Doing" | "Done"를 타입으로 지정해서 해결할 수 있다.
+그렇지만 enum을 소개하기 위해 enum을 사용해서 해결하겠다.
+
+enum은 타입스크립트에서 쓸 수 있는 기능이다.
+enumerable는 열거할 수 있다는 의미로, 뜻 그대로 무엇인가를 열거하는데 사용한다.
+enum은 아래처럼 선언할 수 있다.
+
+```
+enum Category {
+	ToDo,
+	Doing,
+	Done,
+}
+```
+
+이제 Category를 불러와서 Category.ToDo, Category.Doing, Category.Done처럼 사용할 수 있다.
+이때 자동완선 기능을 쓸 수 있으므로 안전하게 사용할 수 있다.
+이를 가지고 카테고리를 지정하는 것을 대체할 수 있다.
+그런데 enum으로 카테고리를 대체해보면 값이 ToDo, Doing, Done이 아니라 1, 2, 3으로 나온다.
+이는 enum이라 이름 붙은 이유로 항목을 숫자로 열거한다.
+카테고리가 1, 2, 3으로 변경되더라도 분류하는데만 사용하기 때문에 아무런 문제가 없다.
+하지만 문자열로 바꾸고 싶을 수도 있는데, 다행히도 문자열로 enum을 만들 수 있다.
+
+```
+enum Category {
+	ToDo = "ToDo",
+	Doing = "Doing",
+	Done = "Done",
+}
+```
+
+위와 같이 입력하고 다시 카테고리를 확인하면 문자열로 바뀐 것을 볼 수 있다.
