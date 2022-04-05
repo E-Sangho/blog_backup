@@ -1397,7 +1397,7 @@ function ToDoList() {
 "ToDo" | "Doing" | "Done"를 타입으로 지정해서 해결할 수 있다.
 그렇지만 enum을 소개하기 위해 enum을 사용해서 해결하겠다.
 
-enum은 타입스크립트에서 쓸 수 있는 기능이다.
+[enum](https://www.typescriptlang.org/ko/docs/handbook/enums.html)은 타입스크립트에서 쓸 수 있는 기능이다.
 enumerable는 열거할 수 있다는 의미로, 뜻 그대로 무엇인가를 열거하는데 사용한다.
 enum은 아래처럼 선언할 수 있다.
 
@@ -1426,3 +1426,90 @@ enum Category {
 ```
 
 위와 같이 입력하고 다시 카테고리를 확인하면 문자열로 바뀐 것을 볼 수 있다.
+이제 enum을 사용해서 카테고리를 바꿔보자.
+atoms.tsx에서 아래처럼 enum을 만들고, 각 카테고리를 수정한다.
+
+```
+// atoms.tsx
+export enum Category {
+	ToDo = "ToDo",
+	Doing = "Doing",
+	Done = "Done",
+}
+
+export interface IToDos {
+	text: string;
+	id: number;
+	category: Category;
+}
+
+export const categoryState = atom<Category>({
+	key: "category",
+	default: Category.ToDo,
+});
+```
+
+그리고 각 파일에서 카테고리의 값을 Category를 사용해서 바꿔준다.
+
+```
+// ToDoList.tsx
+import { toDoSelector, categoryState, Category } from "../atoms";
+
+function ToDoList() {
+	...
+	return (
+		<div>
+			...
+			<select value={category} onChange={onChange}>
+				<option value={Category.ToDo}>ToDo</option>
+				<option value={Category.Doing}>Doing</option>
+				<option value={Category.Done}>Done</option>
+			</select>
+			...
+		</div>
+	);
+}
+```
+
+ToDo.tsx를 수정할 때 타입에 문제가 있어서 textConten as any로 타입을 바꿔줬다.
+그리고 각 버튼의 text를 사용해서 카테고리를 만들고 있었는데, Category의 값으로 바꾸기 위해 name을 사용했다.
+
+```
+// ToDo.tsx
+function ToDo({ text, id, category }: IToDos) {
+	...
+	const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+		const {
+			currentTarget: { name },
+		} = event;
+		setToDos((toDos) => {
+			...
+			newToDos[toDoIndex] = {
+				...
+				category: name as any,
+			};
+			return newToDos;
+		});
+	};
+	return (
+		<li>
+			<span>{text}</span>
+			{category !== Category.ToDo && (
+				<button name={Category.ToDo} onClick={onClick}>
+					ToDo
+				</button>
+			)}
+			{category !== Category.Doing && (
+				<button name={Category.Doing} onClick={onClick}>
+					Doing
+				</button>
+			)}
+			{category !== Category.Done && (
+				<button name={Category.Done} onClick={onClick}>
+					Done
+				</button>
+			)}
+		</li>
+	);
+}
+```
