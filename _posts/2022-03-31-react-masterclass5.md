@@ -1236,7 +1236,7 @@ import { selector } from "recoil";
 export const toDoSelector = selector({
 	key: "toDoSelector",
 	get: ({ get }) => {
-		..선
+		...
 	},
 });
 ```
