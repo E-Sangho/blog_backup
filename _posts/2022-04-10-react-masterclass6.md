@@ -720,3 +720,506 @@ React.memo는 컴포넌트가 동일한 props로 랜더링하면 새로 랜더�
 ...
 export default React.memo(ToDoDrag);
 ```
+
+## multiboard
+
+하나의 보드에서 리스트를 표시하는 것은 완성했다.
+다음으로 보드를 여러 개 만들어서 드래그 드랍 기능을 만들겠다.
+그 전에 보드를 추가하기 편하도록 보드 컴포넌트를 하나 만들겠다.
+ToDoBoard.tsx에 \<Droppable>의 내용을 모두 넣어준다.
+
+```
+// ToDoBoard.tsx
+function ToDoBoard() {
+	return (
+        <ul>
+            <Droppable droppableId="one">
+                {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps}>
+                        {toDos.map((toDo, index) => (
+                            <ToDoDrag key={toDo.text} index={index} toDo={toDo} />
+                        ))}
+                        {provided.placeholder}
+                    </div>
+                )}
+            </Droppable>
+        </ul>
+	);
+}
+
+export default ToDoBoard;
+```
+
+\<Droppable>을 import 해준 하나씩 수정한다.
+\<Droppable>은 현재 toDos와 droppableId가 필요하다.
+그러므로 ToDoBoard의 매개변수로 받아와야 한다.
+이때 toDos와 droppableId의 타입을 정해야 하므로 새로 인터페이스를 만든다.
+
+```
+// ToDoBoard.tsx
+import { Droppable } from "react-beautiful-dnd";
+import { IToDos } from "../atoms";
+import ToDoDrag from "./ToDoDrag";
+
+interface IToDoBoard {
+	toDos: IToDos[];
+	droppableId: string;
+}
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+        <ul>
+            <Droppable droppableId={droppableId}>
+                ...
+            </Droppable>
+        </ul>
+	);
+}
+```
+
+그리고 ToDoList.tsx 파일로 돌아가서 \<Droppable>이 있던 곳을 ToDoBoard로 바꿔줘야 한다.
+이때 toDos와 droppableId를 추가해야 한다.
+
+```
+...
+import ToDoBoard from "./ToDoBoard";
+
+
+function ToDoList() {
+    ...
+	return (
+		<div>
+            ...
+			<DragDropContext onDragEnd={onDragEnd}>
+			    <ToDoBoard toDos={toDos} droppableId={"One"} />
+			</DragDropContext>
+		</div>
+	);
+}
+```
+
+다음으로 카테고리별로 보드를 만들어보자.
+"ToDo", "Doing", "Done" 3개의 보드를 만든다.
+이때 droppableId로 보드의 이름을 준다.
+나중에 보드에서 이 이름을 타이틀로 사용한다.
+
+```
+// ToDoList.tsx
+...
+function ToDoList() {
+    ...
+	return (
+		<Window>
+            ...
+			<DragDropContext onDragEnd={onDragEnd}>
+				<Wrapper>
+					<Board>
+						<ToDoBoard toDos={toDos} droppableId={"ToDo"} />
+						<ToDoBoard toDos={toDos} droppableId={"Doing"} />
+						<ToDoBoard toDos={toDos} droppableId={"Done"} />
+					</Board>
+				</Wrapper>
+			</DragDropContext>
+		</Window>
+	);
+}
+```
+
+보드에서 droppableID를 가지고 타이틀을 만든다.
+
+```
+// ToDoBoard.tsx
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+			<Title>{droppableId}</Title>
+            ...
+		</BoardWrapper>
+	);
+}
+
+export default ToDoBoard;
+```
+
+보드를 구분하기 어려우므로 간단하게 스타일을 만들어줬다.
+아래는 각 파일에서 만든 styled-component다.
+
+```
+// ToDoList.tsx
+...
+import styled from "styled-components";
+
+const Window = styled.div`
+	background-color: ${(props) => props.theme.dominantColor};
+	height: 100vh;
+`;
+
+const Wrapper = styled.div`
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	margin: 20px auto;
+	max-width: 720px;
+`;
+
+const Board = styled.div`
+	display: grid;
+	width: 100%;
+	gap: 20px;
+	grid-template-columns: repeat(3, 1fr);
+	border-radius: 5px;
+`;
+
+function ToDoList() {
+    ...
+	return (
+		<Window>
+            ...
+			<DragDropContext onDragEnd={onDragEnd}>
+				<Wrapper>
+					<Board>
+						<ToDoBoard toDos={toDos} droppableId={"ToDo"} />
+						<ToDoBoard toDos={toDos} droppableId={"Doing"} />
+						<ToDoBoard toDos={toDos} droppableId={"Done"} />
+					</Board>
+				</Wrapper>
+			</DragDropContext>
+		</Window>
+	);
+}
+```
+
+```
+// ToDoBoard.tsx
+...
+import styled from "styled-components";
+
+const ToDoWrapper = styled.div`
+	min-height: 120px;
+	border-radius: 5px;
+	margin: 12px 10px;
+	text-color: ${(props) => props.theme.textColor};
+`;
+
+const BoardWrapper = styled.div`
+	background-color: ${(props) => props.theme.bgColor};
+	border-radius: 6px;
+`;
+
+const Title = styled.div`
+	margin: 12px auto;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-weight: bold;
+	color: ${(props) => props.theme.textColor};
+`;
+
+interface IToDoBoard {
+	toDos: IToDos[];
+	droppableId: string;
+}
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+			<Title>{droppableId}</Title>
+			<ul>
+				<Droppable droppableId={droppableId}>
+					{(provided) => (
+						<ToDoWrapper
+                            ...
+						</ToDoWrapper>
+					)}
+				</Droppable>
+			</ul>
+		</BoardWrapper>
+	);
+}
+```
+
+```
+// ToDoDrag.tsx
+...
+import styled from "styled-components";
+
+const Wrapper = styled.div`
+	display: flex;
+	align-items: center;
+	margin: 6px 0px;
+	border-radius: 5px;
+	background-color: white;
+	min-height: 30px;
+	padding: 0 12px;
+`;
+
+interface IToDoDrag {
+	toDo: IToDos;
+	index: number;
+}
+
+function ToDoDrag({ toDo, index }: IToDoDrag) {
+	return (
+		<Wrapper>
+			<Draggable key={toDo.text} draggableId={toDo.text} index={index}>
+                ...
+			</Draggable>
+		</Wrapper>
+	);
+}
+```
+
+지금까지 완성한 보드를 보면 ToDo를 추가하면 모든 보드에 추가되고 있다.
+이는 우리가 atoms에서 같은 정보를 받기 때문이다.
+이전에는 카테고리별로 나누기 위해 한 state에 정보를 넣어줬다.
+하지만 지금은 모든 정보가 한 번에 보여지고 있으므로 카테고리별로 저장하는 것이 좋다.
+atoms를 수정하면 ToDo를 입력받는 것을 바꿔줘야 한다.
+일단은 임시로 ToDoList를 만들고 추후에 추가하는 부분을 수정하겠다.
+atoms.tsx를 수정해서 각 카테고리별로 저장하도록 만든다.
+
+```
+// atoms.tsx
+export const toDoState = atom({
+	key: "toDo",
+	default: {
+		ToDo: ["a", "b", "c", "d"],
+		Doing: ["x", "y", "z"],
+		Done: ["p", "q", "r", 's'],
+	},
+});
+```
+
+다음으로 toDoState와 이어진 파일을 모두 수정해줘야 한다.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	const [toDos, setToDos] = useRecoilState(toDoState);
+	const onDragEnd = ({ destination, source }: DropResult) => {
+		let newToDos = JSON.parse(JSON.stringify(toDos));
+		let moved = newToDos.splice(source.index, 1);
+		newToDos.splice(destination?.index, 0, ...moved);
+		setToDos(newToDos);
+	};
+	return (
+		<Window>
+			<h1>ToDoList</h1>
+			<DragDropContext onDragEnd={onDragEnd}>
+				<Wrapper>
+					<Board>
+						<ToDoBoard toDos={toDos["ToDo"]} droppableId={"ToDo"} />
+						<ToDoBoard
+							toDos={toDos["Doing"]}
+							droppableId={"Doing"}
+						/>
+						<ToDoBoard toDos={toDos["Done"]} droppableId={"Done"} />
+					</Board>
+				</Wrapper>
+			</DragDropContext>
+		</Window>
+	);
+}
+
+export default ToDoList;
+```
+
+```
+// ToDoBoard.tsx
+interface IToDoBoard {
+	toDos: string[];
+	droppableId: string;
+}
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+			<Title>{droppableId}</Title>
+			<ul>
+				<Droppable droppableId={droppableId}>
+					{(provided) => (
+						<ToDoWrapper
+							ref={provided.innerRef}
+							{...provided.droppableProps}
+						>
+							{toDos.map((toDo, index) => (
+								<ToDoDrag
+									key={toDo}
+									index={index}
+									toDo={toDo}
+								/>
+							))}
+							{provided.placeholder}
+						</ToDoWrapper>
+					)}
+				</Droppable>
+			</ul>
+		</BoardWrapper>
+	);
+}
+
+export default ToDoBoard;
+```
+
+```
+// ToDoDrag.tsx
+interface IToDoDrag {
+	toDo: string;
+	index: number;
+}
+
+function ToDoDrag({ toDo, index }: IToDoDrag) {
+	return (
+		<Wrapper>
+			<Draggable key={toDo} draggableId={toDo} index={index}>
+				{(provided) => (
+					<ToDo
+						ref={provided.innerRef}
+						{...provided.draggableProps}
+						{...provided.dragHandleProps}
+					>
+						{toDo}
+					</ToDo>
+				)}
+			</Draggable>
+		</Wrapper>
+	);
+}
+
+export default React.memo(ToDoDrag);
+```
+
+이제 다시 ToDoList.tsx의 onDragEnd를 수정해줘야 한다.
+이번에는 다른 박스로 옮겼을 때도 작동해야 한다.
+드래그가 일어났을 때 결과를 출력해보자.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+    ...
+	const onDragEnd = (args: any) => {
+		console.log(args);
+	};
+	return (
+        ...
+	);
+}
+```
+
+출력 결과를 보면 destination과 source에 필요한 정보가 들어있따.
+destination의 droppableId, index에 드랍 위치가 적혀 있고, source의 droppableId, index로 어디에서 왔는지 알 수 있다.
+둘의 droppableId를 비교하면 다른 보드로 옮기는지 같은 보드에서 옮기는지 알 수 있다.
+우선은 같은 보드에서 움직이는 경우를 만들어보자.
+두 droppableId가 일치하는 경우의 코드를 만들어주면 된다.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	const [toDos, setToDos] = useRecoilState(toDoState);
+	const onDragEnd = ({ destination, source }: DropResult) => {
+		if (destination?.droppableId === source.droppableId) {
+            // do Something here
+		}
+	};
+```
+
+이때 문제가 생기는데, toDos에서 어떤 값을 불러올지 모른다.
+예를 들어서 droppableId가 "ToDo"라면 우리는 toDos의 "ToDo" 항목이 필요하다.
+그런데 속성값이 바뀔 수 있으므로 toDos.### 형태로 불러올 수 없다.
+대신에 toDos[###]으로 불러와야 한다.
+하지만 toDos[ToDo]라고 적으면 에러가 발생한다.
+이는 타입스크립트에서 string을 key값으로 쓸 수 없기 때문에 생기는 문제다.
+해당 위치에는 string literal 타입만 와야 한다.
+string과 string literal이 어떻게 다른지 알아보자.
+
+### string literal
+
+타입스크립트에서 let, const로 선언하는 것은 큰 차이가 있다.
+아래의 세 예시를 보자.
+
+```
+const a = "This is a literal string";
+let b = "This is a string";
+const c: string = "This is a string";
+```
+
+b, c는 string 타입이다.
+우선 b는 let으로 선언되었으므로 재할당이 가능하다.
+그래서 타입을 string 전체로 생각한다.
+c는 타입을 string이라고 지정해줬으므로 string 타입이다.
+그렇다면 a는 어떨까?
+
+a는 "This is a literal string" 타입이다.
+무슨 말인가 하면 a는 상수이므로 다른 값이 들어갈 수 없다.
+타입스크립트에서 string 타입은 말 그대로 string이 들어가는 타입이다.
+그런데 a는 상수이므로 일반적인 string이 들어갈 수 없다.
+그래서 string으로 취급하지 않고, 좀 더 좁은 타입으로 생각한다.
+이를 Literal Narrowing이라고 하는데, 타입의 범위를 줄여주는 것이다.
+그래서 a의 타입을 "This is a literal string"만 받을 수 있는 타입으로 정한다.
+
+앞서 toDos[ToDo]가 불가능한 이유도 이 때문이다.
+ToDo라는 string을 직접적인 key의 값으로 쓸 순 없다.
+대신에 아래처럼 사용할 순 있다.
+
+```
+const ToDoType = "ToDo";
+
+toDos[ToDoType];
+```
+
+이렇게하면 ToDoType과 toDos의 key 모두 literal type이라서 해결된다.
+하지만 key값이 늘어남에 따라 이렇게 일일이 지정하는 것은 불편하다.
+간단한 해결법이 있는데 atom를 만들 때부터 string을 key값으로 사용하도록 하는 것이다.
+이를 이해하기 위해선 우선 타입스크립트에서 타입을 선언하는 방법을 이해해야 한다.
+
+### Declare type on TypeScript
+
+타입스크립트에서 타입을 선언하는 것은 간단하다.
+"변수이름: 타입" 형태로 적어주기만 하면 된다.
+이는 배열에서도 그대로 적용되는데 "변수이름: 타입[]" 형태로 적어주면 된다.
+
+```
+let name: string = "John";
+
+let age: number = 40;
+
+let list: string[] = ["a", "b", "c"];
+```
+
+문제는 object의 타입 선언이다.
+object의 타입 선언은 앞의 것들과 다르게 곤란한 점이 있다.
+key의 타입과 value의 타입을 모두 정해줘야 한다는 점이다.
+특히 key의 타입이 문제가 된다.
+key는 아래와 같은 유형이 있다.
+
+1. Key의 일정한 경우
+2. Key의 종류가 몇 가지로 한정된 경우
+3. Key의 값은 다르지만, 타입은 일정한 경우
+4. Key가 어느 것도 정해지지 않은 경우
+
+#### Key의 값이 일정한 경우
+
+Key의 값이 일정한 경우는 이미 많이 해봤다.
+이때는 key의 타입은 지정하지 않아도 된다.
+예를 들어서 아래는 속성으로 name, age이 있다.
+이들은 항상 name, age로 들어오므로 별다른 일을 할 필요가 없다.
+
+```
+interface keyType {
+    name: string,
+    age: number
+}
+```
+
+#### Key의 종류가 몇 가지로 한정된 경우
+
+이전에 value의 종류가 한 정된 경우는 해봤다.
+|를 사이에 두고 값을 정하면 된다.
+object의 key에서도 동일한데 in을 사용하면 된다.
+
+```
+interface keyType {
+    [key in "name" | "age" | "home"] : string
+}
+```
+
+여기서 Key를 보면 [] 안에 적어줬다.
