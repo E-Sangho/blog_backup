@@ -1128,7 +1128,7 @@ function ToDoList() {
 대신에 toDos[###]으로 불러와야 한다.
 하지만 toDos[ToDo]라고 적으면 에러가 발생한다.
 이는 타입스크립트에서 string을 key값으로 쓸 수 없기 때문에 생기는 문제다.
-해당 위치에는 string literal 타입만 와야 한다.
+정확히 말하면 타입스크립트는 key의 타입을 string 대신 string literal을 사용한다.
 string과 string literal이 어떻게 다른지 알아보자.
 
 ### string literal
@@ -1151,6 +1151,7 @@ c는 타입을 string이라고 지정해줬으므로 string 타입이다.
 a는 "This is a literal string" 타입이다.
 무슨 말인가 하면 a는 상수이므로 다른 값이 들어갈 수 없다.
 타입스크립트에서 string 타입은 말 그대로 string이 들어가는 타입이다.
+그래서 모든 문자열이 들어갈 수 있어야 한다.
 그런데 a는 상수이므로 일반적인 string이 들어갈 수 없다.
 그래서 string으로 취급하지 않고, 좀 더 좁은 타입으로 생각한다.
 이를 Literal Narrowing이라고 하는데, 타입의 범위를 줄여주는 것이다.
@@ -1185,41 +1186,595 @@ let age: number = 40;
 let list: string[] = ["a", "b", "c"];
 ```
 
-문제는 object의 타입 선언이다.
-object의 타입 선언은 앞의 것들과 다르게 곤란한 점이 있다.
-key의 타입과 value의 타입을 모두 정해줘야 한다는 점이다.
-특히 key의 타입이 문제가 된다.
-key는 아래와 같은 유형이 있다.
-
-1. Key의 일정한 경우
-2. Key의 종류가 몇 가지로 한정된 경우
-3. Key의 값은 다르지만, 타입은 일정한 경우
-4. Key가 어느 것도 정해지지 않은 경우
-
-#### Key의 값이 일정한 경우
-
-Key의 값이 일정한 경우는 이미 많이 해봤다.
-이때는 key의 타입은 지정하지 않아도 된다.
-예를 들어서 아래는 속성으로 name, age이 있다.
-이들은 항상 name, age로 들어오므로 별다른 일을 할 필요가 없다.
+이때 대상이 졍해져 있으면 string literal을 사용해 범위를 줄일 수 있다.
+예를 들어서 name을 "John"으로만 제한하려면 타입을 "John"으로 바꾸면 된다.
 
 ```
-interface keyType {
-    name: string,
-    age: number
+let name: "John" = "John";
+
+let name: "Tom" = "Tom";    // This makes an error
+```
+
+string으로 설명했지만 number과 배열에서도 같은 방식이 적용된다.
+
+```
+let age: 30 = 30;
+
+let age: 40 = 30;   // This makes an error
+
+let list: "A"[] = ["A", "A"]
+
+let list: "A"[] = ["A", "B"]    // This makes an error
+```
+
+그런데 제한된 값이 여러 개일 경우도 있다.
+이 경우는 |를 사이에 두고 적어주면 된다.
+
+```
+let name: "John" | "Tom" | "Andrew" = "John";
+
+let name: "John" | "Tom" | "Andrew" = "Tom";
+
+let name: "John" | "Tom" | "Andrew" = "Andrew";
+```
+
+정리하자면 타입스크립트에서 타입을 정의할 때 크게 3가지 경우가 있다.
+
+1. 하나의 고정된 값을 사용하는 경우
+2. 몇 개의 선택지가 주어진 경우
+3. 데이터 타입이 정해진 경우
+
+1은 해당 값을 타입으로 사용하면 된다.
+2는 각 값을 |를 사이에 두고 타입으로 사용하면 된다.
+3은 string, number처럼 일반적인 타입을 쓰면 된다.
+
+여기까지는 별로 어렵지 않다.
+문제는 객체의 타입 선언이다.
+객체는 key와 value 2개의 타입을 정해야 한다.
+지금까지 우리는 객체의 타입을 아래와 같이 사용해왔다.
+
+```
+interface Human {
+    name: "John" | "Tom" | "Andrew";
+    age: 40;
+    list: number[];
 }
 ```
 
-#### Key의 종류가 몇 가지로 한정된 경우
-
-이전에 value의 종류가 한 정된 경우는 해봤다.
-|를 사이에 두고 값을 정하면 된다.
-object의 key에서도 동일한데 in을 사용하면 된다.
+이는 value의 타입을 제한한 것이다.
+지금까지 우리는 value만을 사용해서 문제 없었다.
+이번에는 key를 사용해보자.
+객체에서 key를 사용해서 value를 불러오려면 아래처럼 사용한다.
 
 ```
-interface keyType {
-    [key in "name" | "age" | "home"] : string
+let obj: Human = {
+    name: "John",
+    age: 40,
+    list: [1, 2, 3],
+};
+
+console.log(obj["name"]);
+
+or
+
+const thisIsName = "name";
+
+console.log(obj[thisIsName]);
+```
+
+이때 string literal을 사용해야 하므로 let 대신에 const를 사용했다.
+그런데 string을 key로 사용할 수 없는 것은 불편하다.
+항상 const로 선언할 수 없고, 때로는 let으로 값을 변경할 필요가 있기 때문이다.
+그러므로 key의 타입을 선언하는 법을 알아보자.
+객체에서 Key의 타입을 선언하는 것은 [Index Signature](https://radlohead.gitbook.io/typescript-deep-dive/type-system/index-signatures)라고 한다.
+Index Signature는 객체에 들어 있는 내용의 타입을 설정하는 것이다.
+key의 타입은 [index: type] 형태로 정할 수 있다.
+예를 들어 {key: string} 구조에서 key를 string으로 하고 싶으면 아래처럼 하면 된다.
+
+```
+interface Signature {
+    [index: string] : string;
 }
 ```
 
-여기서 Key를 보면 [] 안에 적어줬다.
+여기서 index는 다른 문자여도 상관 없다.
+편의에 따라서 key를 사용해도 된다.
+위와 같이 정의하면 key가 string이라는 것이 보장된다.
+그래서 아래처럼 사용해도 문제가 없다.
+
+```
+interface Signautre {
+    [index: string]: string;
+}
+
+let obj:Signature = {
+    name: "John",
+};
+
+let thisIsName = "name"
+
+console.log(obj[thisIsName]);
+```
+
+key를 string으로 정해줬으므로 let을 사용해도 된다.
+다만 index signature를 정해줬으면 모든 속성이 이를 따라야 한다.
+예를 들어서 위에 number를 추가하면 에러가 발생한다.
+
+```
+let obj:Signature = {
+    name: "John",
+    0: "Hello",        // This makes an error
+}
+```
+
+key의 타입을 string과 number 둘 다 되도록 할 수도 있다.
+단순히 index signature를 2번 선언해주면 된다.
+다만 number이 좀 더 구체적이어야 한다는 제약이 있다.
+아래를 보면 [key: string] 타입의 value의 범위가 더 넓고, [index: number]의 범위가 더 좁다.
+
+```
+interface Signautre {
+    [key: string]: string | number;
+    [index: number]: string;
+}
+```
+
+Key를 string처럼 광범위한 타입이 아니라, 정해진 값으로 제한할 수 있다.
+Mapped Type을 사용하면 되는데, in 키워드와 함께 사용하며 다음처럼 쓸 수 있다.
+
+```
+type Index = "hello" | "world";
+
+type Signature {
+    [key in Index]: string;
+}
+```
+
+object의 타입 선언을 요약해보겠다.
+object의 타입 선언에서 중요한 것은 Key의 타입 설정이다.
+이때 Key의 타입에 따라 아래와 같은 경우가 있다.
+
+1. Key 값이 하나인 경우(string literal인 경우)
+2. Key 값이 몇 가지로 정해져 있는 경우
+3. Key의 타입이 하나인 경우
+4. Key의 타입이 여러 개인 경우
+
+1은 Key가 특정 값으로 정해진 경우다.
+예를 들어 아래는 Key가 name으로 정해져 있다.
+
+```
+interface ITest {
+    name: string
+}
+```
+
+이 경우 Key의 타입이 string literal로 지정되어 있다.
+string literal로 지정되어 있으므로 string 값을 사용할 수 없다.
+그래서 ITest의 속성을 let 변수로는 찾을 수 없고, const 변수로만 찾을 수 있다.
+
+```
+let obj: ITest = {
+    name: "Jack",
+}
+
+const constName = "name";
+let letName = "name";
+
+console.log(obj[constName]);    // ok
+console.log(obj[letName]);    // error
+```
+
+2는 Key의 값이 몇 가지로 정해진 경우다.
+이 경우 string literal을 |로 나눠서 적어준다.
+이때 interface 대신에 type을 사용해야 한다.
+
+```
+type testType = "name" | "age";
+
+type ITest {
+    [key in testType]: string;
+}
+```
+
+3은 Key의 타입이 일괄적으로 하나의 primitive type으로 정해진 경우다.
+"[key: keyType]: valueType" 형태로 key와 value의 타입을 정할 수 있다.
+
+```
+interface Itest {
+    [key: string]: string
+    name: string
+}
+```
+
+이 방식의 장점은 앞의 1과 다르게 let으로 속성을 찾을 수 있다.
+그래서 객체에서 찾는 값이 바뀌는 상황에서 사용하기 좋다.
+
+```
+let obj: ITest = {
+    name: "Jack",
+}
+
+const constName = "name";
+let letName = "name";
+
+console.log(obj[constName]);    // ok
+console.log(obj[letName]);    // ok
+```
+
+마지막으로 Key의 타입이 여러 개인 경우가 있다.
+이때는 Key의 타입을 여러 번 선언하면 된다.
+다만 number 타입의 value 폭이 더 좁아야 한다.
+
+```
+interface ITest {
+    [key: string]: string | number;
+    [key: number]: string;
+    name: "Jack";
+    0: "Hello";
+}
+```
+
+### onDragEnd
+
+다시 하던 일로 돌아가보자.
+우리는 같은 보드에서 드래그 드랍이 일어날 때, 순서를 바꿔주는 일을 하고 있었다.
+onDragEnd에서 droppableId로 어떤 보드에서 드랍이 일어나는지 알 수 있다.
+하지만 객체에서 droppableId로 값을 찾으려고 하자 에러가 발생했다.
+이제 우리는 이 것이 string literal이라서 발생한 문제라는 것을 알고 있다.
+이를 해결하는 방법은 key의 타입을 string으로 정해주는 것이다.
+atoms.tsx로 가서 key의 타입을 수정한다.
+interface를 만들고 이를 atom에 적용시켜준다.
+
+```
+// atoms.tsx
+interface IToDoState {
+	[key: string]: string[];
+}
+
+export const toDoState = atom<IToDoState>({
+	key: "toDo",
+	default: {
+		ToDo: ["a", "b", "c", "d"],
+		Doing: ["x", "y", "z"],
+		Done: ["p", "q", "r", "s"],
+	},
+});
+```
+
+이제 ToDoList.tsx로 돌아면 toDos 객체의 값을 string값으로 찾을 수 있게 된다.
+아래처럼 droppableId를 key로 사용하고 있는 값을 출력해보자.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	...
+	const onDragEnd = ({ destination, source }: DropResult) => {
+		if (destination?.droppableId === source.droppableId) {
+			console.log(toDos[destination?.droppableId]);
+		}
+	};
+    ...
+}
+```
+
+출력결과를 보면 드래그 드랍이 일어나는 보드의 값이 출력된다.
+이제 setToDos를 사용해서 순서를 바꿔준다.
+이때 toDos state를 직접적으로 바꿔줄 수 없으므로 JSON.parse(JSON.stringify(...))로 복사한 다음 값을 변경한다.
+그리고 splice로 값을 변경한 다음 값을 돌려줘야 한다.
+객체는 key가 중복되면 마지막 값을 사용한다.
+이를 사용해서 ...로 내용을 펼쳐준 다음 변경할 값을 적어주면 된다.
+그런데 이때 source.droppableId를 그대로 사용할 수 없다.
+왜냐하면 source.droppableId를 그대로 입력하면, 해당 변수 안의 값이 아니라 source.droppableId 자체를 키로 생각한다.
+이는 []를 사용하면 해결할 수 있는데, 왜 그런지는 조금 있다가 설명하겠다.
+
+```
+function ToDoList() {
+    ...
+	const onDragEnd = ({ destination, draggableId, source }: DropResult) => {
+		if (destination?.droppableId === source.droppableId) {
+			setToDos((oldToDos) => {
+				let copiedToDos = JSON.parse(
+					JSON.stringify(oldToDos[source.droppableId])
+				);
+				copiedToDos.splice(source.index, 1);
+				copiedToDos.splice(destination.index, 0, draggableId);
+				return {
+					...oldToDos,
+					[source.droppableId]: copiedToDos,
+				};
+			});
+		}
+	};
+    ...
+}
+```
+
+위에서 []를 사용한 이유를 알아보자.
+자바스크립트에서 객체의 키는 string literal로 저장한다고 했다.
+그렇기 때문에 따로 string으로 저장하지 않아도 알아서 string으로 변환해준다.
+그러므로 아래처럼 "name"이나 anotherName으로 적어도 아무런 차이가 없다.
+
+```
+let object = {
+    "name": "Jack",
+    anotherName: "John",
+}
+```
+
+하지만 이는 어디까지나 이름이 유효한 경우만 해당 된다.
+만약 아래처럼 자바스크립트에서 이름으로 생각하지 않는 것을 적어주면 key로 인식하지 못한다.
+
+```
+let object = {
+    first-name: "Jack",
+}
+```
+
+자바스크립트는 위를 first - name이라고 생각한다.
+그러므로 위와 같은 이름은 "first-name"이라고 적어야만 한다.
+하지만 경우에 따라 진짜로 first - name이 일어나야 하는 경우가 있다.
+앞서 우리도 source.droppableId의 계산 결과를 key로 사용하고자 했다.
+이 경우는 대괄호를 씌우면 된다.
+Key에 대괄호가 있으면 해당 값을 연산한 다음 key로 만든다.
+그래서 앞의 source.droppableId를 대괄호로 묶어준 것이다.
+
+이번에는 다른 보드로 옮길 경우의 코드를 작성해보자.
+이 경우도 그다지 어렵지는 않다.
+다만 destination이 항상 존재하지 않는다는 점이 문제가 된다.
+앞서 작성한 코드는 destination이 존재하지않으면 (destination?.droppableId === source.droppableId)가 거짓이 되어 실행되지 않는다.
+하지만 조건이 (destination?.droppableId !== source.droppableId)가 되면 destination이 존재하지 않는 경우에도 실행된다.
+이때 destination의 존재를 확신할 수 없으므로 에러가 발생한다.
+그래서 코드의 첫 부분에 destination이 존재하지 않으면 return이 일어나도록 한다.
+
+```
+function ToDoList() {
+    ...
+	const onDragEnd = ({ destination, draggableId, source }: DropResult) => {
+		if (!destination) return;
+		if (destination?.droppableId === source.droppableId) {
+            ...
+		}
+		if (destination?.droppableId !== source.droppableId) {
+			setToDos((oldToDos) => {
+				let desCopy = JSON.parse(
+					JSON.stringify(oldToDos[destination.droppableId])
+				);
+				let sourceCopy = JSON.parse(
+					JSON.stringify(oldToDos[source.droppableId])
+				);
+				sourceCopy.splice(source.index, 1);
+				desCopy.splice(destination.index, 0, draggableId);
+				return {
+					...oldToDos,
+					[destination.droppableId]: desCopy,
+					[source.droppableId]: sourceCopy,
+				};
+			});
+		}
+	};
+    ...
+}
+```
+
+### fix some problem
+
+보드를 보면 몇 가지 문제점이 있다.
+우선 ToDo를 옮기면 ToDo 전체가 밀려나는 것이 아니라, 글자가 밀려나는 현상이 있다.
+이는 \<ToDoDrag>가 \<Draggable>외에 \<Wrapper>로 감싸져 있어서 그렇다.
+\<Wrapper>의 빈 공간으로 들어오려고 한다고 인식해서 밀어내는 것이다.
+그래서 \<Wrapper>를 삭제하고 아래처럼 변경했다.
+
+```
+// ToDoDrag.tsx
+const ToDo = styled.div`
+	background-color: white;
+	min-height: 30px;
+	border-radius: 5px;
+	padding: 0 12px;
+	margin-bottom: 5px;
+	display: flex;
+	align-items: center;
+`;
+
+function ToDoDrag({ toDo, index }: IToDoDrag) {
+	return (
+		<Draggable key={toDo} draggableId={toDo} index={index}>
+			{(provided) => (
+				<ToDo
+					ref={provided.innerRef}
+					{...provided.draggableProps}
+					{...provided.dragHandleProps}
+				>
+					{toDo}
+				</ToDo>
+			)}
+		</Draggable>
+	);
+}
+```
+
+다음으로 드래그 한 ToDo를 보드의 밑에 넣으면 인식되지 않는 현상이 있다.
+특히 보드가 비어 있을 때 그런 현상이 많이 일어난다.
+ToDoBoard.tsx로 이동해서 \<ToDoWrapper>에 background-color: red 속성을 주자.
+브라우저를 확인해보면 드래그 가능한 범위가 나온다.
+범위를 보면 굉장히 협소하다.
+드래그 범위를 변경하기 위해서 flex-grow 속성을 사용한다.
+flex-grow는 flex-item인 요소가 얼마나 많은 공간을 차지하는지를 정한다.
+만약 컨텐츠가 3개가 있고 각각 flex-grow: 1이라면 1:1:1 비율로 공간을 차지한다.
+우리는 딱 하나의 컨텐츠가 공간을 차지하므로 flex-grow: 1을 주면 모든 공간을 차지할 것이다.
+\<ToDoWrapper>에 flex-grow: 1을 적어준다.
+이때 상위 컨텐츠가 display: flex 여야만 작동한다.
+그런데 우리 파일은 중간에 \<ul>이 있어서 제대로 동작하지 않는다.
+\<ul>을 지우고 아래처럼 만들면 드래그 공간이 가득찬다.
+
+```
+// ToDoBoard.tsx
+import { Droppable } from "react-beautiful-dnd";
+import ToDoDrag from "./ToDoDrag";
+import styled from "styled-components";
+
+const ToDoWrapper = styled.div`
+    ...
+	background-color: red;
+	flex-grow: 1;
+`;
+
+const BoardWrapper = styled.div`
+    ...
+	display: flex;
+	flex-direction: column;
+`;
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+			<Title>{droppableId}</Title>
+			<Droppable droppableId={droppableId}>
+				{(provided) => (
+					<ToDoWrapper
+						ref={provided.innerRef}
+						{...provided.droppableProps}
+					>
+						{toDos.map((toDo, index) => (
+							<ToDoDrag key={toDo} index={index} toDo={toDo} />
+						))}
+						{provided.placeholder}
+					</ToDoWrapper>
+				)}
+			</Droppable>
+		</BoardWrapper>
+	);
+}
+```
+
+### snapshot
+
+보통 드래그 드랍이 일어날 때 색을 변경해서 알려준다.
+드래그가 일어나는 곳은 음영이 지고, 드랍이 가능한 곳의 색이 변경되면서 사용자가 직관적으로 알 수 있다.
+이 기능을 react-beautiful-dnd를 사용하면 쉽게 쓸 수 있다.
+이전에 provided를 소개했었다.
+\<Droppable>은 자식을 함수 형태로 받는다.
+함수에 provided를 전해줄 수 있고, 이를 사용해 드래그 기능을 구현했다.
+이때 provided 외에 snapshot이라는 변수를 전달할 수 있다.
+snapshot은 아래의 속성을 사용한다.
+
+-   isDraggingOver: boolean
+-   draggingOverWith?: DraggableId | undefined
+-   draggingFromThisWith?: DraggableId | undefined
+-   isUsingPlaceholder: boolean
+
+isDraggingOver는 \<Droppable> 위로 드래그 했는지 여부를 알려준다.
+draggingOverWith은 \<Droppable> 위로 드래그 되는 대상의 draggableId를 알려준다.
+draggingFromThisWith은 현재 보드에서 드래그 중인것의 draggableId를 알려준다.
+같은 보드 내에서 드래그 중이면 draggableId가 나오지만, 다른 보드로 옮기면 undefined가 된다.
+이를 사용해서 다른 보드로 옮겼는지 여부를 알 수 있다.
+
+이제 snapshot을 사용해보자.
+\<Droppable>의 자식에 snapshot을 추가한다.
+그리고 \<ToDoWrapper>에 isDraggingOver과 draggingFromThisWith을 사용해서 색을 변경시키겠다.
+우선 isDraggingOver이 true일 경우 blue, false일 경우 red가 되도록 만든다.
+
+```
+// ToDoBoard.tsx
+interface IToDoWrapper {
+	isDraggingOver: boolean;
+}
+
+const ToDoWrapper = styled.div<IToDoWrapper>`
+	border-radius: 5px;
+	margin: 12px 10px;
+	text-color: ${(props) => props.theme.textColor};
+	background-color: ${(props) => (props.isDraggingOver ? "blue" : "red")};
+	flex-grow: 1;
+`;
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+			<Title>{droppableId}</Title>
+			<Droppable droppableId={droppableId}>
+				{(provided, snapshot) => (
+					<ToDoWrapper
+                        ...
+						isDraggingOver={snapshot.isDraggingOver}
+					>
+                        ...
+					</ToDoWrapper>
+				)}
+			</Droppable>
+		</BoardWrapper>
+	);
+}
+```
+
+ToDo를 드래그해보면 위에 있을 때 파란색으로 바뀐다.
+다음으로 draggingFromThisWith를 사용해보자.
+draggingFromThisWith는 현재 보드에서 드래그하고 있는 대상의 draggableId를 표시한다.
+만약 드래그 중인 대상이 현재 보드에 없다면 undefined가 나온다.
+이를 사용해서 boolean(draggingFromThisWith)를 하면 원본 보드를 찾을 수 있다.
+드래그 중인 ToDo가 현재 보드에 속한다면 boolean([x])로 true가 나온다.
+반대로 ToDo가 현재 보드에 속하지 않는다면 boolean(undefined)로 false가 나온다.
+이를 사용해서 아래처럼 색을 변경할 수 있다.
+
+```
+// ToDoBoard.tsx
+interface IToDoWrapper {
+	isDraggingOver: boolean;
+	draggingFromThisWith: boolean;
+}
+
+const ToDoWrapper = styled.div<IToDoWrapper>`
+    ...
+	background-color: ${(props) => {
+		return props.isDraggingOver
+			? "blue"
+			: props.draggingFromThisWith
+			? "pink"
+			: "red";
+	}};
+	...
+`;
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+            ...
+				{(provided, snapshot) => (
+					<ToDoWrapper
+						ref={provided.innerRef}
+						{...provided.droppableProps}
+						isDraggingOver={snapshot.isDraggingOver}
+						draggingFromThisWith={Boolean(
+							snapshot.draggingFromThisWith
+						)}
+					>
+                        ...
+					</ToDoWrapper>
+                ...
+	);
+}
+```
+
+이제 보드를 보면 드랍 가능한 범위는 붉은색이다.
+드래그 중인 대상이 보드 위에 있으면 파란색이 된다.
+그리고 드래그한 ToDo가 본래 속했던 보드는 핑크색으로 표시된다.
+마지막으로 transition 효과를 주면 좀 더 보기 좋다.
+
+```
+// ToDoBoard.tsx
+const ToDoWrapper = styled.div<IToDoWrapper>`
+    ...
+	background-color: ${(props) => {
+		return props.isDraggingOver
+			? "blue"
+			: props.draggingFromThisWith
+			? "pink"
+			: "red";
+	}};
+	transition: background-color 0.2s ease-in-out;
+`;
+```
+
+## 참고
+
+1. [Index Signature](https://radlohead.gitbook.io/typescript-deep-dive/type-system/index-signatures)
