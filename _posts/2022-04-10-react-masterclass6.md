@@ -1775,6 +1775,122 @@ const ToDoWrapper = styled.div<IToDoWrapper>`
 `;
 ```
 
+ToDo가 드래그 될 때도 색을 바꿔준다.
+\<Draggable>에서도 snapshot을 사용해서 색을 바꾼다.
+드래그 중이면 색을 파란색으로 바꾸고, 그림자도 생기게 만들었다.
+
+```
+// ToDoDrag.tsx
+const ToDo = styled.div<{ isDragging: boolean }>`
+	background-color: ${(props) => (props.isDragging ? "#18A3EA" : "white")};
+	...
+	box-shadow: ${(props) =>
+		props.isDragging ? "3px 3px 5px rgba(0, 0, 0, 0.3)" : "none"};
+`;
+
+function ToDoDrag({ toDo, index }: IToDoDrag) {
+	return (
+		<Draggable key={toDo} draggableId={toDo} index={index}>
+			{(provided, snapshot) => (
+				<ToDo
+					isDragging={snapshot.isDragging}
+					...
+				>
+					{toDo}
+				</ToDo>
+			)}
+		</Draggable>
+	);
+}
+```
+
+이제 드래그시에 필요한 일은 끝냈다.
+드래그 범위를 알기 위해 정했던 색을 일반적인 색으로 다시 바꿔줬다.
+
+```
+// ToDoBoard.tsx
+const ToDoWrapper = styled.div<IToDoWrapper>`
+	...
+	background-color: ${(props) => {
+		return props.isDraggingOver
+			? "#F88100"
+			: props.draggingFromThisWith
+			? "#2441B1"
+			: "transparent";
+	}};
+	...
+`;
+```
+
+## Form
+
+### ref
+
+react-beautiful-dnd에서 ref를 사용했었다.
+당시 ref가 어떤 의미인지 설명하지 않았다.
+이번에 ref가 어떤 의미가 있고 또 어떻게 사용할 수 있는지 알아보겠다.
+
+자바스크립트에서 querySelector는 id나 class로 요소를 선택할 수 있었다.
+반면 React는 자바스크립트로 element를 만들기 때문에 querySelector를 사용하지 않는다.
+그래서 하나의 요소를 선택하려면 다른 방법을 사용해야 한다.
+우선은 우리가 아는 방식으로 해결 가능한지 생각해보자.
+React는 부모의 props를 사용해서 자식을 다룬다.
+그러므로 자식을 다루도록 state를 전달해서 해결해야 한다.
+하지만 state로 모든 것을 해결할 순 없다.
+예를 들어서 input의 foucus나 blur, 스크롤 조작 같은 경우를 보자.
+기존 자바스크립트에서 `document.querySelector("#myInput").focus()`와 같이 처리하던 일은 state로 처리할 수 없다.
+그래서 React에서도 요소를 직접 선택하는 방법이 필요하다.
+
+React에서 요소를 직접 지정하려면 ref를 사용한다.
+ref는 컴포넌트의 요소로 참조 대상을 저장하는데 쓰인다.
+예를 들어서 `<input ref={myInput} />`이라고 적으면, myInput은 input 컴포넌트를 가리키게 된다.
+ref를 만들려면 useRef를 사용해야 한다.
+useRef는 useState와 비슷하게 초기값을 받아서 ref를 초기화 시켜준다.
+useRef를 사용해서 ref를 만들고 input에 ref 속성을 줘서 연결해보자.
+그리고 버튼을 눌러서 ref에 어떤 내용이 있는지 보자.
+
+```
+// ToDoBoard.tsx
+import { useRef } from "react";
+
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	const myInput = useRef(null);
+	const onClick = () => {
+		console.log(myInput);
+		// {current: input}
+	};
+	return (
+		<BoardWrapper>
+			<input ref={myInput} />
+			<button onClick={onClick}>click me</button>
+			...
+	)
+}
+```
+
+버튼을 누르면 {current: input}이라고 나온다.
+보다시피 ref는 굉장히 간단하다.
+current에 현재 지정한 대상을 가리키고 있다.
+그래서 ref.current는 input을 가리킨다.
+이는 자바스크립트에서 document.querySelector("#myInput")으로 요소를 지정하는 것과 비슷하다.
+
+그런데 querySelector는 해당 요소를 반환해서 바로 쓸 수 있었던 반면, ref는 current를 써야 한다.
+ref가 곧 input을 가리킨다면 더 쓰기 편할텐데 왜 그렇지 않을까?
+이를 설명하기 위해선 우선 closure를 설명해야 한다.
+
+수학에서 closure를 떠올려보자.
+집합에서 연산 결과가 다시 그 집합에 속하면 closed라고 한다.
+예를 들어서 자연수의 덧셈은 다시 자연수에 속하므로 closed라고 할 수 있다.
+closed 여부를 정하는 것은 집합과 연산에 따라 다르다.
+먄약 자연수에 - 연산을 한다면 음수가 나오므로 closed가 아니다.
+그런데 closed
+
+이 때문에 다른
+
+대신에 React는 ref를
+ref는 React에 기본적으로 있는 기능으로, React의 원소를 지정한다.
+
 ## 참고
 
 1. [Index Signature](https://radlohead.gitbook.io/typescript-deep-dive/type-system/index-signatures)
+2. [why do refs have a key named current](https://tkplaceholder.io/why-do-refs-have-a-key-named-current/)
