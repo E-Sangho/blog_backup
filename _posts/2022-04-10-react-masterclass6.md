@@ -1822,7 +1822,7 @@ const ToDoWrapper = styled.div<IToDoWrapper>`
 `;
 ```
 
-## Form
+## ref
 
 ### ref
 
@@ -1878,19 +1878,453 @@ current에 현재 지정한 대상을 가리키고 있다.
 ref가 곧 input을 가리킨다면 더 쓰기 편할텐데 왜 그렇지 않을까?
 이를 설명하기 위해선 우선 closure를 설명해야 한다.
 
-수학에서 closure를 떠올려보자.
+### closure
+
+잠시 수학의 closure를 설명하겠다.
 집합에서 연산 결과가 다시 그 집합에 속하면 closed라고 한다.
 예를 들어서 자연수의 덧셈은 다시 자연수에 속하므로 closed라고 할 수 있다.
 closed 여부를 정하는 것은 집합과 연산에 따라 다르다.
 먄약 자연수에 - 연산을 한다면 음수가 나오므로 closed가 아니다.
-그런데 closed
+그런데 closed 여부는 굉장히 중요하다.
+집합이 closed여야만 집합의 특성을 유의미하게 알 수 있기 때문이다.
+예를 들어서 자연수에서만 성립하는 특징이 있다고 하자.
+자연수는 + 연산에서 closed이므로 연산 결과도 같은 성질을 보이게 된다.
+반면 - 연산은 범위를 벗어나므로 같은 특징을 가질거라는 보장이 없다.
 
-이 때문에 다른
+다행히도 closed가 아닌 집합 S를 포함하면서 가장 작은 closed 집합이 존재한다.
+다시 말해 closed가 아닌 집합도, 적절히 확장하면 closed가 되도록 만들 수 있다.
+이를 closure이라고 한다.
+핵심은 조건이 맞지 않을 때 적당히 넓혀서 조건을 만족할 수 있다는 것과, 이를 closure이라고 한다는 것이다.
 
-대신에 React는 ref를
-ref는 React에 기본적으로 있는 기능으로, React의 원소를 지정한다.
+프로그래밍에서 closure는 위의 개념과 유사하다.
+어떤 함수를 실행하는데 필요한 변수를 세트로 만들어서, 다른 곳에서도 함수를 실행할 수 있도록 만든 것이다.
+이를 설명하기 위해선 자바스크립트가 함수를 return 할 수 있다는 것에서부터 시작해야 한다.
+아래 예시를 보자.
+
+```
+function makeFunc() {
+	var name = "Mozilla";
+	function displayName() {
+		alert(name);
+	}
+	return displayName;
+}
+
+var myFunc = makeFunc();
+// myFunc에 displayName을 반환한다.
+
+myFunc();
+// 반환된 displayName 함수를 실행한다.
+
+```
+
+makeFunc 함수는 displayName 함수를 반환한다.
+이때 함수를 새로운 변수에 할당할 수도 있고, 리던된 함수를 실행하는 것도 가능하다.
+이를 보면 myFunc가 아래처럼 선언되었다고 생각할 수 있다.
+
+```
+var myFunc = function () {
+	alert(name);
+}
+```
+
+만약 위와 같이 정의되었다면 name이 없으므로 에러가 발생해야 한다.
+하지만 함수를 실행시키면 정상적으로 작동한다.
+이는 return이 일어날 때 함수뿐만 아니라 변수도 같이 반환하기 때문이다.
+그래서 makeFunc에서 선언한 name이 함께 포함되어 있고, 함수가 정상 작동하는 것이다.
+이처럼 함수가 반환될 때 함수와 지역 변수를 조합한 것을 closure라고 한다.
+다시 말해 closure는 함수가 실행되기 위해 필요한 변수를 포함한 것이다.
+이는 수학의 closure처럼 조건을 만족하기 위해 범위를 넓힌 것이다.
+
+closure의 장점은 원본을 그대로 유지한다는 점이다.
+예를 들어 아래 예시를 보자.
+
+```
+function makeAdder(x) {
+	var y = 1;
+	return function(z) {
+	y = 100;
+	return x + y + z;
+	};
+}
+
+let addNum = 5;
+
+var add5 = makeAdder(addNum);
+
+addNum = 10
+
+var add10 = makeAdder(addNum);
+
+console.log(add5(2));  // 107 (x:5 + y:100 + z:2)
+console.log(add10(2)); // 112 (x:10 + y:100 + z:2)
+//함수 실행 시 클로저에 저장된 x, y값에 접근하여 값을 계산
+```
+
+closure는 만들 당시의 환경을 저장한다.
+add5와 add10이 closure로 이들은 같은 함수로부터 만들어졌지만 addNum의 값이 서로 다르다.
+이때 x의 값은 addNum 값을 따라가지 않는다.
+closure는 함수가 만들어질 당시의 x, y를 기억하기 때문에 값이 바뀌더라도 이에 영향을 받지 않는다.
+
+이번에는 아래 예시를 보자.
+
+```
+function makeAdder(x) {
+	var y = 1;
+	return function(z) {
+	y = 100;
+	return x.current + y + z;
+	};
+}
+
+let addNum = { current: 5 };
+
+var add5 = makeAdder(addNum);
+
+addNum.current = 10;
+
+var add10 = makeAdder(addNum);
+
+console.log(add5(2));  // 112 (x:10 + y:100 + z:2)
+console.log(add10(2)); // 112 (x:10 + y:100 + z:2)
+//
+```
+
+위 예시는 x 대신에 x.current로 계산하도록 바꾼 것이다.
+그런데 이번에는 addNum.current의 값이 바뀌자 closure에 저장된 값도 바뀌었다.
+이는 앞의 closure이 literal을 복사해서 깊은 복사가 이뤄진 반면, 이번에는 객체를 복사하므로 얕은 복사가 이뤄졌기 때문이다.
+그래서 객체 내부의 값이 바뀌면 closure에도 영향을 준다.
+
+### current
+
+앞서 closure에서 객체를 사용할 경우를 살펴봤다.
+이때는 값이 바뀌면 모든 closure이 영향을 받았다.
+이는 ref에서 current를 사용하는 이유다.
+ref의 값을 변경할 필요가 있다고 하자.
+그런데 current를 사용하지 않으면, 이전에 ref로 반환했던 내용이 영향을 받지 않는다.
+이를 방지하기 위해서 ref가 직접적으로 값을 가리키는 것이 아니라, current를 사용한다.
+그렇게 함으로 참조 상태를 유지하고 값의 변경이 일괄적으로 적용된다.
+
+### ref again
+
+다시 ref의 설명으로 돌아가자.
+ref는 useRef를 사용해서 만들고, current에 참조 대상이 저장된다.
+이를 사용해서 input에 ref를 사용할 수 있다.
+ref를 사용해서 클릭을 누르면 input으로 포커스가 옮겨가도록 만든다.
+
+```
+// ToDoBoard.tsx
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	const inputRef = useRef(null);
+	const onClick = () => {
+		inputRef.current?.focus();
+	};
+	return (
+		<BoardWrapper>
+			<input ref={inputRef} />
+			<button onClick={onClick}>click me</button>
+			...
+		</BoardWrapper>
+	);
+}
+```
+
+React를 사용한다면 위 코드만으로 작동해야 한다.
+우리는 타입스크립트를 사용하고 있으므로 에러가 나온다.
+이는 useRef에 타입을 지정해주지 않아서 나오는 것이다.
+input의 ref위에 커서를 올리면 HTMLInputElement 타입이란 것을 알 수 있다.
+
+```
+// ToDoBoard.tsx
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	...
+}
+```
+
+### Form
+
+ToDo를 입력받고 추가할 Form을 만들겠다.
+이전에 사용했던 react-hook-form을 사용했다.
+우선은 AddToDo.tsx 파일에 아래처럼 만들어준다.
+이전에 react-hook-form을 만들때 했던 방식 그대로 했으므로 설명은 생략한다.
+
+```
+// AddToDo.tsx
+import { useForm } from "react-hook-form";
+import styled from "styled-components";
+
+const Wrapper = styled.div`
+	display: flex;
+	justify-content: center;
+`;
+
+const Form = styled.form`
+	width: 360px;
+`;
+const Input = styled.input`
+	width: 100%;
+	height: 24px;
+`;
+
+function AddToDo() {
+	const { register, handleSubmit } = useForm();
+	const onValid = (data: any) => {
+		console.log(data);
+	};
+	return (
+		<Wrapper>
+			<Form onSubmit={handleSubmit(onValid)}>
+				<Input
+					{...register("ToDo", { required: true })}
+					type="text"
+					placeholder={"Add ToDo"}
+				/>
+			</Form>
+		</Wrapper>
+	);
+}
+
+export default AddToDo;
+```
+
+그리고 AddToDo를 ToDoList.tsx에 넣어준다.
+
+```
+// ToDoList.tsx
+import AddToDo from "./AddToDo";
+
+function ToDoList() {
+	...
+	return (
+		<Window>
+			<h1>ToDoList</h1>
+			<AddToDo />
+			...
+		</Window>
+	);
+}
+```
+
+이제 AddToDo.tsx 파일만 신경쓰면 된다.
+우리가 할 일은 제출된 ToDo를 atom에 추가하는 일이다.
+일을 계속하기 전에 atom을 수정해보자.
+현재 우리는 atom에 임시로 ToDo를 저장해서 사용하고 있다.
+우리가 추가할 ToDo는 id와 text를 사용해야 한다.
+아래처럼 ToDo interface를 만들고 value의 타입으로 지정해준다.
+그리고 toDoState의 default를 모두 []로 만든다.
+
+```
+// atoms.tsx
+import { atom } from "recoil";
+
+interface ToDo {
+	id: number;
+	text: string;
+}
+
+interface IToDoState {
+	[key: string]: ToDo[];
+}
+
+export const toDoState = atom<IToDoState>({
+	key: "toDo",
+	default: {
+		ToDo: [],
+		Doing: [],
+		Done: [],
+	},
+});
+```
+
+이렇게 하면 에러가 발생한다.
+이는 이전에 value를 string으로 사용한 반면, 지금은 ToDo를 사용하고 있기 때문이다.
+ToDoList.tsx를 보면 toDos를 전달하는데 문제가 있다.
+이는 ToDoBoard.tsx에서 타입을 string[]으로 지정했기 때문에 생긴 문제다.
+atoms.tsx의 ToDo를 export로 바꾼 다음 ToDoBoard.tsx에서 import 한다.
+그리고 toDos의 타입을 ToDo[]로 바꾼다.
+
+```
+// atoms.tsx
+export interface ToDo {
+	id: number;
+	text: string;
+}
+```
+
+```
+// ToDoBoard.tsx
+import { ToDo } from "../atoms";
+
+interface IToDoBoard {
+	toDos: ToDo[];
+	droppableId: string;
+}
+```
+
+이렇게하면 ToDoList.tsx의 에러는 고쳤다.
+다음으로 ToDoBoard.tsx에 에러가 발생한다.
+key와 toDo에 number, string이 아닌 ToDo 타입을 넣어주고 있어서 문제가 된다.
+이는 toDo.id, toDo.text로 수정하면 해결된다.
+
+```
+// ToDoBoard.tsx
+function ToDoBoard({ toDos, droppableId }: IToDoBoard) {
+	return (
+		<BoardWrapper>
+			...
+						{toDos.map((toDo, index) => (
+							<ToDoDrag
+								key={toDo.id}
+								index={index}
+								toDo={toDo.text}
+							/>
+						))}
+			...
+		</BoardWrapper>
+	);
+}
+```
+
+다음으로 드래그 종료시의 함수를 수정해야 한다.
+atoms.tsx에서 임시로 데이터를 넣어보자.
+
+```
+// atoms.tsx
+export const toDoState = atom<IToDoState>({
+	key: "toDo",
+	default: {
+		ToDo: [
+			{ id: 1, text: "foo" },
+			{ id: 2, text: "bar" },
+		],
+		Doing: [
+			{ id: 3, text: "baz" },
+			{ id: 4, text: "fie" },
+		],
+		Done: [
+			{ id: 5, text: "foe" },
+			{ id: 6, text: "fee" },
+		],
+	},
+});
+```
+
+이제 ToDoList.tsx의 onDragEnd 함수를 수정해야 한다.
+변경할 대상이 string이 아니라 객체라는 점만 다르다.
+이전에는 droppable를 바로 넣어줬다.
+droppableId가 곧 text였기 때문이다.
+이제 넣어주는 데이터 타입이 바뀌었으므로 droppableId만으로 해결할 수 없다.
+대신에 source의 index를 가지고 해결한다.
+source.index에 삭제되는 데이터 위치가 들어있다.
+이 위치의 정보를 저장한 다음에 나중에 이 값을 추가해주면 해결된다.
+
+```
+// ToDoList.tsx
+function ToDoList() {
+	...
+	const onDragEnd = ({ destination, draggableId, source }: DropResult) => {
+		...
+		if (destination?.droppableId === source.droppableId) {
+			setToDos((oldToDos) => {
+				...
+				let tempSave = copiedToDos[source.index];
+				copiedToDos.splice(source.index, 1);
+				copiedToDos.splice(destination.index, 0, tempSave);
+				...
+			});
+		}
+		if (destination?.droppableId !== source.droppableId) {
+			setToDos((oldToDos) => {
+				...
+				let tempSave = sourceCopy[source.index];
+				sourceCopy.splice(source.index, 1);
+				desCopy.splice(destination.index, 0, tempSave);
+				...
+			});
+		}
+	};
+	...
+}
+```
+
+이제 atoms의 데이터를 수정하면서 바뀐 것을 다 고쳤다.
+하던 일로 돌아가서 ToDo를 추가하는 일을 끝내자.
+toDo의 데이터 타입은 string이므로 interface를 만들어서 적용시킨다.
+
+```
+// AddToDo.tsx
+interface IForm {
+	toDo: string;
+}
+
+function AddToDo() {
+	const setToDo = useSetRecoilState(toDoState);
+	const { register, setValue, handleSubmit } = useForm<IForm>();
+	const onValid = ({ toDo }: IForm) => {
+		...
+	};
+	return (
+		<Wrapper>
+			<Form onSubmit={handleSubmit(onValid)}>
+				<Input
+					{...register("toDo", { required: true })}
+					type="text"
+					placeholder={"Add ToDo"}
+				/>
+			</Form>
+		</Wrapper>
+	);
+}
+```
+
+이제 onValid 안에 새로운 ToDo를 만들고, toDoState에 추가해주면 끝이다.
+id는 Date.now()를 사용해서 서로 겹치지 않게 만들었다.
+그리고 제출되면 setValue로 값을 ""로 돌려준다.
+
+```
+function AddToDo() {
+	...
+	const onValid = ({ toDo }: any) => {
+		const newToDo = {
+			id: Date.now(),
+			text: toDo,
+		};
+		setToDo((oldToDo) => {
+			return {
+				...oldToDo,
+				ToDo: [...oldToDo["ToDo"], newToDo],
+			};
+		});
+		setValue("toDo", "");
+	};
+	...
+}
+```
+
+이제 모든 일이 끝났으므로 atoms의 임시 데이터를 지워준다.
+
+```
+// atoms.tsx
+export const toDoState = atom<IToDoState>({
+	key: "toDo",
+	default: {
+		ToDo: [],
+		Doing: [],
+		Done: [],
+	},
+});
+```
+
+해야할 일
+
+1. local storage에 데이터 저장
+2. ToDo를 삭제하는 버튼 또는 드래그로 삭제하는 쓰레기통 만들기
+3. 보드의 순서 바꾸기
+4. 새로운 보드 만들기
 
 ## 참고
 
 1. [Index Signature](https://radlohead.gitbook.io/typescript-deep-dive/type-system/index-signatures)
 2. [why do refs have a key named current](https://tkplaceholder.io/why-do-refs-have-a-key-named-current/)
+3. [closure](https://developer.mozilla.org/ko/docs/Web/JavaScript/Closures)
