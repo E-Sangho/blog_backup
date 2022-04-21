@@ -507,3 +507,420 @@ const newVars = {
 	},
 };
 ```
+
+## Gestures
+
+지금까지 소개한 애니메이션은 알아서 일어났다.
+이번에는 사용자 마우스 조작시에 애니메이션 효과를 주는 법을 알아보겠다.
+
+마우스를 올렸을 경우엔 whileHover를 사용하면 된다.
+그리고 클릭했을 경우엔 whileTap을 쓴다.
+아래는 마우스를 올리면 크기가 커지고, 모양이 변경되는 애니메이션이다.
+
+```
+// App.tsx
+const myVars = {
+	hover: {
+		scale: 2,
+	},
+	tap: {
+		borderRadius: "50%",
+	},
+};
+
+function App() {
+	return (
+		<Wrapper>
+			<Box variants={myVars} whileHover="hover" whileTap="tap" />
+		</Wrapper>
+	);
+}
+```
+
+다음으로 드래그 효과를 줘보겠다.
+드래그 효과를 사용하려면 속성으로 drag를 적어줘야 한다.
+그리고 whileDrag에 애니메이션을 적어준다.
+
+```
+// App.tsx
+const myVars = {
+	drag: {
+		backgroundColor: "blue",
+	},
+};
+
+function App() {
+	return (
+		<Wrapper>
+			<Box drag variants={myVars} whileDrag="drag" />
+		</Wrapper>
+	);
+}
+```
+
+그런데 드래그를 해보면 몇 가지 문제점이 있다.
+색 변화에 애니메이션이 적용되지 않고, 드래그 범위 제한이 없고, 드래그에 탄성이 있다.
+우선은 색 변화 문제를 해결해보자.
+이 문제를 해결하려면 색을 rgba로 주면 된다.
+애니메이션 효과는 사이 단계를 필요로 한다.
+예를 들어서 흰색에서 검은색으로 변화시키려면 (255, 255, 255)에서 (0, 0, 0)으로 바꿔줘야 한다.
+이 사이 단계에서 (10, 10, 10), (30, 30, 30) 같은 단계를 거칠 것이다.
+그런데 색을 단순히 "blue"라고 적어주면 사이 단계를 알 수가 없다다
+그래서 위 예시에서 애니메이션 효과가 나타나지 않은 것이다.
+색을 rgba로 주면 이 문제는 간단히 해결된다.
+
+```
+// App.tsx
+const myVars = {
+	drag: {
+		backgroundColor: "rgba(0, 0, 255, 0.5)",
+	},
+};
+```
+
+다음으로 드래그 범위를 제한해보자.
+x축이나 y축으로 제한하고 싶으면 drag에 x나 y를 주면 된다.
+아래는 x축 방향으로만 드래그를 제한한 것이다.
+
+```
+// App.tsx
+function App() {
+	return (
+		<Wrapper>
+			<Box drag="x" variants={myVars} whileDrag="drag" />
+		</Wrapper>
+	);
+}
+```
+
+특정한 박스 내에서만 드래그가 가능하도록 만들고 싶으면 dragConstraints를 사용한다.
+dragConstraints는 ref로 지정한 대상 내에서만 드래그가 일어나게 만든다.
+이때 부모 컴포넌트를 ref로 지정해야 한다.
+예시를 위해 드래그 범위 컴포넌트를 하나 만들고 ref를 사용했다.
+
+```
+// App.tsx
+import { useRef } from "react";
+
+const DragArea = styled.div`
+	width: 400px;
+	height: 400px;
+	background-color: rgba(255, 255, 255, 0.4);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+`;
+
+function App() {
+	const dragAreaRef = useRef<HTMLDivElement>(null);
+	return (
+		<Wrapper>
+			<DragArea ref={dragAreaRef}>
+				<Box
+					drag
+					variants={myVars}
+					whileDrag="drag"
+					dragConstraints={dragAreaRef}
+				/>
+			</DragArea>
+		</Wrapper>
+	);
+}
+```
+
+드래그를 해보면 \<DragArea> 내부에서 드래그가 일어난다.
+그런데 드래그 범위 밖으로도 살짝 드래그 할 수 있다.
+범위 밖에서는 탄성 같은 효과가 생기고 손을 놓으면 \<DragArea> 내로 돌아간다.
+이처럼 약간 밖으로 드래그 되는 것을 허용은 하되 보여주고 싶지 않으면 overflow: hidden을 사용하면 된다.
+
+```
+// App.tsx
+const DragArea = styled.div`
+	width: 400px;
+	height: 400px;
+	background-color: rgba(255, 255, 255, 0.4);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+`;
+```
+
+만약 범위 밖으로 나가는 것을 허용하지 않으려면 dragElastic을 조절하면 된다.
+dragElastic은 0 ~ 1 사이의 값을 사용한다.
+0은 전혀 탄성이 없고, 1은 완전히 탄성적이다.
+이때 탄성이 있다는 의미는 스프링을 생각하면 된다.
+스프링이 탄성이 전혀 없으면 밧줄처럼 전혀 늘어나지 않는다.
+그래서 dranConstraints 밖으로 나갈 수가 없다.
+탄성이 클 수록 범위를 약간씩 벗어날 수 있다.
+만약 탄성이 1이라면 스프링이 굉장히 탄력적이라서 어디든지 늘어난다.
+아래의 dragElastic을 조금씩 바꿔가며 사용해보자.
+이때 overflow: hidden 없이 확인해야 보기 좋다.
+
+```
+// App.tsx
+const DragArea = styled.div`
+	width: 400px;
+	height: 400px;
+	background-color: rgba(255, 255, 255, 0.4);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+`;
+
+function App() {
+	const dragAreaRef = useRef<HTMLDivElement>(null);
+	return (
+		<Wrapper>
+			<DragArea ref={dragAreaRef}>
+				<Box
+					drag
+					variants={myVars}
+					whileDrag="drag"
+					dragConstraints={dragAreaRef}
+					dragElastic={1}
+				/>
+			</DragArea>
+		</Wrapper>
+	);
+}
+```
+
+마지막으로 드래그가 끝났을 때 원래 위치로 돌아가도록 해보겠다.
+dragSnapToOrigin 속성을 주면 드래그가 끝났을 때 원래 위치로 돌아간다.
+
+```
+// App.tsx
+function App() {
+	const dragAreaRef = useRef<HTMLDivElement>(null);
+	return (
+		<Wrapper>
+			<DragArea ref={dragAreaRef}>
+				<Box
+					drag
+					variants={myVars}
+					whileDrag="drag"
+					dragConstraints={dragAreaRef}
+					dragElastic={1}
+					dragSnapToOrigin
+				/>
+			</DragArea>
+		</Wrapper>
+	);
+}
+```
+
+## Motion Value
+
+### useMotionValue
+
+Motion Value는 애니메이션에서 변하는 값을 추적하는데 사용된다.
+예를 들어서 사용자가 x축으로 드래그한 길이를 알아내거나, 얼마나 스크롤을 내렸는지 등을 알아낼 수 있다.
+Motion Value는 useMotionValue hook로 만들 수 있다.
+그리고 그 값을 set으로 변경시키고, get으로 불러올 수 있다.
+
+```
+const x = useMotionValue(0)
+x.set(100)
+x.get()	// 100
+```
+
+Motion Value는 motion component에서 쓸 수 있다.
+style에서 쓸 수 있으며 motion component의 값을 정하는데 사용한다.
+아래는 x의 처음 위치를 100으로 만든다.
+
+```
+// App.tsx
+function App() {
+	const xValue = useMotionValue(100);
+	return (
+		<Wrapper>
+			<Box style={{ x: xValue }} />
+		</Wrapper>
+	);
+}
+```
+
+Motion Value의 장점은 Motion Value를 바꿔서 motion component를 조절할 수 있다는 점이다.
+위의 예에서 xValue의 값을 바꿔주면 x의 값이 변화된다.
+
+```
+// App.tsx
+function App() {
+	const xValue = useMotionValue(0);
+	return (
+		<Wrapper>
+			<button onClick={() => xValue.set(100)}>click me</button>
+			<Box style={{ x: xValue }} />
+		</Wrapper>
+	);
+}
+```
+
+x의 값이 변하면 자동으로 xValue의 값도 변한다.
+이를 console.log(xValue)로 출력해보자.
+
+```
+// App.tsx
+function App() {
+	const xValue = useMotionValue(0);
+	console.log(xValue);
+	return (
+		<Wrapper>
+			<Box drag="x" style={{ x: xValue }} />
+		</Wrapper>
+	);
+}
+```
+
+그런데 드래그가 일어나도 Motion Value의 값이 출력되지 않는다.
+이는 Motion Value의 값의 변화가 React의 랜더링을 일으키지 않기 때문이다.
+다시 말해서 Motion Value가 바뀔 때마다 다시 랜더링하는 비효율적인 일을 하지 않는다.
+
+덕분에 별다른 최적화 없이도 사용할 수 있지만, 우리는 xValue의 값을 출력하고 싶다.
+Motion Value에는 onChange method가 있다.
+onChange는 Motion Value가 바뀔 때 일어날 이벤트를 지정할 수 있다.
+이때 useEffect 안에서 사용해야 한다는 제약이 있다.
+아래처럼 코드를 작성하면 콘솔에서 xValue의 값의 변화를 볼 수 있다.
+
+```
+// App.tsx
+function App() {
+	const xValue = useMotionValue(0);
+	useEffect(() => {
+		xValue.onChange(() => console.log(xValue.get()));
+	}, [xValue]);
+	return (
+		<Wrapper>
+			<Box drag="x" style={{ x: xValue }} />
+		</Wrapper>
+	);
+}
+```
+
+### useTransform
+
+Motion Value의 값의 변화에 따라서 motion component를 변화시키려 한다.
+이때 사용하는 것이 useTransform이다.
+
+> useTransform(value, inputRange, outputRange, options)
+
+useTransform은 Motion Value를 받아서 새로운 Motion Value를 만드는 함수다.
+useTransform은 변화시킬 값과 범위를 받는다.
+예를 들어서 `useTransform(xValue, [-400, 400], [1, 2])`는 xValue의 값에 따라서 1 ~ 2 사이의 값을 반환한다.
+만약 xValue가 -400이면 1이 되고, 400이면 2가 된다.
+이때 범위는`useTransform(xValue, [-400, 0, 400], [1, 1.6, 2])`처럼 더 세세하게 바꿀 수 있다.
+
+useTransform이 반환한 값은 Motion Value이므로 motion component의 값을 바꾸는데 사용한다.
+아래는 xValue의 변경된 값을 받아서 scale을 조절한 것이다.
+
+```
+// App.tsx
+function App() {
+	const xValue = useMotionValue(0);
+	useEffect(() => {
+		xValue.onChange(() => console.log(xValue.get()));
+	}, [xValue]);
+	const scaleValue = useTransform(xValue, [-400, 400], [0.2, 2]);
+	return (
+		<Wrapper>
+			<Box drag="x" style={{ x: xValue, scale: scaleValue }} />
+		</Wrapper>
+	);
+}
+```
+
+지금까지는 설명을 위해 xValue, scaleValue로 적었지만, ES6 환경에서 이름이 같으면 변수가 알아서 받아진다.
+그러므로 xValue를 x로 바꾸고, scaleValue를 scale로 바꿔서 아래처럼 쓴다.
+
+```
+// App.tsx
+function App() {
+	const x = useMotionValue(0);
+	useEffect(() => {
+		x.onChange(() => console.log(x.get()));
+	}, [x]);
+	const scale = useTransform(x, [-400, 400], [0.2, 2]);
+	return (
+		<Wrapper>
+			<Box drag="x" style={{ x, scale }} />
+		</Wrapper>
+	);
+}
+```
+
+useTransform을 사용하면 자기 자신 외에 다른 motion component도 애니메이션을 만들 수 있다.
+\<Wrapper>를 motion component로 만들고 아래처럼 작성하면 드래그하면서 색이 바뀌게 된다.
+
+```
+// App.tsx
+const Wrapper = styled(motion.div)`
+	...
+`;
+
+function App() {
+	...
+	const gradient = useTransform(
+		x,
+		[-400, 400],
+		[
+			"linear-gradient(135deg, rgb(0, 210, 238), rgb(0, 83, 238))",
+			"linear-gradient(135deg, rgb(0, 238, 155), rgb(238, 178, 0))",
+		]
+	);
+	return (
+		<Wrapper style={{ background: gradient }}>
+			...
+		</Wrapper>
+	);
+}
+
+export default App;
+
+```
+
+### useViewportScroll
+
+useViewportScroll은 현재 스크롤 위치를 나타내는 4개의 MotionValue를 반환한다.
+
+-   scrollX
+-   scrollY
+-   scrollXProgress
+-   scrollYProgress
+
+대표로 Y 스크롤만 설명하겠다.
+scrollY, scrollYProgress는 현재 스크롤의 위치다.
+scrollY는 픽셀 단위의 스크롤을 의미한다.
+그러므로 값이 242px, 1565px 같은 숫자 단위로 나온다.
+반면 scrollYProgess는 0 ~ 1 사이의 값으로 0.122384 같은 퍼센트 단위로 나온다.
+
+useViewportScroll을 useTransform과 같이 조합하면 스크롤 시에 애니메이션을 적용할 수 있다.
+아래는 스크롤하면 scale이 커지게 만든 코드다.
+이때 스크롤을 해야 하므로 \<Wrapper>의 height를 조절해줬다.
+
+```
+// App.tsx
+const Wrapper = styled(motion.div)`
+	height: 500vh;
+	...
+`;
+
+function App() {
+	const x = useMotionValue(0);
+	const { scrollYProgress } = useViewportScroll();
+	const scale = useTransform(scrollYProgress, [0, 1], [0.1, 4]);
+	...
+	return (
+		<Wrapper style={{ background: gradient }}>
+			<Box drag="x" style={{ x, scale }} />
+		</Wrapper>
+	);
+}
+```
+
+### svg
+
+stroke
+strokeWidth
+fill
+pathLength
