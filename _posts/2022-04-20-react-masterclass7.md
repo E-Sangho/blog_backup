@@ -920,7 +920,948 @@ function App() {
 
 ### svg
 
-stroke
-strokeWidth
-fill
-pathLength
+SVG는 수학 연산으로 이미지를 그린다.
+사이트 중에선 SVG에 애니메이션을 준 경우가 있다.
+본래 SVG는 그리는 과정이 보이지 않는데, 그리는 과정을 보여주고 점차 색을 칠하는 애니메이션이 있다.
+이번에는 Framer Motion로 SVG 애니메이션을 만드는 법을 알아보겠다.
+
+우선 SVG가 필요하다.
+SVG가 있는 사이트에서 가져올 수 있는데, fontawesome에서 가져오겠다.
+fontawesome에서 airbnb를 검색하고 열어준다.
+그러면 </> 모양의 버튼이 있는데, 이 버튼을 누르면 SVG가 복사된다.
+간단하게 아래 태그를 복사해서 써도 된다.
+
+```
+// App.tsx
+function App() {
+	return (
+		<Wrapper>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<path d="M224 373.12c-25.24-31.67-40.08-59.43-45-83.18-22.55-88 112.61-88 90.06 0-5.45 24.25-20.29 52-45 83.18zm138.15 73.23c-42.06 18.31-83.67-10.88-119.3-50.47 103.9-130.07 46.11-200-18.85-200-54.92 0-85.16 46.51-73.28 100.5 6.93 29.19 25.23 62.39 54.43 99.5-32.53 36.05-60.55 52.69-85.15 54.92-50 7.43-89.11-41.06-71.3-91.09 15.1-39.16 111.72-231.18 115.87-241.56 15.75-30.07 25.56-57.4 59.38-57.4 32.34 0 43.4 25.94 60.37 59.87 36 70.62 89.35 177.48 114.84 239.09 13.17 33.07-1.37 71.29-37.01 86.64zm47-136.12C280.27 35.93 273.13 32 224 32c-45.52 0-64.87 31.67-84.66 72.79C33.18 317.1 22.89 347.19 22 349.81-3.22 419.14 48.74 480 111.63 480c21.71 0 60.61-6.06 112.37-62.4 58.68 63.78 101.26 62.4 112.37 62.4 62.89.05 114.85-60.86 89.61-130.19.02-3.89-16.82-38.9-16.82-39.58z" />
+			</svg>
+		</Wrapper>
+	);
+}
+```
+
+현재 SVG가 너무 크므로 styled component를 만들어서 크기를 조절해준다.
+
+```
+// App.tsx
+const Svg = styled.svg`
+	width: 300px;
+	height: 300px;
+`;
+
+function App() {
+	return (
+		<Wrapper>
+			<Svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<path d="M224 373.12c-25.24-31.67-40.08-59.43-45-83.18-22.55-88 112.61-88 90.06 0-5.45 24.25-20.29 52-45 83.18zm138.15 73.23c-42.06 18.31-83.67-10.88-119.3-50.47 103.9-130.07 46.11-200-18.85-200-54.92 0-85.16 46.51-73.28 100.5 6.93 29.19 25.23 62.39 54.43 99.5-32.53 36.05-60.55 52.69-85.15 54.92-50 7.43-89.11-41.06-71.3-91.09 15.1-39.16 111.72-231.18 115.87-241.56 15.75-30.07 25.56-57.4 59.38-57.4 32.34 0 43.4 25.94 60.37 59.87 36 70.62 89.35 177.48 114.84 239.09 13.17 33.07-1.37 71.29-37.01 86.64zm47-136.12C280.27 35.93 273.13 32 224 32c-45.52 0-64.87 31.67-84.66 72.79C33.18 317.1 22.89 347.19 22 349.81-3.22 419.14 48.74 480 111.63 480c21.71 0 60.61-6.06 112.37-62.4 58.68 63.78 101.26 62.4 112.37 62.4 62.89.05 114.85-60.86 89.61-130.19.02-3.89-16.82-38.9-16.82-39.58z" />
+			</Svg>
+		</Wrapper>
+	);
+}
+```
+
+SVG는 항상 내부에 path가 존재하고 path로 이미지를 만든다.
+이때 벡터로 외곽선만 만들게 되는데, 외곽선을 이용해 내부와 외부를 구분한다.
+SVG는 외곽선의 스타일과, 내부의 스타일을 따로 적용한다.
+내부의 색은 fill을 사용해서 바꿀 수 있다.
+예를 들어 fill="red"라고 적어주면 붉은 색으로 바뀌고, 현재 색을 쓰고 싶으므로 fill="currentColor"를 사용한다.
+외곽선의 색을 바꾸고 싶으면 stroke 속성을 사용하면 된다.
+그리고 stroke의 굵기를 strokeWidth로 조절할 수 있다.
+우선은 fill을 transparent로 바꾸고 stroke와 strokeWidth를 조절해보자.
+
+```
+// App.tsx
+function App() {
+	return (
+		<Wrapper>
+			<Svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<path
+					fill="transparent"
+					stroke="white"
+					strokeWidth="4"
+					...
+				/>
+			</Svg>
+		</Wrapper>
+	);
+}
+```
+
+SVG에서 애니메이션 효과를 보여주려면 path를 motion component로 바꿔야 한다.
+그리고 애니메이션으로 무색에서 흰색으로 바뀌도록 만든다.
+
+```
+// App.tsx
+function App() {
+	return (
+		<Wrapper>
+			<Svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<motion.path
+					initial={{ fill: "rgba(255, 255, 255, 0)" }}
+					animate={{ fill: "rgba(255, 255, 255, 1)" }}
+					transition={{
+						duration: 3,
+					}}
+					stroke="white"
+					strokeWidth="4"
+					...
+				/>
+			</Svg>
+		</Wrapper>
+	);
+}
+```
+
+다음으로 할 일은 pathLength를 바꾸는 일이다.
+pathLength는 SVG가 그려지는 길이를 의미한다.
+이를 0에서 1까지 변하도록 만들면 그려지는 듯한 애니메이션 효과가 생긴다.
+pathLength가 잘 바뀌는지 보기 위해서 위의 fill은 색을 바꾸지 않도록 만든다.
+
+```
+// App.tsx
+function App() {
+	return (
+		<Wrapper>
+			<Svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<motion.path
+					initial={{ fill: "rgba(255, 255, 255, 0)", pathLength: 0 }}
+					animate={{ fill: "rgba(255, 255, 255, 0)", pathLength: 1 }}
+					transition={{
+						duration: 3,
+					}}
+					stroke="white"
+					strokeWidth="4"
+					...
+				/>
+			</Svg>
+		</Wrapper>
+	);
+}
+```
+
+이제 위 내용을 variants와 styled component에 나눠 담으면 깔끔하게 정리된다.
+
+```
+// App.tsx
+const Svg = styled.svg`
+	width: 300px;
+	height: 300px;
+	path {
+		stroke: white;
+		stroke-width: 4;
+	}
+`;
+
+const svgVariants = {
+	start: { fill: "rgba(255, 255, 255, 0)", pathLength: 0 },
+	end: {
+		fill: "rgba(255, 255, 255, 0)",
+		pathLength: 1,
+		transition: {
+			duration: 3,
+		},
+	},
+};
+
+function App() {
+	return (
+		<Wrapper>
+			<Svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<motion.path
+					variants={svgVariants}
+					initial="start"
+					animate="end"
+					...
+				/>
+			</Svg>
+		</Wrapper>
+	);
+}
+```
+
+마지막으로 각 애니메이션의 duration을 조절하는 법을 알아보자.
+path를 먼저 그리고 fill을 하도록 duration을 조절한다.
+transition은 default로 기본값을 정한다.
+그리고 transition은 각 항복별로 다른 transition을 적용할 수 있다.
+이를 사용해서 default와 다른 transition을 적용할 수 있다.
+아래는 fill에 따로 transition을 만든 것이다.
+
+```
+// App.tsx
+const svgVariants = {
+	start: { fill: "rgba(255, 255, 255, 0)", pathLength: 0 },
+	end: {
+		fill: "rgba(255, 255, 255, 1)",
+		pathLength: 1,
+	},
+};
+
+function App() {
+	return (
+		<Wrapper>
+			<Svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+				<motion.path
+					variants={svgVariants}
+					initial="start"
+					animate="end"
+					transition={{
+						default: { duration: 3 },
+						fill: { duration: 2, delay: 3 },
+					}}
+					...
+				/>
+			</Svg>
+		</Wrapper>
+	);
+}
+```
+
+### AnimatePresence
+
+AnimatePresence는 컴포넌트가 사라지고 나타날 때 애니메이션을 적용하게 해준다.
+우선 state를 사용해서 버튼을 누르면 컴포넌트가 생기고 사라지도록 만들겠다.
+
+```
+// App.tsx
+const Box = styled(motion.div)`
+	width: 400px;
+	height: 300px;
+	border-radius: 16px;
+	background-color: white;
+`;
+
+function App() {
+	const [showing, setShowing] = useState(false);
+	const onClick = () => {
+		setShowing((prev) => !prev);
+	};
+	return (
+		<Wrapper>
+			{showing ? <Box /> : null}
+			<button onClick={onClick}>click</button>
+		</Wrapper>
+	);
+}
+```
+
+위의 \<Box>에 애니메이션을 주려면 AnimatePresence로 감싸줘야 한다.
+\<Box>에 애니메이션 효과를 주기 전에 exit 속성을 알아보자.
+지금까지 initial, animate를 사용했다.
+initial은 초기 상태, animate는 애니메이션이 일어나는 상태를 적어줬다.
+exit은 해당 컴포넌트가 없어질 때 적용하는 애니메이션이다.
+중요한 것은 exit은 AnimatePresence 내부에서만 사용할 수 있고, 첫 번째 자식 컴포넌트야 한다.
+아래처럼 애니메이션을 적용해보면 컴포넌트가 생길 때의 애니메이션과, 없어질 때의 애니메이션이 적용된다.
+
+```
+// App.tsx
+const boxVariants = {
+	start: {
+		opacity: 0,
+		scale: 0,
+	},
+	middle: {
+		opacity: 1,
+		scale: 1,
+		rotateZ: 360,
+	},
+	end: {
+		opacity: 0,
+		scale: 0,
+		y: 20,
+	},
+};
+
+function App() {
+	const [showing, setShowing] = useState(false);
+	const onClick = () => {
+		setShowing((prev) => !prev);
+	};
+	return (
+		<Wrapper>
+			<AnimatePresence>
+				{showing ? (
+					<Box
+						variants={boxVariants}
+						initial="start"
+						animate="middle"
+						exit="end"
+					/>
+				) : null}
+			</AnimatePresence>
+			<button onClick={onClick}>click</button>
+		</Wrapper>
+	);
+}
+```
+
+### Slider
+
+AnimatePresence를 사용해서 슬라이더를 만들 수 있다.
+우선 버튼을 눌렀을 때, 왼쪽으로 넘어가는 슬라이더부터 만들어보겠다.
+현재 보여줄 번호를 담을 state가 필요하고, 버튼을 누르면 state의 값을 바꿔줘야 한다.
+
+```
+// App.tsx
+function App() {
+	const [showIndex, setShowIndex] = useState(0);
+	const onClick = () => {
+		setShowIndex((prev) => (prev === 9 ? 9 : prev + 1));
+	};
+	return (
+		<Wrapper>
+			<AnimatePresence>
+				<Box />
+			</AnimatePresence>
+			<button onClick={onClick}>Next</button>
+		</Wrapper>
+	);
+}
+```
+
+이제 Box를 어떻게 만들지가 문제다.
+일단은 [0, 1, 2, ..., 9].map()을 사용해서 showIndex와 값이 일치하는 경우만 Box가 나오도록 만든다.
+이때 Box에 key를 꼭 사용해야 한다.
+key를 사용하지 않으면 React가 새로 생성되는 컴포넌트인지 아닌지 판단하지 못한다.
+그래서 variants의 animate나 exit이 제대로 동작하지 않는다.
+추가로 Box의 스타일을 바꿔서 안의 숫자가 잘 보이게 했다.
+
+```
+// App.tsx
+const Box = styled(motion.div)`
+	width: 400px;
+	height: 300px;
+	border-radius: 16px;
+	background-color: white;
+	position: absolute;
+	top: 50px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 48px;
+`;
+
+function App() {
+	const [showIndex, setShowIndex] = useState(0);
+	const onClick = () => {
+		setShowIndex((prev) => (prev === 9 ? 9 : prev + 1));
+	};
+	return (
+		<Wrapper>
+			<AnimatePresence>
+				{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((e) =>
+					e === showIndex ? <Box key={e}>{e}</Box> : null
+				)}
+			</AnimatePresence>
+			<button onClick={onClick}>Next</button>
+		</Wrapper>
+	);
+}
+```
+
+마지막으로 Box에 variants를 줘서 애니메이션 효과를 주면 된다.
+
+```
+// App.tsx
+const boxVariants = {
+	start: {
+		opacity: 0,
+		scale: 0,
+		x: 500,
+	},
+	middle: {
+		opacity: 1,
+		scale: 1,
+		x: 0,
+	},
+	end: {
+		opacity: 0,
+		scale: 0,
+		x: -500,
+	},
+};
+
+function App() {
+	const [showIndex, setShowIndex] = useState(0);
+	const onClick = () => {
+		setShowIndex((prev) => (prev === 9 ? 9 : prev + 1));
+	};
+	return (
+		<Wrapper>
+			<AnimatePresence>
+				{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((e) =>
+					e === showIndex ? (
+						<Box
+							variants={boxVariants}
+							initial="start"
+							animate="middle"
+							exit="end"
+							key={e}
+						>
+							{e}
+						</Box>
+					) : null
+				)}
+			</AnimatePresence>
+			<button onClick={onClick}>Next</button>
+		</Wrapper>
+	);
+}
+```
+
+버튼을 눌러보면 슬라이더 기능이 정상 작동된다.
+다음으로 이전 숫자로 돌아가는 슬라이더를 만들려고 한다.
+버튼을 만들고 showIndex를 조절하는 것은 비슷하게 하면 된다.
+
+```
+// App.tsx
+function App() {
+	const [showIndex, setShowIndex] = useState(0);
+	const nextIndex = () => {
+		setShowIndex((prev) => (prev === 9 ? 9 : prev + 1));
+	};
+	const prevIndex = () => {
+		setShowIndex((prev) => (prev === 0 ? 0 : prev - 1));
+	};
+	return (
+		<Wrapper>
+			<AnimatePresence>
+				...
+			</AnimatePresence>
+			<button onClick={prevIndex}>Prev</button>
+			<button onClick={nextIndex}>Next</button>
+		</Wrapper>
+	);
+}
+```
+
+애니메이션 효과를 보면 여전히 오른쪽에서 온다.
+이는 방향에 따라 애니메이션 효과가 바뀌도록 지정하지 않았기 때문이다.
+그런데 방향에 따라 애니메이션이 달라진다는 것은 곧, variants에 변수가 필요하다는 의미다.
+variants에 방향을 표시하는 변수를 전달하고 이 값으로 x의 값을 조절해야 방향이 바꿔야 한다.
+variants에 변수를 주는 것은 custom에서 설명하겠다.
+
+### custom
+
+custom은 variants에 변수를 주기 위해 사용한다.
+motion component에서 custom이란 속성에 변수를 전달하면, 해당 변수를 variants 내부에서 쓸 수 있다.
+이때 custom에 전달하는 내용을 AnimatePresence에도 전달해줘야 한다.
+아래처럼 방향을 표시하는 state isRight를 만든다.
+그리고 각 버튼을 누를 때마다 isRight를 바꾸고, custom에 isRight를 전달한다.
+
+```
+// App.tsx
+function App() {
+	const [showIndex, setShowIndex] = useState(0);
+	const [isRight, setIsRight] = useState(false);
+	const nextIndex = () => {
+		setIsRight(false);
+		setShowIndex((prev) => (prev === 9 ? 9 : prev + 1));
+	};
+	const prevIndex = () => {
+		setIsRight(true);
+		setShowIndex((prev) => (prev === 0 ? 0 : prev - 1));
+	};
+	return (
+		<Wrapper>
+			<AnimatePresence custom={isRight}>
+				{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((e) =>
+					e === showIndex ? (
+						<Box
+							custom={isRight}
+							...
+						>
+							{e}
+						</Box>
+					) : null
+				)}
+			</AnimatePresence>
+			...
+		</Wrapper>
+	);
+}
+```
+
+이제 variants에서 custom으로 받아온 isRight를 사용해야 한다.
+variants 내에서 변수를 사용하려면 각 속성을 콜백 함수로 바꿔줘야 한다.
+이때 콜백 함수의 변수에 custom의 변수를 사용할 수 있다.
+변수는 콜백 함수에 순서대로 전달된다.
+그래서 변수의 이름은 custom에서 준 것과 달라도 상관없다.
+하지만 굳이 다른 이름을 써서 혼란을 줄 필요는 없으니 통일해서 사용한다.
+
+variants의 속성을 콜백 함수로 바꿀 때, 값이 확실히 return 되어야 한다.
+그러므로 직접 return을 적어주거나 ({...}) 형태로 적어야 한다.
+또한 우리는 타입스크립트를 사용하므로 전달하는 변수의 타입을 적어야 한다.
+아래는 isRight를 사용해서 x의 값을 바꾸는 코드다.
+
+```
+// App.tsx
+const boxVariants = {
+	start: (isRight: boolean) => ({
+		opacity: 0,
+		scale: 0,
+		x: isRight ? -500 : 500,
+	}),
+	middle: {
+		opacity: 1,
+		scale: 1,
+		x: 0,
+		transition: {
+			duration: 2,
+		},
+	},
+	end: (isRight: boolean) => ({
+		opacity: 0,
+		scale: 0,
+		x: isRight ? 500 : -500,
+		transition: {
+			duration: 2,
+		},
+	}),
+};
+```
+
+현재 애니메이션을 보면 animate와 exit이 동시에 일어난다.
+정확히 표현하자면 animate와 exit이 별개로 일어난다.
+현재 둘이 동시에 일어나는 이유는 duration, delay가 동일하기 때문이다.
+이를 수정하면 서로 별개로 일어나므로 뒤죽박죽이 될 수도 있다.
+만약 exit이 일어나고 animate가 일어나길 원하면 exitBeforeEnter를 사용하면 된다.
+exitBeforeEnter는 AnimatePresence에서 사용하며 아래처럼 쓰면 된다.
+
+```
+// App.tsx
+function App() {
+	...
+	return (
+		<Wrapper>
+			<AnimatePresence exitBeforeEnter custom={isRight}>
+				...
+			</AnimatePresence>
+			...
+		</Wrapper>
+	);
+}
+```
+
+마지막으로 코드를 조금 정리하겠다.
+현재 우리는 map을 사용해서 슬라이더를 만들고 있다.
+그런데 React는 key를 가지고 컴포넌트가 생기는지 사라지는지 확인한다.
+그러므로 key값이 변하는 것만으로도 컴포넌트가 사라진다고 인식한다.
+위에서 map과 null을 사용해서 컴포넌트가 사라지는 것을 표시하고 있다.
+이를 단순히 key를 변경시키는 것으로 해결할 수 있으므로 아래처럼 적어준다.
+
+```
+// App.tsx
+function App() {
+	...
+	return (
+		<Wrapper>
+			<AnimatePresence exitBeforeEnter custom={isRight}>
+				<Box
+					variants={boxVariants}
+					custom={isRight}
+					initial="start"
+					animate="middle"
+					exit="end"
+					key={showIndex}
+				>
+					{showIndex}
+				</Box>
+			</AnimatePresence>
+			...
+		</Wrapper>
+	);
+}
+```
+
+### Layout Animation
+
+어떤 대상에 자동으로 애니메이션을 주고 싶으면 layout을 사용하면 된다.
+layout이 무엇인지는 알아보기 전에, 위치를 옮기는 애니메이션을 만들어보자.
+아래는 버튼을 누르면 원의 위치가 옮겨지는 코드다.
+
+```
+// App.tsx
+const Wrapper = styled(motion.div)`
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: linear-gradient(135deg, #e09, #d0e);
+`;
+
+const Box = styled(motion.div)`
+	width: 400px;
+	height: 300px;
+	border-radius: 16px;
+	background-color: white;
+	display: flex;
+	font-size: 48px;
+`;
+
+const Circle = styled(motion.div)`
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	background-color: blue;
+`;
+
+function App() {
+	const [clicked, setClicked] = useState(false);
+	const onClick = () => {
+		setClicked((prev) => !prev);
+	};
+	return (
+		<Wrapper onClick={onClick}>
+			<Box
+				style={{
+					justifyContent: clicked ? "flex-start" : "center",
+					alignItems: clicked ? "flex-start" : "center",
+				}}
+			>
+				<Circle />
+			</Box>
+		</Wrapper>
+	);
+}
+```
+
+clicked를 변수로 사용해서 Wrapper를 누를 때마다 Box의 스타일을 변경하고 있다.
+만약 여기에 애니메이션을 주고 싶으면 앞에서 했듯이 variants를 만들고 custom을 사용하면 된다.
+그런데 위의 코드를 조금만 수정하고도 간단히 애니메이션을 추가할 수 있다.
+방법은 간단한데, Circle에 layout만 추가하면 된다.
+
+```
+// App.tsx
+function App() {
+	const [clicked, setClicked] = useState(false);
+	const onClick = () => {
+		setClicked((prev) => !prev);
+	};
+	return (
+		<Wrapper onClick={onClick}>
+			<Box
+				style={{
+					justifyContent: clicked ? "flex-start" : "center",
+					alignItems: clicked ? "flex-start" : "center",
+				}}
+			>
+				<Circle layout />
+			</Box>
+		</Wrapper>
+	);
+}
+```
+
+보다시피 layout만 추가했는데도 css 변화에 맞춰 애니메이션이 생긴다.
+사용법이 굉장히 간단하므로 알아두면 편하게 쓸 수 있다.
+
+다음으로 layoutId를 소개하겠다.
+layoutId는 layout에 Id가 추가된 것이다.
+Id가 생겼기 때문에 새로 생기는 컴포넌트가 기존의 것과 동일한지 아닌지를 알 수 있다.
+이를 사용해 같은 컴포넌트가 생기면 이전의 컴포넌트가 다음 컴포넌트로 변하는 애니메이션 효과를 줄 수 있다.
+
+layoutId를 사용해서 생기는 이점을 알기 위해 하나의 예시를 들어보겠다.
+버튼을 누를때마다 왼쪽 박스와 오른쪽 박스를 오가는 원을 상상해보자.
+variants를 사용해 이 애니메이션을 구현하는 것은 가능하지만 쉽지 않다.
+variants는 구조를 바꾸지 않는다.
+그래서 1번 박스에 속한 것이 2번 박스에 속하도록 옮길 수 없다.
+애니메이션으로 옮긴 것처럼 표현할 수는 있지만, 속하지는 않아서 2번 박스의 스타일이 적용되지 않는다.
+이런 부분을 일일이 손으로 구현해줘야 하는 어려움이 있다.
+
+앞의 layout을 사용하기도 어렵다.
+사물이 한 박스 안에 있을 때는 layout으로 체크가 가능하다.
+그렇지만 두 박스 사이에선 layout이 작동하지 않는다.
+아래는 박스를 2개 만들고 layout을 사용해본 것이다.
+
+```
+// App.tsx
+const Wrapper = styled(motion.div)`
+	...
+	justify-content: space-around;
+`;
+
+const Box = styled(motion.div)`
+	...
+	justify-content: center;
+	align-items: center;
+`;
+
+function App() {
+	const [clicked, setClicked] = useState(false);
+	const onClick = () => {
+		setClicked((prev) => !prev);
+	};
+	return (
+		<Wrapper onClick={onClick}>
+			<Box>{!clicked ? <Circle layout /> : null}</Box>
+			<Box>{clicked ? <Circle layout /> : null}</Box>
+		</Wrapper>
+	);
+}
+```
+
+위 코드는 원의 위치만 옮겨질뿐 애니메이션이 일어나지 않는다.
+이처럼 서로 다른 박스에서의 변화를 추적하기 위해선 다른 방법이 필요하다.
+Framer motion은 이를 layoutId를 사용해서 해결한다.
+박스가 달라도 layoutId가 같다면 같은 컴포넌트로 생각하는 것이다.
+layout 대신에 layoutId="circle"을 줘보자.
+
+```
+// App.tsx
+function App() {
+	const [clicked, setClicked] = useState(false);
+	const onClick = () => {
+		setClicked((prev) => !prev);
+	};
+	return (
+		<Wrapper onClick={onClick}>
+			<Box>{!clicked ? <Circle layoutId="circle" /> : null}</Box>
+			<Box>{clicked ? <Circle layoutId="circle" /> : null}</Box>
+		</Wrapper>
+	);
+}
+```
+
+버튼을 누르면 원 사이에 애니메이션이 생긴 것을 볼 수 있다.
+지금까지의 내용을 정리해보자.
+variants와 initial, animate, exit을 사용해서 애니메이션을 만들 수 있다.
+이때 같은 variants는 같은 애니메이션을 만들기 때문에, 공통된 애니메이션을 만들기 좋다.
+한 컴포넌트 내에서 일어나는 애니메이션은 layout을 사용해도 된다.
+layout을 준 대상은 스타일 변화를 체크해서 스스로 애니메이션을 만든다.
+다만 둘 다 다른 박스로 옮겨지는 애니메이션은 만들기 힘들다.
+이 경우는 애니메이션 대상을 2개 만들고 layoutId를 줘서 해결할 수 있다.
+Framer Motion은 layoutId가 같은 대상은 컴포넌트를 넘어서 같은 존재로 인식한다.
+그래서 서로 다른 컴포넌트 사이의 애니메이션이 발생한다.
+
+### Tab Card
+
+카드를 누르면 해당 카드가 확대되는 애니메이션을 만들어보려고 한다.
+우선 grid를 사용해서 카드를 4개 만들어준다.
+
+```
+// App.tsx
+const Box = styled(motion.div)`
+	width: 400px;
+	height: 300px;
+	border-radius: 16px;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+	font-size: 48px;
+	div:first-child,
+	div:last-child {
+		grid-column: span 2;
+	}
+`;
+
+const Card = styled(motion.div)`
+	background-color: white;
+	border-radius: 24px;
+`;
+
+function App() {
+	return (
+		<Wrapper>
+			<Box>
+				<Card />
+				<Card />
+				<Card />
+				<Card />
+			</Box>
+		</Wrapper>
+	);
+}
+```
+
+이제 카드를 눌렀을 때, 카드가 커지면서 정중앙에 보이게 만들려고 한다.
+이때 카드 자체의 스타일을 변경하는 애니메이션은 구현하기 어렵다.
+그래서 layoutId를 사용해서 애니메이션을 적용하겠다.
+
+애니메이션을 만들기 전에 카드를 눌렀을 때 보일 컴포넌트를 만들어준다.
+그리고 state를 만들어서 카드가 클릭되었는지 여부를 가지고 화면을 보여준다.
+모든 카드에 적용해야 하지만, 우선은 첫 번째 카드에만 클릭 기능을 만들어줬다.
+
+```
+// App.tsx
+const CardClicked = styled(motion.div)`
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, 0.5);
+`;
+
+function App() {
+	const [cardClicked, setCardClicked] = useState(false);
+	const onClick = () => {
+		setCardClicked((prev) => !prev);
+	};
+	return (
+		<Wrapper>
+			<Box>
+				<Card onClick={onClick} />
+				<Card />
+				<Card />
+				<Card />
+			</Box>
+			{cardClicked ? (
+				<CardClicked onClick={onClick}>
+					<Card
+						style={{ width: "300px", height: "200px" }}
+					/>
+				</CardClicked>
+			) : null}
+		</Wrapper>
+	);
+}
+```
+
+첫 번째 카드를 클릭하면 CardClicked가 화면에 보인다.
+이제 카드가 바뀌는 애니메이션을 줘야 한다.
+우선 CardClicked에 쓰일 variants를 만들어서 적용시킨다.
+이때 카드가 사라질 때 애니메이션을 사용하기 위해 AnimatePresence로 감싸준다.
+
+```
+// App.tsx
+const clickedVariant = {
+	hidden: {
+		backgroundColor: "rgba(0, 0, 0, 0)",
+	},
+	visible: {
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+	},
+	exit: {
+		backgroundColor: "rgba(0, 0, 0, 0)",
+	},
+};
+
+function App() {
+	...
+	return (
+		<Wrapper>
+			...
+			<AnimatePresence>
+				{cardClicked ? (
+					<CardClicked
+						variants={clickedVariant}
+						initial="hidden"
+						animate="visible"
+						exit="exit"
+						onClick={onClick}
+					>
+						...
+					</CardClicked>
+				) : null}
+			</AnimatePresence>
+		</Wrapper>
+	);
+}
+```
+
+이제 첫 번째 카드가 CardClied 안의 Card로 변하는 애니메이션을 적용시키자.
+이는 각 카드에 layoutId를 지정해주면 된다.
+
+```
+// App.tsx
+function App() {
+	...
+	return (
+		<Wrapper>
+			<Box>
+				<Card layoutId="first" onClick={onClick} />
+				<Card />
+				<Card />
+				<Card />
+			</Box>
+			<AnimatePresence>
+				{cardClicked ? (
+					<CardClicked
+						variants={clickedVariant}
+						initial="hidden"
+						animate="visible"
+						exit="exit"
+						onClick={onClick}
+					>
+						<Card
+							layoutId="first"
+							style={{ width: "300px", height: "200px" }}
+						/>
+					</CardClicked>
+				) : null}
+			</AnimatePresence>
+		</Wrapper>
+	);
+}
+```
+
+카드를 클릭해보면 첫 번째 카드가 커지거나 작아지는 애니메이션이 적용되었다.
+나머지 카드에도 같은 기능을 적용하려고 한다.
+생각해보면 클릭된 상황은 5가지가 존재한다.
+아무것도 클릭되지 않은 상황 1개와 각각이 클릭된 상황 4개가 있다.
+이 5개의 상태를 state로 표시하면, state에 어떤 카드가 클릭되었는지 저장된다.
+이를 가지고 key, layoutId를 만들어주면 된다.
+
+우선 clickState를 저장할 State를 만든다.
+그리고 ["1", "2", "3", "4"]로 map을 사용해서 Card를 만든다.
+이때 string은 원소로 사용하는 이유는 layoutId가 string을 써야하기 때문이다.
+그리고 onClick 시에 clickState를 바꿔줘야 한다.
+이때 clickState는 ["1", "2", "3", "4"] 중의 하나가 된다.
+clickState가 처음에는 null일 것을 생각하면 타입이 string | null이 된다.
+이를 useState를 사용할 때 적어줘야 한다.
+
+```
+// App.tsx
+function App() {
+	const [clickState, setClickState] = useState<string | null>(null);
+	return (
+		<Wrapper>
+			<Box>
+				{["1", "2", "3", "4"].map((e) => (
+					<Card layoutId={e} onClick={() => setClickState(e)} />
+				))}
+			</Box>
+			...
+		</Wrapper>
+	);
+}
+```
+
+이제 clickState가 null이 아닐 경우엔 클릭된 화면을 보여주면 된다.
+그러므로 cardClicked를 clickState로 대체한다.
+그리고 onClick 시에 clickState를 null로 만들어준다.
+마지막으로 애니메이션 연결을 위해 Card의 layoutId를 clickState로 만든다.
+
+```
+// App.tsx
+function App() {
+	...
+	return (
+		<Wrapper>
+			...
+			<AnimatePresence>
+				{clickState ? (
+					<CardClicked
+						variants={clickedVariant}
+						initial="hidden"
+						animate="visible"
+						exit="exit"
+						onClick={() => setClickState(null)}
+					>
+						<Card
+							layoutId={clickState}
+							style={{ width: "300px", height: "200px" }}
+						/>
+					</CardClicked>
+				) : null}
+			</AnimatePresence>
+		</Wrapper>
+	);
+}
+```
