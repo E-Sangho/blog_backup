@@ -1867,3 +1867,68 @@ function App() {
 ```
 
 ### Keyframe
+
+### Component animation controls
+
+지금까지 우리는 `animate="middle"`처럼 animate에 variants의 이름을 바로 줬었다.
+그런데 상황에 따라 animate에 다른 값을 주고 싶을 수 있다.
+이때 useState를 사용하면 아래처럼 할 수 있다.
+
+```
+const check = useState(false);
+
+return (
+	<motion.div animate={check ? "middle" : "other"} />
+)
+```
+
+위에서 check의 값을 바꿔주는 코드만 추가하면 animate가 변경된다.
+이처럼 간단한 애니메이션 조작은 쉽지만, 좀 더 복잡한 변경을 하기 어렵다.
+예를 들어서 애니메이션을 새로 지정하거나, 멈추거나, 다른 것으로 시작하는 등의 일을 해야 한다고 하자.
+이때 각 상태를 새로운 state를 만들어서 해결하려면, 관리할 state가 너무 많아진다.
+애니메이션에 복잡한 조작을 해야 하면 useAnimation을 사용하면 된다.
+useAnimation은 animate에 들어갈 애니메이션 대상을 지정, 시작, 정지 시에 사용한다.
+set을 사용하면 애니메이션을 지정하고, start는 해당 애니메이션을 시작하고, stop은 애니메이션을 멈춘다.
+
+set은 애니메이션을 지정하는데 사용한다.
+이때 variants로 지정하는 것도 가능하다.
+
+```
+const controls = useAnimation();
+
+// use property
+controls.set({ opacity: 0 });
+
+// use variants
+controls.set("hidden");
+```
+
+다음으로 start는 아래처럼 직접 애니메이션을 지정해서 시작할 수 있다.
+
+```
+controls.start({
+	x: 0,
+	transition: {
+		duration: 1
+	}
+});
+```
+
+하지만 아래처럼 variants의 라벨을 사용하는 것이 편하다.
+
+```
+const divVariants = {
+	label1: {
+		x: 0,
+		transition: {
+			duration: 1
+		}
+	}
+}
+
+controls.start("label1");
+
+<motion.div variants={divVariants} animate={controls} />
+```
+
+애니메이션이 실행되는 도중에 중단하려면 `controls.stop()`으로 중단한다.
