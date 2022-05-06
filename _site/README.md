@@ -1,7 +1,0 @@
-.
-
-├── assets
-│   ├── css
-│   ├── images
-│   └── js
-...

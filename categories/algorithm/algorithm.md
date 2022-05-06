@@ -1,8 +1,0 @@
----
-layout: posts 
-title: Blog
-pagination:
-    enabled: true
-    category: algorithm
----
-# This is blog page
