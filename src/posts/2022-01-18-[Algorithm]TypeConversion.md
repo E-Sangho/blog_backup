@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] Type Conversion(Type Casting)
-date: Tue Jan 18 12:16:18 JST 2022
+date: 2022-01-18 12:16:18
 categories:
 tag:
 toc: true

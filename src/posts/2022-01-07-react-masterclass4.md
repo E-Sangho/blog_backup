@@ -1,7 +1,7 @@
 ---
 layout: post
 title: State Management
-date: Fri Jan  7 12:31:29 JST 2022
+date: 2022-01-07 12:31:29
 categories:
 tag:
 toc: true

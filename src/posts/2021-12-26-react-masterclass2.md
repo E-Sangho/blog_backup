@@ -1,7 +1,7 @@
 ---
 layout: post
 title: react-masterclass 2 TypeScript
-date: Sun Dec 26 15:54:28 JST 2021
+date: 2021-12-26 15:54:28
 categories: React
 tag:
 toc: true

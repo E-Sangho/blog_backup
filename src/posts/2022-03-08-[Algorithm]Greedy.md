@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Greedy Algorithm
-date: Tue Mar  8 12:39:01 JST 2022
+date: 2022-03-08 12:39:01
 categories:
 tag:
 toc: true

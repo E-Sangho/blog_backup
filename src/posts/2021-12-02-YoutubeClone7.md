@@ -1,14 +1,16 @@
 ---
 layout: post
 title: Youtube Clone 7
-date: Thu Dec  2 13:38:18 JST 2021
+date: 2021-12-02 13:38:18
 categories: Nodsjs
 tag:
 toc: true
 ---
+
 ## 11 VIDEO PLAYER
 
 ### 11.0 Player Setup
+
 지금까지 우리는 브라우저에서 기본 제공하는 비디오 플레이어를 사용했다. 나쁘진 않지만, 다른 스타일을 적용할 수가 없다. 그러므로 직접 비디오 플레이어를 만들어서 스타일을 적용시키겠다.
 
 잠시 Webpack 코드를 기억해보자. 우리가 만든 main.js의 코드는 현재 base.pug에서 불러오고 있다. 그러므로 모든 페이지에서 자바스크립트 코드를 가져다 쓰고 있다. 그런데 비디오 플레이어 코드를 만든다면, 모든 페이지에서 불러오게 된다. 하지만 비디오 플레이어 코드는 비디오가 동작하는 곳에서만 필요한 코드이므로 이는 낭비다. 그러므로 다른 자바스크립트 파일을 만들어서 필요한 페이지에만 로드해야 한다.
@@ -66,11 +68,11 @@ block scripts
 block content
     video(src="/" + video.fileUrl, controls)
     //
-        div 
+        div
             p=video.description
-            small=video.createdAt 
-            small Uploaded by 
-                a(href=`/users/${video.owner._id}`)=video.owner.name 
+            small=video.createdAt
+            small Uploaded by
+                a(href=`/users/${video.owner._id}`)=video.owner.name
         if String(video.owner._id) === String(loggedInUser._id)
             a(href=`${video.id}/edit`) Edit Video &rarr;
             br
@@ -81,6 +83,7 @@ block content
 이제 자바스크립트 코드를 만들 준비가 다 되었다.
 
 ### 11.1 Play Pause
+
 우선 필요할 것 같은 버튼과 기능을 모두 만들어준다.
 
 ```
@@ -93,7 +96,7 @@ block content
         input(type="range", step="0.1", value=0.5, min="0", max = "1")#volume
         div
             span#currentTime 00:00
-            span  / 
+            span  /
             span#totalTime 00:00
         div
             input(type="range", step="1", value=0, min="0")#timeline
@@ -160,7 +163,8 @@ video.addEventListener("play", handlePlay);
 ```
 
 ### 11.2 Mute and Unmute
-음소거 버튼을 만들어주려고 하는데, 이 경우 음량을 나타내는 input의 값도 같이 조정해줘야 한다. 앞서 살펴본 페이지를 보면 .muted로 음소거 여부를 정할 수 있다고 나온다. 특이한 점은 앞서 play, pause 처럼 함수로 만들지 않았다는 점인데, 그 이유는 모르겠다. 어쨌거나, .muted를 true, false로 음소거 하도록 함수를 만들어서 추가했다. 
+
+음소거 버튼을 만들어주려고 하는데, 이 경우 음량을 나타내는 input의 값도 같이 조정해줘야 한다. 앞서 살펴본 페이지를 보면 .muted로 음소거 여부를 정할 수 있다고 나온다. 특이한 점은 앞서 play, pause 처럼 함수로 만들지 않았다는 점인데, 그 이유는 모르겠다. 어쨌거나, .muted를 true, false로 음소거 하도록 함수를 만들어서 추가했다.
 
 ```
 // videoPlayer.js
@@ -235,6 +239,7 @@ const handleMute = (e) => {
 이렇게 하고 Mute 버튼을 누르면 볼륨도 같이 조정된다. 하지만 아직 해야 할 일이 2가지가 있다. 우선 음소거 해제 시에 원래 음량으로 돌아가야 하고, 또 볼륨을 드래그하면 자동으로 음소거가 해제 되어야 한다.
 
 ### 11.3 Volume
+
 우리가 만든 볼륨은 장식일 뿐 아무런 일도 하지 않는다. 볼륨을 바꾸면 video에 연결된 볼륨을 바꿔주기 위해 함수를 만들어준다. 그리고 event를 출력해 무엇이 나오는지 확인해보자.
 
 ```
@@ -246,7 +251,7 @@ const handleVolumeChange = (event) => {
 volumeRange.addEventListener("change", handleVolumeChange);
 ```
 
-그런데 볼륨을 확인해보면 버튼을 움직일 때 반응하는 것이 아니라, 버튼을 놓을 때 반응한다. 동영상 플레이어는 음량 조절이 실시간으로 진행되어야 하므로 이는 우리가 원하던 일이 아니다. 
+그런데 볼륨을 확인해보면 버튼을 움직일 때 반응하는 것이 아니라, 버튼을 놓을 때 반응한다. 동영상 플레이어는 음량 조절이 실시간으로 진행되어야 하므로 이는 우리가 원하던 일이 아니다.
 
 [range](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/range)를 확인해보면 events가 change 외에도 input이 있다. 함수의 이벤트를 input으로 바꾼 다음에 볼륨 조절을 해보면 우리가 원하던 기능이 input임을 확인할 수 있다.
 
@@ -303,6 +308,7 @@ const handleVolumeChange = (event) => {
 ```
 
 ### 11.4 Duration and Current Time
+
 [HTMLMediaElement](https://developer.mozilla.org/ko/docs/Web/API/HTMLMediaElement)를 확인하면 loadedmetadata가 있다. 이름 그대로 비디오의 메타 데이터가 로드 될 때, 실행되는 이벤트다. addEventListener과 함께 사용하면 메타 데이터가 불러와질 때마다 함수가 작동되도록 할 수 있다. 다음으로 .duration은 미디어의 전체 길이를 초 단위로 double 값으로 반환한다. 이 둘을 같이 사용하면 페이지가 불러와질 때, 다시 말해 메타 데이터가 호출될 때, 미디어의 길이를 불러오게 된다. 코드로 작성하면 아래처럼 된다.
 
 ```
@@ -345,6 +351,7 @@ video.addEventListener("timeupdate", handleTimeUpdate);
 ```
 
 ### 11.5 Time Formatting
+
 우리가 만든 비디오 시간은 단순히 숫자일 뿐, 시간을 표현하는 형태가 아니다. 그러므로 숫자를 시간을 표시하도록 형태를 바꿔줘야 한다. 예를 들어서 25를 00:00:25로 바꿔줘야 한다.
 
 우선 간단한 방법을 알아보자. Date()는 함수로 사용하면 현재 시간을 나타내고, new Date()로 사용하면 객체의 인스턴스를 만든다. 둘의 차이는 Date는 변수를 무시하고 무조건 현재 시간을 만든다면, new Date()는 변수를 받아서 1970년도부터 세는 시간을 만들어 준다. 둘의 차이를 확인하려면 아래 코드를 실행시켜보자.
@@ -400,6 +407,7 @@ const secondsToTime = (seconds) => {
 하지만 대부분 비디오 시간이 24시간을 넘어갈 일이 없으므로 위의 간단한 방법을 사용해도 큰 문제는 없다.
 
 ### 11.6 Timeline
+
 다음으로 바를 움직이면 재생 시간을 바꿔주는 기능을 만들겠다. 앞서 만들었던 #timeline을 기억해보면 step="1", value=0, min="0"으로 설정했다. 여기서 max를 설정하지 않은 이유는 비디오의 길이를 모르기 때문이다. 그래서 우선은 비디오의 길이를 줘야 하는데, 이는 비디오가 불러와질 때 결정 되어야 한다. 그러므로 handelLoadedMetadata에 코드를 추가하면 된다.
 
 ```
@@ -446,6 +454,7 @@ block content
 ```
 
 ### 11.7 Fullscreen
+
 풀스크린을 만드는 버튼을 만들어보자. 풀스크린을 적용하는 법은 간단하다. element.requestFullscreen()을 사용하면 된다.
 
 ```
@@ -474,7 +483,7 @@ block content
             input(type="range",step="0.1", value=0.5, min="0", max="1")#volume
             div
                 span#currenTime 00:00
-                span  / 
+                span  /
                 span#totalTime 00:00
             div
                 input(type="range",step="1", value="0", min="0")#timeline
@@ -485,14 +494,14 @@ block content
             p=video.description
             small=video.createdAt
         div
-            small Uploaded by 
+            small Uploaded by
                 a(href=`/users/${video.owner._id}`)=video.owner.name
         if String(video.owner._id) === String(loggedInUser._id)
             a(href=`${video.id}/edit`) Edit Video &rarr;
             br
             a(href=`${video.id}/delete`) Delete Video &rarr;
 block scripts
-    script(src="/static/js/videoPlayer.js") 
+    script(src="/static/js/videoPlayer.js")
 ```
 
 이렇게하면 videoContainer를 풀스크린으로 만들면 모든 것이 같이 보인다. 물론 아무런 스타일이 없어서, 빈 공간이 생기긴 하지만 나중에 바꿔주면 된다.
@@ -535,6 +544,7 @@ fullScreenBtn.addEventListener("click", handleFullscreen);
 이를 해결하기 위해선 자바스크립트에서 키 입력을 받는 법을 알아야 한다. 키 입력을 받는 이벤트는 keypress, keydown, keyup인데 이중 keydown과 keyup은 키를 눌렀을 때 반응 할 것인지, 아니면 key를 누르고 들었을 때 반응할 것인지에 따라 갈린다. 그리고 keypress와 keydown은 키를 눌렀을 때 반응한다. 그런데 keypresse와 keydown은 비슷해 보이는 둘은 차이가 있다. 우선 keydown은 어떤 키든지 눌러지면 반응하게 된다. 예를 들어 a키를 눌렀을 때, 반응하게 하고 싶다고 하자. 그런데 keydown은 이를 A로 인식하고 받아들인다 정확히는 아스키 코드인 65로 인식한다. 반면 keypress는 a와 A를 다르게 인식해서 a를 97 그리고 A를 65로 인식한다. 하지만 keypress는 문제점이 있는데 글자로 표현되지 않는 키 입력은 읽지 않는다. 예를 들어서 ctrl, alt, esc, shift 등은 keypress에서 인식할 수 없다. keydown은 어떤 키든지 간에 아스키코드로 인식하기 때문에 키 입력을 사용할 때 무조건 keydown을 사용하면 된다.
 
 ### 11.8 Controls Events part One
+
 마우스가 움직이면 컨트롤러가 보이도록 만들어주고 싶다. mousemove 이벤트를 사용하면 마우스의 움직일 경우 함수를 실행시킬 수 있다. 그리고 컨트롤러를 자바스크립트에서 사용하기 위해서 #videoControls를 지정해줬다. 이제 마우스가 움직이면 videoControls에 showing class가 추가되도록 만들겠다. 나중에 css에서 showing에 따라 보이도록 만들어주면 되기 때문이다.
 
 ```
@@ -620,6 +630,7 @@ const handleMouseLeave = () => {
 ```
 
 ### 11.9 Controls Events part Two
+
 마우스가 움직이면 컨트롤러가 보이게 만들어줬다. 그런데 마우스를 멈출 경우 시간이 조금 지나면 컨트롤러가 보이지 않도록 만들어야 한다. 아쉽게도 마우스가 정지함을 인식하는 이벤트는 없다. 그래서 setTimeout과 clearTimeout을 사용해야 한다. handleMouseMove에서 마우스가 움직이면 setTimeout과 clearTimeout이 실행되게 해준다. 그러다가 마우스가 멈추면 setTimeout이 실행되면 된다. 아래 코드에서 showing 클래스를 지우는 코드가 반복되어서 따로 hideControls 함수로 만들어서 작성했다.
 
 ```
@@ -649,6 +660,7 @@ const handleMouseLeave = () => {
 ### 11.10 Recap
 
 ### 11.11 Style Recap
+
 우리가 바꿔줘야 할 것은 텍스트로 된 것을 아이콘으로 바꿔주는 일이다. watch.pug에서 각각에 fontawesome으로 아이콘으로 바꿔준다. 그리고 videoPlayer.js에서 querySelector("i")로 해당 아이콘을 선택해준 다음, 텍스트를 바꾸는 대신에 아이콘을 바꿔줘야 한다. 이는 .classList를 바꿔주는 것으로 가능하다.
 
 그리고 현재 비디오 컨트롤러에 마우스를 오래 올려 놓으면 컨트롤러가 사라지는 버그가 있다. 이는 비디오에 마우스를 올리고 있을 경우에만 handleMouseMove, handleMouseLeave가 실행되기 때문에 생기는 문제점으로, video가 아니라 videoContainer에 이벤트를 주면 간단히 해결된다.
@@ -855,7 +867,7 @@ block content
                     i.fas.fa-play
                 div.videoControls__time
                     span#currenTime 00:00
-                    span  / 
+                    span  /
                     span#totalTime 00:00
             input(type="range",step="1", value="0", min="0")#timeline.videoControls__timeline
             div.videoControls__volume
@@ -870,12 +882,12 @@ block content
             p=video.description
             small=video.createdAt
         div
-            small Uploaded by 
+            small Uploaded by
                 a(href=`/users/${video.owner._id}`)=video.owner.name
         if String(video.owner._id) === String(loggedInUser._id)
             a(href=`${video.id}/edit`) Edit Video &rarr;
             br
             a(href=`${video.id}/delete`) Delete Video &rarr;
 block scripts
-    script(src="/static/js/videoPlayer.js") 
+    script(src="/static/js/videoPlayer.js")
 ```

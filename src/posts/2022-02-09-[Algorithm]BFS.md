@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] BFS
-date: Wed Feb  9 23:04:42 JST 2022
+date: 2022-02-09 23:04:42
 categories:
 tag:
 toc: true

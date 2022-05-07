@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Youtube Clone 8
-date: Sun Dec  5 23:10:13 JST 2021
+date: 2021-12-05 23:10:13
 categories: Nodsjs
 tag:
 toc: true

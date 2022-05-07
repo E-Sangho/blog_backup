@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] DFS
-date: Fri Feb  4 12:54:22 JST 2022
+date: 2022-02-04 12:54:22
 categories:
 tag:
 toc: true

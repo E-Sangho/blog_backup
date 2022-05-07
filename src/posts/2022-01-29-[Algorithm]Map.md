@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] Hash Table
-date: Sat Jan 29 15:20:57 JST 2022
+date: 2022-01-29 15:20:57
 categories:
 tag:
 toc: true

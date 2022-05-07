@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] String
-date: Tue Jan 18 11:50:09 JST 2022
+date: 2022-01-18 11:50:09
 categories:
 tag:
 toc: true

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Youtube Clone] Before Start
-date: Mon Dec 13 11:48:43 JST 2021
+date: 2021-12-13 11:48:43
 categories: Clone, Youtube, Node.js, JavsScript
 tag:
 toc: true

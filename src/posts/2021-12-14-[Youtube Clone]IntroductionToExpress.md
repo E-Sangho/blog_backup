@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Youtube Clone] Introduction To Express
-date: Tue Dec 14 10:22:23 JST 2021
+date: 2021-12-14 10:22:23
 categories: Node.js, Express
 tag:
 toc: true

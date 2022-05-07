@@ -1,7 +1,7 @@
 ---
 layout: post
 title: react-masterclass 1 styled-components
-date: Fri Dec 24 17:47:57 JST 2021
+date: 2021-12-24 17:47:57
 categories: React, styled-components
 tag:
 toc: true

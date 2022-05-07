@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Youtube Clone] Start Node.js
-date: Mon Dec 13 18:18:43 JST 2021
+date: 2021-12-13 18:18:43
 categories: Node.js
 tag:
 toc: true

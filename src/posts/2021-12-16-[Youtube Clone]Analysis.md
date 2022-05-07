@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Yotube Clone] Analysis 
-date: Thu Dec 16 12:54:20 JST 2021
+date: 2021-12-16 12:54:20
 categories:
 tag:
 toc: true

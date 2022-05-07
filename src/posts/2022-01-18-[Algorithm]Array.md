@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] Array
-date: Tue Jan 18 13:35:00 JST 2022
+date: 2022-01-18 13:35:00
 categories:
 tag:
 toc: true

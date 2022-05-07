@@ -1,7 +1,7 @@
 ---
 layout: post
 title: react-masterclass 3 Crypto Tracker
-date: Mon Dec 27 14:59:21 JST 2021
+date: 2021-12-27 14:59:21
 categories: React
 tag:
 toc: true

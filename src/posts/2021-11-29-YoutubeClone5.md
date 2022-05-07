@@ -1,19 +1,22 @@
 ---
 layout: post
 title: Youtube Clone 5
-date: Mon Nov 29 13:24:20 JST 2021
+date: 2021-11-29 13:24:20
 categories: NodeJS
 tag:
 toc: true
 ---
+
 ## 9 WEBPACK
 
 ### 9.0 Introduction to Webpack
+
 이전에 우리는 Babel Node를 설치했다. Babel Node를 설치했기 때문에 최신 자바스크립트를 사용하더라도, NodeJS가 이해할 수 있는 코드로 번역해줬다. 이는 백엔드에서 일어나는 일이었다. 지금부터 우리는 프론트 엔드부분을 만들게 된다. 그런데 브라우저에 따라서 자바스크립트가 이해할 수 있는 범위가 다를 수 있다. 그렇기 때문에 Babel Node의 브라우저 버전이 필요하다. 그래서 사용하는 것이 Webpack으로 자바스크립트 뿐만 아니라 sass도 브라우저에서 구동하는 구형 자바스크립트와 css로 바꿔주는 일을 한다.
 
 그렇지만 대부분의 경우 Webpack을 직접 사용하는 경우가 드물다. 그 이유는 대부분의 프레임워크가 Webpack을 이미 포함하고 있는 경우가 많기 때문이다. 예를 들어 react, vue, svelte, next 등은 이미 Webpack을 포함하고 있어서 별도로 다룰 필요가 없다. 하지만 Webpack은 업계 표준으로 직접 다뤄보는 것도 중요한 경험이다.
 
 ### 9.1 Webpack Configuration part One
+
 이제 Webpack을 설치해보자. 우리가 필요한 것은 webpack과 webpack-cli로 devDependencies에 설치해주려고 한다. 그러므로 `npm i webpack webpack-cli --save -dev`로 설치하거나 조금 더 짧게 `npm i webpack webpack-cli -D`로 설치한다.
 
 Webpack을 설정하기 위해서, webpack.config.js라는 파일을 만들어야 한다. 이 파일은 굉장히 오래된 자바스크립트만 이해할 수 있으므로 import, export를 사용하지 못한다 대신에 require, module.exports를 사용해야 한다.
@@ -42,12 +45,13 @@ module.exports = {
 };
 ```
 
-이렇게 만든 코드를 실행시켜줘야 작동한다. 그러므로 scripts를 만들텐데, 우리는 이전에 dev를 만들어서 npm run dev로 간단히 코드를 실행했다. 다시 말해 scripts는 코드를 실행하는 간단한 명령어를 만드는 일이었다.  마찬가지의 일을 여기서 하려고 한다. scripts 아래에 `"assets": "webpack --config webpack.config.js"`를 작성한다.
+이렇게 만든 코드를 실행시켜줘야 작동한다. 그러므로 scripts를 만들텐데, 우리는 이전에 dev를 만들어서 npm run dev로 간단히 코드를 실행했다. 다시 말해 scripts는 코드를 실행하는 간단한 명령어를 만드는 일이었다. 마찬가지의 일을 여기서 하려고 한다. scripts 아래에 `"assets": "webpack --config webpack.config.js"`를 작성한다.
 
 하지만 이렇게 하고 `npm run assets`로 실행하면 에러가 나온다. output의 path는 절대경로가 되어야 한다는 에러로, Webpack 홈페이지를 보면 path.resolve()로 이를 해결한 것을 볼 수 있다. 다음에는 이를 고치는 법을 알아보겠다.
 
 ### 9.2 Webpack Configuration part Two
-우리는 Webpack에 상대경로를 입력했는데, 절대경로를 요구하고 있다. 한 번 `console.log(__dirname);`을 실행시켜보자. 그러면 파일까지의 경로를 보여준다. Webpack 홈페이지를 보면 이를 path.resolve()와 함께 사용하고 있다. path를 사용하려면 우선 path를 import 해야 한다. `const path = require("path");`로 불러와주고 `console.log(path.resolve(__dirname, ""))`를 출력해보자. 그러면 절대경로가 문자열로 출력된다. 이번에는 `console.log(path.resolve(__dirname, "assets", "js"));`를 출력해보자. 그러면 끝에 /assets/js가 붙은 것을 볼 수 있다. 즉 path.resolve는 __dirname 뒤에 우리가 원하는 경로를 추가하는 것이다. 이를 사용해 path를 수정하면 아래처럼 된다.
+
+우리는 Webpack에 상대경로를 입력했는데, 절대경로를 요구하고 있다. 한 번 `console.log(__dirname);`을 실행시켜보자. 그러면 파일까지의 경로를 보여준다. Webpack 홈페이지를 보면 이를 path.resolve()와 함께 사용하고 있다. path를 사용하려면 우선 path를 import 해야 한다. `const path = require("path");`로 불러와주고 `console.log(path.resolve(__dirname, ""))`를 출력해보자. 그러면 절대경로가 문자열로 출력된다. 이번에는 `console.log(path.resolve(__dirname, "assets", "js"));`를 출력해보자. 그러면 끝에 /assets/js가 붙은 것을 볼 수 있다. 즉 path.resolve는 \_\_dirname 뒤에 우리가 원하는 경로를 추가하는 것이다. 이를 사용해 path를 수정하면 아래처럼 된다.
 
 ```
 // webpack.config.js
@@ -130,7 +134,8 @@ module.exports = {
 그리고 다시 `npm run assets`를 실행하고 main.js를 보면 좀 더 보기 쉽게 바뀌었다. 개발중에는 mode를 development로 유지하고 완료되면 production으로 바꿔주면 된다.
 
 ### 9.3 Webpack Configuration part Three
-client 폴더는 우리가 코드를 작성할 폴더고, assets는 브라우저가 읽어낼 파일이 있는 폴더다. 그런데 Express에게는 assets 폴더나, main.js 파일이 존재하는지 모른다. 그러므로 Express에서 저 폴더들을 읽을 수 있게 만들어줘야 한다. 이전에 이와 동일한 일을 uploads 폴더에 진행했었는데, server.js에서 고쳐줬었다. server.js로 이동해서 `app.use("/assets", express.static("assets"));`로 assets 폴더를 사용할 수 있게 설정한다. 
+
+client 폴더는 우리가 코드를 작성할 폴더고, assets는 브라우저가 읽어낼 파일이 있는 폴더다. 그런데 Express에게는 assets 폴더나, main.js 파일이 존재하는지 모른다. 그러므로 Express에서 저 폴더들을 읽을 수 있게 만들어줘야 한다. 이전에 이와 동일한 일을 uploads 폴더에 진행했었는데, server.js에서 고쳐줬었다. server.js로 이동해서 `app.use("/assets", express.static("assets"));`로 assets 폴더를 사용할 수 있게 설정한다.
 
 ```
 server.js
@@ -141,6 +146,7 @@ app.use("/static", express.static("assets"));
 app.use("/", rootRouter);
 ...
 ```
+
 이제 clint 폴더의 main.js로 이동해서 코드를 `alert("hi")`로 고쳐보자. 그리고 `npm run assets`로 코드를 만든다. 다음으로 이 코드가 실행되도록, base.pug로 이동해서 제일 아래에 `script(src="/assets/js/main.js")`를 입력하자. 그리고 서버를 실행해서 화면에 들어가면 코드가 실행되는 것을 볼 수 있다.
 
 ```
@@ -152,6 +158,7 @@ app.use("/", rootRouter);
 ```
 
 ### 9.4 SCSS Loader
+
 지금까지 자바스크립트 코드를 처리하는 법을 알아봤다. 이번에는 css를 변환하는 법을 알아보자. scss 파일을 변환하기 위해서는 loader이 3개 필요한데, sass-loader, css-loader, style-loader이다. sass-loader는 scss 파일을 가져다가 css 파일로 전환시킨다. `npm i sass-loader sass -D`로 설치해준다. css-loader는 @import와 url()을 해석해준다. `npm i css-loader -D`로 설치하자. 마지막으로 style-loader은 css를 DOM에 주입한다. `npm i style-loader -D`로 설치한다. 이렇게하면 필요한 것은 모두 설치해줬다.
 
 다음으로 loader를 적용시켜야 한다. loader를 적용시키는 것은 마지막 것부터 적용시켜야 한다. 그러므로 style/css/sass 순서로 적어줘야 한다.
@@ -174,7 +181,7 @@ module.exports = {
 };
 ```
 
-css가 잘 적용되는지 보기 위해 간단히 파일을 만든다. client 폴더 안에 scss라는 폴더를 만들고, 그 안에 style.scss, _variables.scss 파일을 만들어준다. 그리고 다음처럼 만든다.
+css가 잘 적용되는지 보기 위해 간단히 파일을 만든다. client 폴더 안에 scss라는 폴더를 만들고, 그 안에 style.scss, \_variables.scss 파일을 만들어준다. 그리고 다음처럼 만든다.
 
 ```
 // style.scss
@@ -201,6 +208,7 @@ console.log("hi");
 이렇게하고 코드를 실행하면 붉은색 화면이 나오고, 브라우저의 콘솔을 보면 hi가 출력된. 그렇다면 코드는 정확히 어떻게 실행되는 것일까? 이는 webpack.config.js 파일을 읽어보면 알 수 있다. 먼저 main.js 파일을 가져와서 바벨로 자바스크립트를 번역한다. 그리고 main.js에 scss 파일이 속해 있으므로 sass-loader을 사용해 css로 번역한다. 그리고 css-loader를 사용해 @import, url()을 해석한다. 마지막으로 style-loader를 적용시켜서 브라우저가 읽을 수 있는 css로 바꿔준다.
 
 ### 9.5 MiniCssExtractPlugin
+
 우리가 지금까지 작업한 것에 한 가지 문제가 있다. 바로 css 코드가 자바스크립트 코드 안에 들어 있다는 점이다. 보통은 웹페이지를 만들 때, css, 자바스크립트를 분리해서 만든다. 이는 css가 먼저 실행되고 자바스크립트가 실행되도록 해서, 화면이 바로 나오게 하고 싶기 때문이다. 그런데 우리가 만든 것은 css가 자바스크립트 안에 있어서 로딩을 기다려야 한다. 이는 style-loader 때문이므로 이를 다른 것으로 교체해줘야 한다.
 
 그러기 위해 사용하는 것이 [MiniCssExtractPlugin](https://webpack.js.org/plugins/mini-css-extract-plugin/)이다. `npm install --save-dev mini-css-extract-plugin`로 설치해준다. 그리고 webpack.config.js를 아래처럼 수정한다.
@@ -324,6 +332,7 @@ html(lang="ko")
 ```
 
 ### 9.6 Better Deveolper Experience
+
 매번 scss나 자바스크립트가 바뀔 때마다, assets 폴더를 삭제하는건 번거롭다. 게다가 scss나 자바스크립트가 변경될 때마다 `npm run assets`를 실행시키는 것도 하고 싶지 않다. 그래서 사용하는 것이 clean과 watch다. webpack.config.js에 다음을 추가해주자.
 
 ```

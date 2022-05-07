@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Youtube Clone] Routers
-date: Tue Dec 14 15:22:14 JST 2021
+date: 2021-12-14 15:22:14
 categories: Node.js Router
 tag:
 toc: true

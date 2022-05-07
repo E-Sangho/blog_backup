@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Combination
-date: Fri Mar  4 13:18:44 JST 2022
+date: 2022-03-04 13:18:44
 categories:
 tag:
 toc: true

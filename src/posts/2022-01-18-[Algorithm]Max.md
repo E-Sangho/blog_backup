@@ -1,7 +1,7 @@
 ---
 layout: post
 title: [Algorithm] SAFE_INTEGER
-date: Tue Jan 18 13:48:22 JST 2022
+date: 2022-01-18 13:48:22
 categories:
 tag:
 toc: true

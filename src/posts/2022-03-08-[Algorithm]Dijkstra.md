@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Dijkstra Algorithm
-date: Tue Mar  8 12:21:09 JST 2022
+date: 2022-03-08 12:21:09
 categories:
 tag:
 toc: true

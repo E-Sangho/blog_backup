@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Heap
-date: Mon Feb 28 23:23:38 JST 2022
+date: 2022-02-28 23:23:38
 categories:
 tag:
 toc: true

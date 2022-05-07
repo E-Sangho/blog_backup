@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Prim's Algorithm
-date: Tue Mar  8 12:07:18 JST 2022
+date: 2022-03-08 12:07:18
 categories:
 tag:
 toc: true

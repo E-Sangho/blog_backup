@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Kruskal's Minimum Spanning Tree
-date: Tue Mar  8 14:22:19 JST 2022
+date: 2022-03-08 14:22:19
 categories:
 tag:
 toc: true

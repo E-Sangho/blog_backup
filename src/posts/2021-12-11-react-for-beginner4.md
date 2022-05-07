@@ -1,7 +1,7 @@
 ---
 layout: post
 title: React for Beginner 4
-date: Sat Dec 11 20:44:53 JST 2021
+date: 2021-12-11 20:44:53
 categories: React
 tag:
 toc: true

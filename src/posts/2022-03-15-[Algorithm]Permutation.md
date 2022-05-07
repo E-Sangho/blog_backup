@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Permutation
-date: "Tue Mar 15 10:57:15 JST 2022"
+date: 2022-03-15 10:57:15
 categories:
 tag:
 toc: true
