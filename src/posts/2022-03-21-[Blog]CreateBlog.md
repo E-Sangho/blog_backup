@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Create React Blog
-date: 2022-03-21 21 15:44:22
+date: 2022-03-21 15:44:22
 categories: React, TypeScript
 tag:
 toc: true
