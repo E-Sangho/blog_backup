@@ -1,10 +1,6 @@
 ---
-layout: post
-title: State Management TodoList
-date: 2022-03-31 15:19:22
-categories:
-tag:
-toc: true
+title: "State Management TodoList"
+date: "2022-03-31 15:19:22"
 ---
 
 # TodoList
@@ -14,7 +10,7 @@ toc: true
 파일을 초기화해서 가장 기본적인 것만 만들어줬다.
 "react-router-dom", "recoil", "styled-components"만 설치한 다음, 아래처럼 기본적인 theme, GlobalStyle, recoil만 만들어 놓는다.
 
-```
+```javascript
 // App.tsx
 import { createGlobalStyle } from "styled-components";
 
@@ -33,7 +29,7 @@ function App() {
 export default App;
 ```
 
-```
+```javascript
 // index.tsx
 import React from "react";
 import ReactDOM from "react-dom";
@@ -54,7 +50,7 @@ ReactDOM.render(
 );
 ```
 
-```
+```javascript
 // styled.d.ts
 import "styled-components";
 
@@ -68,7 +64,7 @@ declare module "styled-components" {
 }
 ```
 
-```
+```javascript
 // theme.ts
 import "styled-components";
 import { DefaultTheme } from "styled-components";
@@ -91,7 +87,7 @@ export const lightTheme: DefaultTheme = {
 그리고 ToDoList.tsx 안에 TodoList를 만든다.
 대부분 다뤄본 내용이므로 자세한 것은 생략하겠다.
 
-```
+```javascript
 // ToDoList.tsx
 import React, { useState } from "react";
 
@@ -127,7 +123,7 @@ event에 타입을 지정하는 방법은 2가지가 있다.
 하나는 함수에 타입을 지정해주는 방법이고, 다른 하나는 event의 타입을 지정해주는 것이다.
 아래는 각각의 예시다.
 
-```
+```javascript
 const onChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     ...
 };
@@ -160,7 +156,7 @@ Handler가 있으므로 이는 함수의 타입인 것을 알 수 있다.
 React Hook Form을 `npm i react-hook-form`으로 설치한다.
 그리고 useForm을 import하고 아래처럼 적어준다.
 
-```
+```javascript
 // ToDoList.tsx
 import { useForm } from "react-hook-form";
 ...
@@ -173,7 +169,7 @@ function ToDoList() {
 register는 React Hook Form의 가장 핵심적인 기능이다.
 어떤 기능을 하는지 알기 위해 `console.log(register("toDo"))`로 출력해본다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register } = useForm();
@@ -205,7 +201,7 @@ register를 input에 적용시키기 위해선 `{...register("toDo")}`처럼 입
 이때 변화되는 내용을 확인하기 위해서 useForm에서 watch를 사용한다.
 그리고 `console.log(watch())`로 내용을 확인한다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, watch } = useForm();
@@ -230,7 +226,7 @@ input에 글자를 입력하면 `{toDo: "asdf"}`와 같이 출력되는 것을 �
 watch를 사용하면 각 input이 어떻게 변하는지 확인할 수 있다.
 input을 몇 개 더 만들어보자.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, watch } = useForm();
@@ -270,13 +266,13 @@ handleSubmit은 2가지 변수를 사용한다.
 우선은 유효한 경우의 함수만을 만들어서 사용한다.
 이때 data를 전달해야 하는데, 일단은 타입을 any로 지정해두자.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
-	const { register, handleSubmit} = useForm();
+	const { register, handleSubmit } = useForm();
 	const onValid = (data: any) => {
 		console.log(data);
-	}
+	};
 	/*
 	{
 		Email: 'asdf',
@@ -287,9 +283,7 @@ function ToDoList() {
 	 */
 	return (
 		<div>
-			<form onSubmit={handleSubmit(onValid)}>
-				...
-			</form>
+			<form onSubmit={handleSubmit(onValid)}>...</form>
 		</div>
 	);
 }
@@ -307,20 +301,18 @@ setValue는 input의 값을 변경시키는데 사용한다.
 사용법은 간단한데 초기화 시키고 싶은 name과 값 value를 적어주면 된다.
 아래는 serValue를 사용해서 유효한 제출이 일어나면 input을 초기화 시킨다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, handleSubmit, setValue } = useForm();
 	const onValid = (data: any) => {
 		console.log(data);
 		setValue("Email", "");
-	}
+	};
 
 	return (
 		<div>
-			<form onSubmit={handleSubmit(onValid)}>
-				...
-			</form>
+			<form onSubmit={handleSubmit(onValid)}>...</form>
 		</div>
 	);
 }
@@ -329,7 +321,7 @@ function ToDoList() {
 useForm을 사용하면 input의 초기값을 설정할 수 있다.
 useForm에 defaultValues를 적어주면 된다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, handleSubmit, setValue } = useForm({
@@ -349,7 +341,7 @@ React에서도 이 같은 속성을 지정할 수 있지만, 브라우저에서 
 React Hook Form은 이 같은 일을 대신해준다.
 차이점은 input의 속성을 register의 두 번째 변수에 적어줘야 한다는 점이다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, handleSubmit } = useForm();
@@ -383,7 +375,7 @@ function ToDoList() {
 다만 에러가 발생해도 아무것도 출력하지 않고 있다.
 formState를 사용하면 에러가 발생했을 때, 내용을 출력해준다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, handleSubmit, formState } = useForm();
@@ -411,7 +403,7 @@ function ToDoList() {
 이때 에러 내용을 보면 type에서 어떤 내용이 틀렸는지 나온다.
 위는 required를 어겼기 때문에 위처럼 나오는 것으로 다른 조건을 어기면 다른 내용이 나온다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, handleSubmit, formState } = useForm();
@@ -442,7 +434,7 @@ ValidationRule의 내용을 보면 "value"와 "message"를 보내도록 돼있�
 value에는 값을 넣어주고, message에는 에러시의 메세지를 적어주면 된다.
 예를 들어서 "minLength: 5"는 "minLength: { value: 5, message: "error message" }" 형태로 바꿀 수 있다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -474,7 +466,7 @@ function ToDoList() {
 
 지금까지는 formState.errors를 사용했지만 아래처럼 사용하면 errors 만으로도 사용할 수 있다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const { register, handleSubmit, formState: {errors} } = useForm();
@@ -494,7 +486,7 @@ function ToDoList() {
 input이 정규 표현식을 만족하는지 확인할 때 pattern을 사용할 수 있다.
 "@gmail.com"을 포함하도록 만들려면 아래처럼 하면 된다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -522,7 +514,7 @@ function ToDoList() {
 기존의 방법대로 했다면, required, maxLength, patter의 값을 일일이 확인한 다음 메세지를 출력했을 것이다.
 그런데 지금은 errors를 보면 에러 타입에 따라 메세지가 출력된다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -564,7 +556,7 @@ function ToDoList() {
 그러므로 에러를 보여주려면 message만 출력하면 된다.
 그런데 아래처럼 메세지를 출력하려 하면 에러가 발생한다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -584,7 +576,7 @@ function ToDoList() {
 errors의 타입을 지정한 interface를 만들어야 한다.
 이때 required가 아닌 것에는 뒤에 ?를 붙여야 한다.
 
-```
+```javascript
 // ToDoList.tsx
 interface IErrors {
 	Name: string;
@@ -615,7 +607,7 @@ function ToDoList() {
 Email이 조건을 만족하면 errors 안에 Email이 없을 수도 있다.
 그러므로 ?를 뒤에 붙여서 사용한다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -650,7 +642,7 @@ setError를 사용하면 에러 메세지를 만들 수 있다.
 setError는 name으로 error를 만드는데 사용한다.
 아래는 패스워드가 다른 경우 onValid에서 에러를 만드는 코드다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const {
@@ -706,7 +698,7 @@ function ToDoList() {
 특정 input의 에러 메세지를 변경 시키지 않고 새로운 에러 메세지를 만들려는 경우 새로운 name으로 지정해주면 된다.
 이때 data에 새로운 데이터가 생기므로 interface도 변경시켜줘야 한다.
 
-```
+```javascript
 // ToDoList.tsx
 interface IErrors {
 	...
@@ -739,7 +731,7 @@ function ToDoList() {
 이렇게 하면 우리가 원한 조건으로 테스트하고 에러 메세지를 만들 수 있다.
 여기서 더 나아가 에러가 발생한 곳으로 포커스를 옮길 수 있는데, shouldFocus를 추가하면 된다.
 
-```
+```javascript
 // ToDoList.tsx
 interface IErrors {
 	...
@@ -774,7 +766,7 @@ validate는 input의 value를 사용하는 콜백 함수를 받는다.
 예를 들어서 input에 "abc"를 포함시키지 않으려고 한다고 하자.
 이 경우 validate를 아래처럼 작성하면 된다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -801,7 +793,7 @@ function ToDoList() {
 위는 메세지를 지정하지 않아서 아무것도 나오지 않았다.
 에러 메세지를 지정하려면 string을 반환하기만 하면 된다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -831,7 +823,7 @@ function ToDoList() {
 이는 콜백함수의 테스트 결과가 틀렸으면 문자열을 반환하고, 맞으면 true를 반환하도록 만들면 된다.
 아래 두 방식은 예시로 조건에만 맞으면 다른 방법을 사용해도 상관 없다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -858,7 +850,7 @@ function ToDoList() {
 }
 ```
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -887,7 +879,7 @@ function ToDoList() {
 지금까지 React Hook Form을 알아봤다.
 다시 ToDoList로 돌아가기 위해 필요한 것만 남기고 아래처럼 수정했다.
 
-```
+```javascript
 import { useForm } from "react-hook-form";
 
 interface IForm {
@@ -895,11 +887,14 @@ interface IForm {
 }
 
 function ToDoList() {
-	const { register, handleSubmit, setValue } = useForm<IForm>({
-		defaultValues: {
-			toDo: "Write a ToDo here",
-		},
-	});
+	const { register, handleSubmit, setValue } =
+		useForm <
+		IForm >
+		{
+			defaultValues: {
+				toDo: "Write a ToDo here",
+			},
+		};
 	const onValid = (data: IForm) => {
 		console.log(data.toDo);
 		setValue("toDo", "");
@@ -928,7 +923,7 @@ ToDoList.tsx 파일을 components 폴더로 옮겨줬다.
 그리고 ToDo를 Recoil을 이용해서 만들어줘야 한다.
 먼저 atom을 새로 만들고 useRecoilState로 atom을 불러온다.
 
-```
+```javascript
 // ToDoList.tsx
 import { atom, useRecoilState } from "recoil";
 
@@ -947,7 +942,7 @@ function ToDoList() {
 Add 버튼을 눌렀을 때 atom에 추가하기 위해 onValid 안에서 setToDos를 사용한다.
 이때 추가할 내용은 해야할 일(text), key를 위한 id, category(진행 상태 표시)를 포함하도록 만든다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const [toDos, setToDos] = useRecoilState(toDoState);
@@ -969,7 +964,7 @@ function ToDoList() {
 그런데 toDos의 타입이 never[]로 지정되어 있어서 에러가 나온다.
 interface로 toDo의 타입을 정한 다음 atom의 generic으로 넘겨줘야 한다.
 
-```
+```javascript
 // ToDoList.tsx
 
 interface IToDos {
@@ -990,7 +985,7 @@ const toDoState = atom<IToDos[]>({
 그러므로 입력받는 것은 제한해야 하는데, 위와 같이 적으면 셋 중에 하나만 입력값으로 받게 된다.
 추가로 onValid에서 data를 입력 받을 때 간단히 하기 위해서 `{ toDo }: IForm`으로 바꿔준다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	const [toDos, setToDos] = useRecoilState(toDoState);
@@ -1012,7 +1007,7 @@ function ToDoList() {
 우선 ToDo를 만드는 form을 저장할 CreateToDo.tsx를 만든다.
 이 파일엔 form에서 쓰는 내용을 모두 저장시켜줬다.
 
-```
+```javascript
 // CreateToDo.tsx
 import { useForm } from "react-hook-form";
 import { useSetRecoilState } from "recoil";
@@ -1051,7 +1046,7 @@ function CreateToDo() {
 
 다음으로 atom 파일을 저장할 atoms를 만들었다.
 
-```
+```javascript
 // atoms.tsx
 import { atom } from "recoil";
 
@@ -1069,7 +1064,7 @@ export const toDoState = atom<IToDos[]>({
 
 ToDo.tsx 파일을 만들어서 해야할 리스트를 만들었다.
 
-```
+```javascript
 // ToDo.tsx
 import { IToDos } from "../atoms";
 
@@ -1087,7 +1082,7 @@ function ToDo({ text }: IToDos) {
 
 마지막으로 ToDoList.tsx 파일에서 필요 없는 내용을 지워줬다.
 
-```
+```javascript
 // ToDoList.tsx
 import { useRecoilValue } from "recoil";
 import { toDoState } from "../atoms";
@@ -1120,7 +1115,7 @@ function ToDoList() {
 이제 ToDo의 버튼을 눌러서 카테고리를 변경하는 기능을 만들어보겠다.
 현재 카테고리를 확인해서 보일 버튼과 보이지 않을 버튼을 구분한다.
 
-```
+```javascript
 // ToDo.tsx
 import { IToDos } from "../atoms";
 
@@ -1140,7 +1135,7 @@ function ToDo({ text, id, category }: IToDos) {
 우선은 버튼을 눌렀을 때 바뀔 카테고리를 출력해주도록 한다.
 이를 위해선 event.currentTarget.textContent를 사용하거나, button에 name 속성을 따로 줘서 사용해도 된다.
 
-```
+```javascript
 // ToDo.tsx
 function ToDo({ text, id, category }: IToDos) {
 	const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1162,7 +1157,7 @@ toDos에서 findIndex로 바꿀 위치를 찾고 setToDos로 값을 변경시켜
 이때 toDos는 읽기 전용이기 때문에 `toDos[Index] = {...}`처럼 직접 값을 바꾸는 방법은 쓸 수 없다.
 그러므로 slice를 사용해서 깊은 복사를 시행한 다음 값을 변경 시켜야 한다.
 
-```
+```javascript
 // ToDo.tsx
 function ToDo({ text, id, category }: IToDos) {
 	const setToDos = useSetRecoilState(toDoState);
@@ -1189,7 +1184,7 @@ function ToDo({ text, id, category }: IToDos) {
 textContent는 string인데, IToDos 때문에 "ToDo" | "Doing" | "Done"만 가져야 하기 때문이다.
 그래서 as를 사용해서 타입을 지정해줬다.
 
-```
+```javascript
 // ToDo.tsx
 function ToDo({ text, id, category }: IToDos) {
 	...
@@ -1229,7 +1224,7 @@ filter로 거르면 "ToDo", "Doing", "Done" 3개의 배열에 각각 나뉘어 �
 selector는 이름을 구분하기 위해 key를 사용하고, get을 사용해서 정보를 받아온다.
 아래는 간단한 selector를 만든 것이다.
 
-```
+```javascript
 // atoms.tsx
 import { selector } from "recoil";
 
@@ -1246,7 +1241,7 @@ export const toDoSelector = selector({
 selector는 get을 사용해서 값을 읽어들인다.
 그리고 return으로 값을 반환하는데, 이 값은 useRecoilValue를 사용해서 읽을 수 있다.
 
-```
+```javascript
 export const toDoSelector = selector({
 	key: "toDoSelector",
 	get: ({ get }) => {
@@ -1265,7 +1260,7 @@ console.log(selValue);
 이제 이 기능을 사용해서 현재 카테고리별로 보여주려고 한다.
 우선 현재 카테고리를 저장할 state를 하나 만든다.
 
-```
+```javascript
 // atoms.tsx
 export const categoryState = atom({
 	key: "category",
@@ -1275,7 +1270,7 @@ export const categoryState = atom({
 
 그리고 selector에서 category와 일치하는 toDos만 걸러낸다.
 
-```
+```javascript
 // atoms.tsx
 export const toDoSelector = selector({
 	key: "toDoSelector",
@@ -1291,7 +1286,7 @@ export const toDoSelector = selector({
 select를 만들어서 option으로 카테고리를 만든다.
 그리고 select의 값이 변경되면 카테고리를 변경시킨다.
 
-```
+```javascript
 // ToDoList.tsx
 import { categoryState } from "../atoms";
 ...
@@ -1318,7 +1313,7 @@ function ToDoList() {
 
 이제 보여지는 내용을 바꿔야 하는데, 이는 toDoSelector의 내용을 보여주면 된다.
 
-```
+```javascript
 // ToDoList.tsx
 import { toDoSelector, categoryState } from "../atoms";
 ...
@@ -1346,7 +1341,7 @@ function ToDoList() {
 그러므로 category 값에 따라 만들어지도록 코드를 조금 수정해준다.
 CreateToDo.tsx에서 category를 받아온 다음 생성될 ToDo의 카테고리 값으로 만들어준다.
 
-```
+```javascript
 import { useSetRecoilState, useRecoilValue} from "recoil";
 ...
 function CreateToDo() {
@@ -1369,18 +1364,22 @@ function CreateToDo() {
 category의 타입이 string인 반면 setToDos에서 요구하는 타입은 "ToDo" | "Doing" | "Done"다.
 그러므로 atoms.tsx에서 categoryState의 타입을 변경해줘야 한다.
 
-```
+```javascript
 // atoms.tsx
-export const categoryState = atom<"ToDo" | "Doing" | "Done">({
-	key: "category",
-	default: "ToDo",
-});
+export const categoryState =
+	(atom < "ToDo") |
+	"Doing" |
+	("Done" >
+		{
+			key: "category",
+			default: "ToDo",
+		});
 ```
 
 그리고 ToDoList.tsx의 event.currentTarget.value의 타입도 변경해줘야 한다.
 as를 사용해서 타입을 "ToDo" | "Doing" | "Done"로 여기도록 만든다.
 
-```
+```javascript
 // ToDoList.tsx
 function ToDoList() {
 	...
@@ -1401,7 +1400,7 @@ function ToDoList() {
 enumerable는 열거할 수 있다는 의미로, 뜻 그대로 무엇인가를 열거하는데 사용한다.
 enum은 아래처럼 선언할 수 있다.
 
-```
+```javascript
 enum Category {
 	ToDo,
 	Doing,
@@ -1417,7 +1416,7 @@ enum Category {
 카테고리가 1, 2, 3으로 변경되더라도 분류하는데만 사용하기 때문에 아무런 문제가 없다.
 하지만 문자열로 바꾸고 싶을 수도 있는데, 다행히도 문자열로 enum을 만들 수 있다.
 
-```
+```javascript
 enum Category {
 	ToDo = "ToDo",
 	Doing = "Doing",
@@ -1429,7 +1428,7 @@ enum Category {
 이제 enum을 사용해서 카테고리를 바꿔보자.
 atoms.tsx에서 아래처럼 enum을 만들고, 각 카테고리를 수정한다.
 
-```
+```javascript
 // atoms.tsx
 export enum Category {
 	ToDo = "ToDo",
@@ -1451,7 +1450,7 @@ export const categoryState = atom<Category>({
 
 그리고 각 파일에서 카테고리의 값을 Category를 사용해서 바꿔준다.
 
-```
+```javascript
 // ToDoList.tsx
 import { toDoSelector, categoryState, Category } from "../atoms";
 
@@ -1474,7 +1473,7 @@ function ToDoList() {
 ToDo.tsx를 수정할 때 타입에 문제가 있어서 textConten as any로 타입을 바꿔줬다.
 그리고 각 버튼의 text를 사용해서 카테고리를 만들고 있었는데, Category의 값으로 바꾸기 위해 name을 사용했다.
 
-```
+```javascript
 // ToDo.tsx
 function ToDo({ text, id, category }: IToDos) {
 	...

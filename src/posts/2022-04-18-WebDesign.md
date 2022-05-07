@@ -1,10 +1,6 @@
 ---
-layout: post
-title: Web Design
-date: 2022-04-18 20:29:11
-categories:
-tag:
-toc: true
+title: "Web Design"
+date: "2022-04-18 20:29:11"
 ---
 
 ## Color

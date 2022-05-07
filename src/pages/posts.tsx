@@ -1,6 +1,6 @@
 import React from "react";
 import DefaultLayout from "../layout/default";
-import { graphql } from "gatsby";
+import { graphql, Link } from "gatsby";
 
 interface IEdges {
 	node: {
@@ -8,6 +8,12 @@ interface IEdges {
 		frontmatter: {
 			date: string;
 			title: string;
+		};
+		parent: {
+			changeTime: string;
+		};
+		fields: {
+			slug: string;
 		};
 	};
 }
@@ -33,9 +39,13 @@ function Posts({
 						node: {
 							id,
 							frontmatter: { date, title },
+							fields: { slug },
 						},
 					}: IEdges) => (
-						<li>{title}</li>
+						<li key={id}>
+							<Link to={slug}>go to Post</Link>
+							{title} {date}
+						</li>
 					)
 				)}
 			</ul>
@@ -46,14 +56,27 @@ function Posts({
 export default Posts;
 
 export const query = graphql`
-	query getPostList {
-		allMarkdownRemark {
+	query MyQuery {
+		allMarkdownRemark(
+			sort: {
+				fields: [frontmatter___date, frontmatter___title]
+				order: DESC
+			}
+		) {
 			edges {
 				node {
 					id
 					frontmatter {
-						date
+						date(formatString: "MMMM D, YYYY")
 						title
+					}
+					parent {
+						... on File {
+							changeTime(formatString: "MMMM D, YYYY")
+						}
+					}
+					fields {
+						slug
 					}
 				}
 			}

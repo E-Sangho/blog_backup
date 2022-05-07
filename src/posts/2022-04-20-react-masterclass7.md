@@ -1,10 +1,6 @@
 ---
-layout: post
-title: Animation
-date: 2022-04-20 16:17:36
-categories:
-tag:
-toc: true
+title: "Animation"
+date: "2022-04-20 16:17:36"
 ---
 
 # Animation

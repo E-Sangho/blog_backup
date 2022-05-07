@@ -1,10 +1,6 @@
 ---
-layout: post
-title:
-date: 2022-04-10 13:27:21
-categories:
-tag:
-toc: true
+title: "React Master Class 6"
+date: "2022-04-10 13:27:21"
 ---
 
 ## Recoil selector
