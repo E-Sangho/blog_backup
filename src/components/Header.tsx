@@ -10,8 +10,11 @@ const HeaderContainer = styled(motion.div)`
 	height: 64px;
 	display: grid;
 	position: fixed;
+	top: 0px;
+	left: 0px;
 	grid-template-columns: 1fr 4fr 1fr;
 	border-bottom: solid 2px ${({ theme }) => theme.grayColor.opacity__5};
+	background-color: white;
 `;
 
 const HeaderStart = styled.div`
@@ -63,7 +66,6 @@ const HeaderVariants = {
 	initial: {},
 	scrolled: {
 		borderBottom: "none",
-		backgroundColor: "transparent",
 	},
 };
 
@@ -103,7 +105,9 @@ function Header() {
 			</HeaderMiddle>
 			<HeaderEnd>
 				<HeaderIcon>
-					<GithubIcon />
+					<a href="https://github.com/E-Sangho">
+						<GithubIcon />
+					</a>
 				</HeaderIcon>
 			</HeaderEnd>
 		</HeaderContainer>

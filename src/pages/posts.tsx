@@ -1,30 +1,8 @@
 import React from "react";
 import DefaultLayout from "../layout/default";
 import { graphql, Link } from "gatsby";
-
-interface IEdges {
-	node: {
-		id: string;
-		frontmatter: {
-			date: string;
-			title: string;
-		};
-		parent: {
-			changeTime: string;
-		};
-		fields: {
-			slug: string;
-		};
-	};
-}
-
-interface IPosts {
-	data: {
-		allMarkdownRemark: {
-			edges: IEdges[];
-		};
-	};
-}
+import { IEdges, IPosts } from "../types/IPosts";
+import PostList from "../components/PostList";
 
 function Posts({
 	data: {
@@ -33,22 +11,7 @@ function Posts({
 }: IPosts) {
 	return (
 		<DefaultLayout>
-			<ul>
-				{edges.map(
-					({
-						node: {
-							id,
-							frontmatter: { date, title },
-							fields: { slug },
-						},
-					}: IEdges) => (
-						<li key={id}>
-							<Link to={slug}>go to Post</Link>
-							{title} {date}
-						</li>
-					)
-				)}
-			</ul>
+			<PostList edges={edges} />
 		</DefaultLayout>
 	);
 }
