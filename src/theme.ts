@@ -22,7 +22,7 @@ export const LightTheme: DefaultTheme = {
 		h1: "48px",
 		h2: "39px",
 		h3: "31px",
-		h4: "25px",
+		h4: "24px",
 		h5: "20px",
 		h6: "18px",
 		p: "16px",

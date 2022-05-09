@@ -1,6 +1,9 @@
 ---
 title: "Web Design"
 date: "2022-04-18 20:29:11"
+thumbnail: "../assets/img/react.png"
+summary: "Some keyword to study about Webdesign"
+categories: ["webdesign"]
 ---
 
 ## Color

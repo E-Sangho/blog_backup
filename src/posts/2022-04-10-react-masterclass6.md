@@ -1,6 +1,9 @@
 ---
 title: "React Master Class 6"
 date: "2022-04-10 13:27:21"
+thumbnail: "../assets/img/react.png"
+summary: "Recoil and reactbeautiful dnd"
+categories: ["React"]
 ---
 
 ## Recoil selector
