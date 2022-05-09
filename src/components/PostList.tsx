@@ -3,6 +3,7 @@ import { IPostData, IEdges } from "../types/IPosts";
 import { Link } from "gatsby";
 import PostCard from "./PostCard";
 import styled from "styled-components";
+import infiniteScroll from "../hooks/infiniteScroll";
 
 const PostListContainer = styled.div`
 	display: flex;
@@ -20,30 +21,20 @@ const GridList = styled.ul`
 	justify-content: space-between;
 `;
 
-interface IPostList {
+export interface IPostList {
 	selectedCategory: string;
 	edges: IEdges[];
 }
 
 function PostList({ selectedCategory, edges }: IPostList) {
-	const edgesFiltered = useMemo(
-		() =>
-			edges.filter(
-				({
-					node: {
-						frontmatter: { categories },
-					},
-				}: IEdges) =>
-					selectedCategory !== "All"
-						? categories.includes(selectedCategory)
-						: true
-			),
-		[selectedCategory]
-	);
+	const { infiniteRef, postList } = infiniteScroll({
+		selectedCategory,
+		edges,
+	});
 	return (
 		<PostListContainer>
-			<GridList>
-				{edgesFiltered.map(({ node }: IEdges) => (
+			<GridList ref={infiniteRef}>
+				{postList.map(({ node }: IEdges) => (
 					<PostCard node={node} />
 				))}
 			</GridList>
