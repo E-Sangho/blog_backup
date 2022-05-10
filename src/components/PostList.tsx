@@ -35,7 +35,7 @@ function PostList({ selectedCategory, edges }: IPostList) {
 		<PostListContainer>
 			<GridList ref={infiniteRef}>
 				{postList.map(({ node }: IEdges) => (
-					<PostCard node={node} />
+					<PostCard key={node.id} node={node} />
 				))}
 			</GridList>
 		</PostListContainer>

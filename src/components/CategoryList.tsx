@@ -10,6 +10,7 @@ const CategoryListContainer = styled.div`
 	align-items: center;
 	margin: 32px 0px;
 	box-sizing: border-box;
+	font-family: "Roboto";
 `;
 
 const GridContainer = styled.div`

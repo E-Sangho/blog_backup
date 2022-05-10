@@ -3,6 +3,8 @@ import { IGatsbyImageData } from "gatsby-plugin-image";
 export interface IEdges {
 	node: {
 		id: string;
+		html: string;
+		tableOfContents: string;
 		frontmatter: {
 			date: string;
 			title: string;

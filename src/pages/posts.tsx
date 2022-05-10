@@ -6,6 +6,7 @@ import PostList from "../components/PostList";
 import CategoryList from "../components/CategoryList";
 import queryString from "query-string";
 import { ICategoryList } from "../components/CategoryList";
+import PostsHero from "../components/Hero/PostsHero";
 
 function Posts({
 	location: { search },
@@ -42,6 +43,7 @@ function Posts({
 	);
 	return (
 		<DefaultLayout>
+			<PostsHero />
 			<CategoryList
 				selectedCategory={selectedCategory}
 				categoryList={categoryList}

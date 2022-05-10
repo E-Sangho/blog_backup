@@ -11,11 +11,12 @@ const HeaderContainer = styled(motion.div)`
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	position: fixed;
+	position: absolute;
 	top: 0px;
 	left: 0px;
 	background-color: white;
 	z-index: 999;
+	font-family: "Roboto";
 `;
 
 const HeaderContents = styled.div`

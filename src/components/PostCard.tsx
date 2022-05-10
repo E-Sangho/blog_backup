@@ -3,14 +3,15 @@ import { IEdges } from "../types/IPosts";
 import { Link } from "gatsby";
 import styled from "styled-components";
 import { GatsbyImage } from "gatsby-plugin-image";
+import { motion } from "framer-motion";
 
-const PostCardContainer = styled.li`
+const PostCardContainer = styled(motion.li)`
 	width: 320px;
 	border-radius: 8px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	box-shadow: ${({ theme }) => theme.grayColor.opacity__25} 0px 7px 29px 0px;
+	box-shadow: ${({ theme }) => theme.grayColor.opacity__25} 0px 2px 8px 0px;
 `;
 
 const PostCardTitle = styled.div`
@@ -18,22 +19,26 @@ const PostCardTitle = styled.div`
 	margin: 8px 0px;
 	font-size: ${({ theme }) => theme.fontSize.h4};
 	text-align: center;
+	font-family: "Roboto";
 `;
 
 const PostCardDate = styled.div`
 	width: 320px;
+	font-family: "Noto Sans KR";
 	font-size: ${({ theme }) => theme.fontSize.s};
-	color: ${({ theme }) => theme.grayColor.opacity__50};
+	color: ${({ theme }) => theme.grayColor.opacity__25};
 	text-align: right;
 	padding: 0 8px;
 	box-sizing: border-box;
+	margin-bottom: 8px;
 `;
 
 const PostCardSumamry = styled.div`
 	width: 320px;
 	height: 120px;
+	font-family: "Noto Sans KR";
 	font-size: ${({ theme }) => theme.fontSize.p};
-	color: ${({ theme }) => theme.grayColor.opacity__100};
+	color: ${({ theme }) => theme.grayColor.opacity__50};
 	box-sizing: border-box;
 	padding: 0 8px;
 `;
@@ -62,8 +67,14 @@ function PostCard({
 	},
 }: IEdges) {
 	return (
-		<PostCardContainer key={id}>
-			<PostCardLink to={slug}>
+		<PostCardContainer
+			whileHover={{
+				translateY: "-16px",
+				boxShadow: "rgba(0, 0, 0, 0.5) 0px 16px 32px",
+			}}
+			key={id}
+		>
+			<PostCardLink to={`/posts${slug}`}>
 				<PostCardImage image={gatsbyImageData} alt="Post Image" />
 				<PostCardTitle>{title}</PostCardTitle>
 				<PostCardSumamry>{summary}</PostCardSumamry>
