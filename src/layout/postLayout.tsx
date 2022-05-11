@@ -6,6 +6,7 @@ import DefaultLayout from "./default";
 import { IEdges, IPosts } from "../types/IPosts";
 import TableOfContents from "../components/TableOfContents";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import PostHeroContainer from "../components/Hero/PostHero";
 
 const PostContainer = styled.div`
 	display: flex;
@@ -20,13 +21,30 @@ function PostLayout({
 	},
 }: IPosts) {
 	const {
-		node: { html, tableOfContents },
+		node: {
+			html,
+			tableOfContents,
+			frontmatter: {
+				title,
+				date,
+				thumbnail: {
+					childImageSharp: { gatsbyImageData },
+				},
+			},
+			parent: { changeTime },
+		},
 	} = edges[0];
 	useEffect(() => {
 		Prism.highlightAll();
 	});
 	return (
 		<DefaultLayout>
+			<PostHeroContainer
+				title={title}
+				date={date}
+				gatsbyImageData={gatsbyImageData}
+				changeTime={changeTime}
+			/>
 			<PostContainer>
 				<MarkdownRenderer content={html} />
 				<TableOfContents content={tableOfContents} />
@@ -47,6 +65,16 @@ export const queryMarkdown = graphql`
 					frontmatter {
 						title
 						date(formatString: "YYYY.MM.DD.")
+						thumbnail {
+							childImageSharp {
+								gatsbyImageData
+							}
+						}
+					}
+					parent {
+						... on File {
+							changeTime(formatString: "MMMM D, YYYY")
+						}
 					}
 				}
 			}

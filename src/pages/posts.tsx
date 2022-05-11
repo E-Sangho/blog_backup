@@ -6,7 +6,7 @@ import PostList from "../components/PostList";
 import CategoryList from "../components/CategoryList";
 import queryString from "query-string";
 import { ICategoryList } from "../components/CategoryList";
-import PostsHero from "../components/Hero/PostsHero";
+import PostsHero from "../components/Hero/PostsPageHero";
 
 function Posts({
 	location: { search },

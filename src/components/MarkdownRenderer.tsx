@@ -6,7 +6,7 @@ const RenderStyle = styled.div`
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	max-width: 1024px;
+	max-width: 768px;
 	margin: 0 auto;
 	padding: 100px 0;
 	word-break: break-all;
