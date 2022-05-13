@@ -18,13 +18,22 @@ const config: GatsbyConfig = {
 		"gatsby-plugin-sitemap",
 		"gatsby-transformer-remark",
 		"gatsby-plugin-image",
-		"gatsby-plugin-sharp",
+		{
+			resolve: `gatsby-plugin-sharp`,
+			options: {
+				defaults: {
+					formats: ["auto", "webp"],
+					quality: 100,
+					placeholder: "blurred",
+				},
+			},
+		},
 		"gatsby-transformer-sharp",
 		{
 			resolve: "gatsby-source-filesystem",
 			options: {
 				name: "images",
-				path: "./src/assets/img/",
+				path: "./src/assets/images/",
 			},
 		},
 		{

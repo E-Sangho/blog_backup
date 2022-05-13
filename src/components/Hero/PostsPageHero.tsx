@@ -28,7 +28,7 @@ function PostsHero() {
 	return (
 		<PostsHeroContainer>
 			<StaticImage
-				src="../../assets/img/postHero.jpg"
+				src="../../assets/images/postHero.jpg"
 				alt="Hero image for posts page"
 				style={{
 					width: "100%",

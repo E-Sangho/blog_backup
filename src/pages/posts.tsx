@@ -73,7 +73,7 @@ export const query = graphql`
 						categories
 						thumbnail {
 							childImageSharp {
-								gatsbyImageData
+								gatsbyImageData(width: 400)
 							}
 						}
 					}

@@ -1,7 +1,7 @@
 ---
 title: "Animation"
 date: "2022-04-20 16:17:36"
-thumbnail: "../assets/img/react.png"
+thumbnail: "./react.png"
 summary: "Using animation effects with Framer Motion"
 categories: ["React"]
 ---
