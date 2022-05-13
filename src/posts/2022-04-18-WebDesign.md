@@ -1,7 +1,7 @@
 ---
 title: "Web Design"
 date: "2022-04-18 20:29:11"
-thumbnail: "./react.png"
+thumbnail: "../assets/images/react.png"
 summary: "Some keyword to study about Webdesign"
 categories: ["webdesign"]
 ---

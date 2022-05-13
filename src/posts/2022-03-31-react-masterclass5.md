@@ -1,7 +1,7 @@
 ---
 title: "State Management TodoList"
 date: "2022-03-31 15:19:22"
-thumbnail: "./react.png"
+thumbnail: "../assets/images/react.png"
 summary: "React Project to create ToDoList"
 categories: ["React"]
 ---
