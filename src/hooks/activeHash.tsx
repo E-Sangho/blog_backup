@@ -14,18 +14,23 @@ function ActiveHash(targetIds: string[]) {
 				}
 			}, options);
 		});
-
-		targetIds.forEach((id) => {
-			if (document.getElementById(id) !== null) {
-				observer.observe(document.getElementById(id) as HTMLElement);
-			}
-		});
-
-		return () => {
+		if (document !== undefined) {
 			targetIds.forEach((id) => {
-				observer.unobserve(document.getElementById(id) as HTMLElement);
+				if (document.getElementById(id) !== null) {
+					observer.observe(
+						document.getElementById(id) as HTMLElement
+					);
+				}
 			});
-		};
+
+			return () => {
+				targetIds.forEach((id) => {
+					observer.unobserve(
+						document.getElementById(id) as HTMLElement
+					);
+				});
+			};
+		}
 	}, []);
 	return activeHash;
 }
