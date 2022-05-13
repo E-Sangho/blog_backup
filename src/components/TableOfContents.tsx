@@ -31,6 +31,7 @@ interface ITableOfContents {
 }
 
 function TableOfContents({ content }: ITableOfContents) {
+	/*
 	const targetIds = useMemo(() => {
 		let dummyDom = document.createElement("html");
 		dummyDom.innerHTML = content;
@@ -57,7 +58,7 @@ function TableOfContents({ content }: ITableOfContents) {
 			activeLink[0].classList.add("isActive");
 		}
 	}, [activeHash]);
-
+	*/
 	return (
 		<TableOfContentsContainer
 			className="TOC"

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 function ActiveHash(targetIds: string[]) {
 	const [activeHash, setActiveHash] = useState("");
@@ -6,7 +6,7 @@ function ActiveHash(targetIds: string[]) {
 		rootMargin: "0px",
 		threshold: 1.0,
 	};
-	useLayoutEffect(() => {
+	useEffect(() => {
 		const observer = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting) {
