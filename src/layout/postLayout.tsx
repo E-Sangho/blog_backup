@@ -14,6 +14,9 @@ const PostContainer = styled.div`
 	max-width: 1024px;
 	margin: 0 auto;
 `;
+/*
+<TableOfContents content={tableOfContents} />
+*/
 
 function PostLayout({
 	data: {
@@ -39,15 +42,16 @@ function PostLayout({
 	});
 	return (
 		<DefaultLayout>
+			/*
 			<PostHeroContainer
 				title={title}
 				date={date}
 				gatsbyImageData={gatsbyImageData}
 				changeTime={changeTime}
 			/>
+			*/
 			<PostContainer>
 				<MarkdownRenderer content={html} />
-				<TableOfContents content={tableOfContents} />
 			</PostContainer>
 		</DefaultLayout>
 	);

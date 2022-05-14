@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { StaticImage } from "gatsby-plugin-image";
+import { StaticImage, getImage } from "gatsby-plugin-image";
 
 const PostsHeroContainer = styled.div`
 	width: 100%;
