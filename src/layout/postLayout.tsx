@@ -14,9 +14,6 @@ const PostContainer = styled.div`
 	max-width: 1024px;
 	margin: 0 auto;
 `;
-/*
-<TableOfContents content={tableOfContents} />
-*/
 
 function PostLayout({
 	data: {
@@ -52,6 +49,7 @@ function PostLayout({
 			*/
 			<PostContainer>
 				<MarkdownRenderer content={html} />
+				<TableOfContents content={tableOfContents} />
 			</PostContainer>
 		</DefaultLayout>
 	);

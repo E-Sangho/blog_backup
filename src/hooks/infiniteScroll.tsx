@@ -22,13 +22,13 @@ function infiniteScroll({ selectedCategory, edges }: IPostList) {
 			),
 		[selectedCategory]
 	);
-	const observer = new IntersectionObserver((entries, observer) => {
-		if (!entries[0].isIntersecting) return;
-		setCount((value) => value + 1);
-		observer.disconnect();
-	});
 
 	useEffect(() => {
+		const observer = new IntersectionObserver((entries, observer) => {
+			if (!entries[0].isIntersecting) return;
+			setCount((value) => value + 1);
+			observer.disconnect();
+		});
 		if (
 			NUMBER_OF_ITEMS_PER_PAGE * count >= postListByCategory.length ||
 			infiniteRef.current === null ||
