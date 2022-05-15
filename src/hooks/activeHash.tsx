@@ -14,7 +14,7 @@ function ActiveHash(targetIds: string[]) {
 				}
 			}, options);
 		});
-		if (document !== undefined) {
+		if (typeof document !== "undefined") {
 			targetIds.forEach((id) => {
 				if (document.getElementById(id) !== null) {
 					observer.observe(
@@ -24,10 +24,13 @@ function ActiveHash(targetIds: string[]) {
 			});
 
 			return () => {
+				console.log(targetIds);
 				targetIds.forEach((id) => {
-					observer.unobserve(
-						document.getElementById(id) as HTMLElement
-					);
+					if (document.getElementById(id) !== null) {
+						observer.unobserve(
+							document.getElementById(id) as HTMLElement
+						);
+					}
 				});
 			};
 		}

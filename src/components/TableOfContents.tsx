@@ -31,15 +31,19 @@ interface ITableOfContents {
 }
 
 function TableOfContents({ content }: ITableOfContents) {
-	const targetIds = useMemo(() => {
-		let dummyDom = document.createElement("html");
-		dummyDom.innerHTML = content;
-		const anchors = dummyDom.querySelectorAll("a");
+	let targetIds: string[] = [];
+	useEffect(() => {
 		let val: string[] = [];
-		anchors.forEach((a) => {
-			val.push(a.hash.replace("#", ""));
-		});
-		return val;
+		if (typeof document !== "undefined") {
+			let dummyDom = document.createElement("html");
+			dummyDom.innerHTML = content;
+			const anchors = dummyDom.querySelectorAll("a");
+
+			anchors.forEach((a) => {
+				val.push(a.hash.replace("#", ""));
+			});
+		}
+		targetIds = val;
 	}, []);
 
 	const activeHash = ActiveHash(targetIds);
