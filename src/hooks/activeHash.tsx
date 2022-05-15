@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 function ActiveHash(targetIds: string[]) {
 	const [activeHash, setActiveHash] = useState("");
 	const options = {
-		rootMargin: "0% 0% -80% 0%",
+		rootMargin: "0% 0% -90% 0%",
 		threshold: 1.0,
 	};
 	useEffect(() => {
@@ -24,7 +24,6 @@ function ActiveHash(targetIds: string[]) {
 			});
 
 			return () => {
-				console.log(targetIds);
 				targetIds.forEach((id) => {
 					if (document.getElementById(id) !== null) {
 						observer.unobserve(

@@ -39,14 +39,12 @@ function PostLayout({
 	});
 	return (
 		<DefaultLayout>
-			/*
 			<PostHeroContainer
 				title={title}
 				date={date}
 				gatsbyImageData={gatsbyImageData}
 				changeTime={changeTime}
 			/>
-			*/
 			<PostContainer>
 				<MarkdownRenderer content={html} />
 				<TableOfContents content={tableOfContents} />

@@ -31,20 +31,12 @@ interface ITableOfContents {
 }
 
 function TableOfContents({ content }: ITableOfContents) {
-	let targetIds: string[] = [];
-	useEffect(() => {
-		let val: string[] = [];
-		if (typeof document !== "undefined") {
-			let dummyDom = document.createElement("html");
-			dummyDom.innerHTML = content;
-			const anchors = dummyDom.querySelectorAll("a");
-
-			anchors.forEach((a) => {
-				val.push(a.hash.replace("#", ""));
-			});
-		}
-		targetIds = val;
-	}, []);
+	let targetIds = content
+		.split("\n")
+		.filter((e) => e.includes("a href="))
+		.map((e) => {
+			return e.split('"')[1].replace("#", "");
+		});
 
 	const activeHash = ActiveHash(targetIds);
 	useEffect(() => {
