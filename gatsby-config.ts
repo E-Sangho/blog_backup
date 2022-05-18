@@ -101,6 +101,13 @@ const config: GatsbyConfig = {
 							escapeEntities: {},
 						},
 					},
+					{
+						resolve: `gatsby-remark-images`,
+						options: {
+							maxWidth: 560,
+						},
+					},
+					"gatsby-remark-numbered-footnotes",
 				],
 			},
 		},

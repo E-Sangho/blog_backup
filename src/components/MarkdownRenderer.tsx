@@ -12,7 +12,7 @@ const RenderStyle = styled.div`
 	word-break: break-all;
 
 	// Markdown Style
-	line-height: 1.8;
+	line-height: 175%;
 	font-family: "Noto Sans KR";
 	font-size: 16px;
 	font-weight: 400;
@@ -54,17 +54,49 @@ const RenderStyle = styled.div`
 		font-size: 20px;
 	}
 
+	.gatsby-highlight,
+	.gatsby-resp-image-wrapper {
+		margin: 32px 0px;
+	}
+
 	// Adjust Quotation Element Style
 	blockquote {
 		margin: 30px 0;
 		padding: 5px 15px;
-		border-left: 2px solid #000000;
+		border: dashed ${({ theme }) => theme.grayColor.opacity__50};
+		background-color: ${({ theme }) => theme.grayColor.opacity__5};
+		border-left: 3px solid ${({ theme }) => theme.primaryColor};
+		font-size: 18px;
 		font-weight: 800;
+		position: relative;
+		&:before {
+			content: "";
+			position: absolute;
+			top: 50%;
+			left: -4px;
+			background-color: white;
+			width: 5px;
+			height: 24px;
+			transform: translateY(-50%);
+		}
+		&:after {
+			content: '"';
+			color: ${({ theme }) => theme.primaryColor};
+			position: absolute;
+			top: 43%;
+			transform: tranlateY(-50%);
+			left: -5px;
+			font-size: 24px;
+		}
 	}
 
 	// Adjust List Element Style
-	ol,
+	ol {
+		list-style-type: decimal;
+	}
+
 	ul {
+		list-style-type: disc;
 		margin-left: 20px;
 		padding: 30px 0;
 	}
@@ -77,8 +109,7 @@ const RenderStyle = styled.div`
 
 	// Adjust Link Element Style
 	a {
-		color: #4263eb;
-		text-decoration: underline;
+		color: ${({ theme }) => theme.primaryColor};
 	}
 `;
 

@@ -4,6 +4,7 @@ import ActiveHash from "../hooks/activeHash";
 
 const TableOfContentsContainer = styled.div`
 	position: sticky;
+	border-left: 2px solid ${({ theme }) => theme.grayColor.opacity__50};
 	top: 64px;
 	height: 100%;
 	margin-top: 128px;
