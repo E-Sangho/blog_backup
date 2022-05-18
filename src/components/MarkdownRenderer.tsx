@@ -54,6 +54,14 @@ const RenderStyle = styled.div`
 		font-size: 20px;
 	}
 
+	strong {
+		font-weight: bold;
+	}
+
+	em {
+		font-style: italic;
+	}
+
 	.gatsby-highlight,
 	.gatsby-resp-image-wrapper {
 		margin: 32px 0px;
