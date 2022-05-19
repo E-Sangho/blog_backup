@@ -1,25 +1,82 @@
 ---
-title: "Animation"
+title: "Framer Motion"
 date: "2022-04-20 16:17:36"
 thumbnail: "../assets/images/react.png"
 summary: "Using animation effects with Framer Motion"
 categories: ["React"]
 ---
 
-# Animation
+# Framer Motion
+
+## Introduction
+
+웹에서 가장 사람의 시선을 끄는 것은 애니메이션이다.
+멈춰 있는 사물 사이에서 홀로 색이 변하고 이동하는 것은 사람의 흥미가 돋운다.
+자연스레 눈길이 가고 무슨 내용이 담겨 있는지 확인하게 된다.
+반면 애니메이션 효과 없는 페이지는 밋밋하다.
+아무리 디자인이 깔끔하고 색감이 좋더라도 어딘가 허전하다는 느낌을 지울 수 없다.
+그래서 대부분의 페이지는 조금씩이라도 애니메이션 효과를 내포하고 있다.
+
+개발자는 애니메이션 효과를 적절하게 구현할 수 있어야 한다.
+척 보기에도 복잡해 보이는 애니메이션은 실제로 구현하는 것도 여간 번거로운 것이 아니다.
+@keyframes로 만든 애니메이션을 지속 시간, 반복 횟수, 지연 시간, 순서, 전환 시간 등 다양한 것을 설정해줘야 한다.
+그리고 작성한 애니메이션을 대상 컴포넌트를 찾아 지정해줘야 한다.
+
+문제는 React로 애니메이션을 만드는데 약간 문제가 있다는 것이다.
+정확히는 styled-component나 emotion을 사용해서 만드는 경우 발생하는 문제다.
+styled-component만 대표로 설명해보자면, styled-component는 css 스타일을 적용한 컴포넌트를 만든다.
+그 덕분에 스타일 파일과 컴포넌트를 오가며 수정하는 고생을 하지 않아도 된다.
+하지만 이 때문에 애니메이션이 컴포넌트에 종속되게 된다.
+무슨 말인가 하면 같은 효과를 주는 애니메이션을 다른 컴포넌트로 옮기기 어렵다는 것이다.
+프로그램을 만들 때 공통된 부분은 가급적 분리하고 싶을 것이다.
+이는 애니메이션도 마찬가지인데, 서로 다른 컴포넌트에서 같은 애니메이션을 사용하려면 코드를 복사 해줘야 한다.
+컴포넌트를 확장해서 사용하는 것도 고려해볼 순 있지만, 이 마저도 애니메이션을 분리하는 것은 아니다.
+결국 styled-component를 사용하면 애니메이션을 따로 분리시키기 어렵다.
+
+그래서 사용하는 것이 [Framer Motion](https://www.framer.com/motion/)이다.
+Framer Motion은 애니메이션을 변수로 만들어서 사용한다.
+각 컴포넌트는 변수로 애니메이션을 적용할 수 있고, 그 덕에 같은 애니메이션을 여러 컴포넌트에 적용하는 것이 쉽다.
+또한 React의 state와 연계해서 애니메이션 상태 관리를 편하게 할 수 있다.
+지금까지 Framer Motion이 필요한 이유를 살펴봤으므로 앞으로 Framer Motion의 사용법을 알아보겠다.
+
+## Setup
 
 이 장에선 Animation을 쓰기 위해 [Framer Motion](https://www.framer.com/motion/)을 배운다.
-Framer Motion은 리액트에서 Animation을 쉽게 쓸 수 있게 해주는 라이브러리다.
-위 링크로 사이트에 들어가보면 어떤 효과를 쓸 수 있는지 보여준다.
 Framer Motion을 어떻게 사용하는지는 이후에 설명하고, 일단은 실습용 파일을 만들겠다.
-create-react-app으로 타입스크립트용 프로젝트를 하나 만든다.
-그리고 index.tsx, App,tsx 파일을 제외하곤 모두 지워준다.
-설치한 패키지는 "styled-components", "recoil"고 각각 타입스크립트도 같이 설치했다.
+**npx create-react-app [projectName] --typescript**로 타입스크립트용 프로젝트를 하나 만든다.
+그리고 src폴더의 index.tsx, App,tsx 파일을 제외하곤 모두 지우고 필요 없는 코드를 삭제한다.
+프로젝트 진행의 편의를 위해 **styled-components**, **recoil**을 설치하고 각각 타입스크립트도 같이 설치했다.
+
+```javascript
+// index.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+const root = ReactDOM.createRoot(
+	document.getElementById("root") as HTMLElement
+);
+
+root.render(
+	<React.StrictMode>
+		<App />
+	</React.StrictMode>
+);
+```
+
+```javascript
+// App.tsx
+function App() {
+	return null;
+}
+
+export default App;
+```
 
 Theme을 사용할 예정이므로 styled.d.ts에는 Theme interface를 만든다.
 그리고 theme.ts에 darkTheme으로 interface를 적용해서 틀만 만들어둔다.
 
-```
+```javascript
 // styled.d.ts
 import "styled-components";
 
@@ -28,7 +85,7 @@ declare module "styled-components" {
 }
 ```
 
-```
+```javascript
 // theme.ts
 import { DefaultTheme } from "styled-components";
 
@@ -39,7 +96,7 @@ export const darkTheme: DefaultTheme = {};
 css를 초기화하기 위해 createGlobalStyle로 resetCss를 적용시킨다.
 그리고 ThemeProvider에 darkTheme을 속성으로 전달하고, RecoilRoot를 사용해 아래처럼 만든다.
 
-```
+```javascript
 // index.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -97,6 +154,7 @@ a {
   color: inherit;
 }
 `;
+
 const root = ReactDOM.createRoot(
 	document.getElementById("root") as HTMLElement
 );
@@ -116,7 +174,7 @@ root.render(
 마지막으로 App.tsx에 아래처럼 박스를 하나 만들어준다.
 Wrapper에 배경으로 linear-gradient를 적용해주었다.
 
-```
+```javascript
 // App.tsx
 import styled from "styled-components";
 
@@ -154,7 +212,7 @@ export default App;
 
 ### start
 
-Framer Motion을 `npm i framer-motion`로 설치해준다.
+`npm i framer-motion`로 Framer Motion을 설치해준다.
 Framer Motion을 설치하면 motion을 사용할 수 있다.
 motion은 특정 태그의 컴포넌트를 만드는데 사용한다.
 이를 motion component라고 한다.
@@ -171,7 +229,7 @@ motion component는 애니메이션 효과가 추가된다는 점을 제외하�
 왜냐하면 Framer Motion은 HTML 태그로 만들어지도록 정해져 있기 때문이다.
 대신에 \<Button>이 선언될 때 motion을 사용하면 된다.
 
-```
+```javascript
 const Button = styled(motion.button)``;
 ```
 
@@ -180,7 +238,7 @@ const Button = styled(motion.button)``;
 이제 본격적으로 motion component에 애니메이션 효과를 주겠다.
 우선 Box를 motion component로 만든다.
 
-```
+```javascript
 // App.tsx
 import { motion } from "framer-motion";
 
@@ -195,7 +253,7 @@ animate에는 css 스타일을 줄 수 있는데, 처음 Box에서 해당 스타
 이 항목중에서 바꾸고 싶은 내용을 정해주면 된다.
 예를 들어서 아래처럼 하면 네모에서 원이 되는 애니메이션이 된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -211,7 +269,7 @@ function App() {
 transiiton이라는 속성도 있는데, 애니메이션이 어떻게 일어날지를 정한다.
 예를 들어서 delay를 사용하면 애니메이션 지연이 일어나고, duration을 사용하면 몇 초 동안 일어날지 정할 수 있다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -231,7 +289,7 @@ transition은 일종의 애니메이션 물리 엔진을 조절하는 속성이�
 예를 들어서 type: "spring"을 적용하면 애니메이션이 끝날때 튕기는 효과가 있다.
 효과가 잘 보이도록 animate로 회전을 넣어서 확인해보자.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -253,7 +311,7 @@ type에 따라서 다른 효과가 나타난다.
 앞서 transition이 물리 엔진 같은 것을 조절하는 속성이라 한 것이 이 때문이다.
 말 그대로 stiffness, damping, mass를 조절하면 물리 엔진이 변한 효과가 나온다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -283,7 +341,7 @@ initial은 처음에 적용될 스타일을 만든다.
 initial로 스타일을 시작해서 animate가 시작되므로, 초기값을 적는데 사용한다.
 예를 들어서 scale: 0 를 사용하면 처음엔 없다가 나중에 나오는 애니메이션을 쓸 수 있다.
 
-```
+```javascript
 function App() {
 	return (
 		<Wrapper>
@@ -308,7 +366,7 @@ motion conponent에서 variants 속성을 쓸 수 있다.
 그리고 variants 안에서 선언한 애니메이션을 animate나 initial에 적용할 수 있다.
 아래는 myVars라는 이름으로 variants를 선언한 것이다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	anyName: {
@@ -322,7 +380,7 @@ const myVars = {
 그리고 animate나 initial에서 myVars 내부의 객체를 사용할 수 있게 된다.
 아래는 위의 anyName을 animate에 적용시킨 것이다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -336,7 +394,7 @@ function App() {
 variants는 여러 애니메이션을 선언할 수 있다.
 예를 들어서 start, end 두 애니메이션을 선언한 다음, 각각 initial, animate에 적용할 수 있다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	start: {
@@ -359,7 +417,7 @@ function App() {
 이때 transition도 함께 써야하는데, transition은 end 내부에 함께 써주면 된다.
 그러면 자동으로 transition이 적용된다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	start: {
@@ -385,7 +443,7 @@ function App() {
 variant의 또 다른 장점은 자식 컴포넌트에게 애니메이션 이름이 전달된다는 것이다.
 무슨 의미인지 알기 위해서 아래처럼 예시를 만들었다.
 
-```
+```javascript
 // App.tsx
 const Box = styled(motion.div)`
 	width: 200px;
@@ -425,7 +483,7 @@ function App() {
 그러면 새로운 variants를 만들어서 전달해줘야 한다.
 이때 새 variants를 아래처럼 선언하고 Circle에 사용했다.
 
-```
+```javascript
 // App.tsx
 const newVars = {
 	start: {
@@ -474,7 +532,7 @@ transition 내부에 staggerChildren을 쓸 수 있는데, 지정한 시간만�
 이때 staggerChildren은 부모 컴포넌트에 적어줘야 한다.
 아래는 0.5초 간격으로 애니메이션이 일어나도록 만들었다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	start: {},
@@ -490,7 +548,7 @@ const myVars = {
 애니메이션 효과를 보면 0.5초 간격으로 순서대로 일어나는 것을 볼 수 있다.
 조금 더 명확하게 보려면 newVars에서 위치를 옮기는 형태로 바꿔서 보자.
 
-```
+```javascript
 // App.tsx
 const newVars = {
 	start: {
@@ -507,7 +565,7 @@ const newVars = {
 };
 ```
 
-## Gestures
+### Gestures
 
 지금까지 소개한 애니메이션은 알아서 일어났다.
 이번에는 사용자 마우스 조작시에 애니메이션 효과를 주는 법을 알아보겠다.
@@ -516,7 +574,7 @@ const newVars = {
 그리고 클릭했을 경우엔 whileTap을 쓴다.
 아래는 마우스를 올리면 크기가 커지고, 모양이 변경되는 애니메이션이다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	hover: {
@@ -540,7 +598,7 @@ function App() {
 드래그 효과를 사용하려면 속성으로 drag를 적어줘야 한다.
 그리고 whileDrag에 애니메이션을 적어준다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	drag: {
@@ -568,7 +626,7 @@ function App() {
 그래서 위 예시에서 애니메이션 효과가 나타나지 않은 것이다.
 색을 rgba로 주면 이 문제는 간단히 해결된다.
 
-```
+```javascript
 // App.tsx
 const myVars = {
 	drag: {
@@ -581,7 +639,7 @@ const myVars = {
 x축이나 y축으로 제한하고 싶으면 drag에 x나 y를 주면 된다.
 아래는 x축 방향으로만 드래그를 제한한 것이다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -597,7 +655,7 @@ dragConstraints는 ref로 지정한 대상 내에서만 드래그가 일어나�
 이때 부모 컴포넌트를 ref로 지정해야 한다.
 예시를 위해 드래그 범위 컴포넌트를 하나 만들고 ref를 사용했다.
 
-```
+```javascript
 // App.tsx
 import { useRef } from "react";
 
@@ -611,7 +669,7 @@ const DragArea = styled.div`
 `;
 
 function App() {
-	const dragAreaRef = useRef<HTMLDivElement>(null);
+	const dragAreaRef = useRef < HTMLDivElement > null;
 	return (
 		<Wrapper>
 			<DragArea ref={dragAreaRef}>
@@ -632,7 +690,7 @@ function App() {
 범위 밖에서는 탄성 같은 효과가 생기고 손을 놓으면 \<DragArea> 내로 돌아간다.
 이처럼 약간 밖으로 드래그 되는 것을 허용은 하되 보여주고 싶지 않으면 overflow: hidden을 사용하면 된다.
 
-```
+```javascript
 // App.tsx
 const DragArea = styled.div`
 	width: 400px;
@@ -656,7 +714,7 @@ dragElastic은 0 ~ 1 사이의 값을 사용한다.
 아래의 dragElastic을 조금씩 바꿔가며 사용해보자.
 이때 overflow: hidden 없이 확인해야 보기 좋다.
 
-```
+```javascript
 // App.tsx
 const DragArea = styled.div`
 	width: 400px;
@@ -668,7 +726,7 @@ const DragArea = styled.div`
 `;
 
 function App() {
-	const dragAreaRef = useRef<HTMLDivElement>(null);
+	const dragAreaRef = useRef < HTMLDivElement > null;
 	return (
 		<Wrapper>
 			<DragArea ref={dragAreaRef}>
@@ -688,10 +746,10 @@ function App() {
 마지막으로 드래그가 끝났을 때 원래 위치로 돌아가도록 해보겠다.
 dragSnapToOrigin 속성을 주면 드래그가 끝났을 때 원래 위치로 돌아간다.
 
-```
+```javascript
 // App.tsx
 function App() {
-	const dragAreaRef = useRef<HTMLDivElement>(null);
+	const dragAreaRef = useRef < HTMLDivElement > null;
 	return (
 		<Wrapper>
 			<DragArea ref={dragAreaRef}>
@@ -718,17 +776,17 @@ Motion Value는 애니메이션에서 변하는 값을 추적하는데 사용된
 Motion Value는 useMotionValue hook로 만들 수 있다.
 그리고 그 값을 set으로 변경시키고, get으로 불러올 수 있다.
 
-```
-const x = useMotionValue(0)
-x.set(100)
-x.get()	// 100
+```javascript
+const x = useMotionValue(0);
+x.set(100);
+x.get(); // 100
 ```
 
 Motion Value는 motion component에서 쓸 수 있다.
 style에서 쓸 수 있으며 motion component의 값을 정하는데 사용한다.
 아래는 x의 처음 위치를 100으로 만든다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const xValue = useMotionValue(100);
@@ -743,7 +801,7 @@ function App() {
 Motion Value의 장점은 Motion Value를 바꿔서 motion component를 조절할 수 있다는 점이다.
 위의 예에서 xValue의 값을 바꿔주면 x의 값이 변화된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const xValue = useMotionValue(0);
@@ -759,7 +817,7 @@ function App() {
 x의 값이 변하면 자동으로 xValue의 값도 변한다.
 이를 console.log(xValue)로 출력해보자.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const xValue = useMotionValue(0);
@@ -782,7 +840,7 @@ onChange는 Motion Value가 바뀔 때 일어날 이벤트를 지정할 수 있�
 이때 useEffect 안에서 사용해야 한다는 제약이 있다.
 아래처럼 코드를 작성하면 콘솔에서 xValue의 값의 변화를 볼 수 있다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const xValue = useMotionValue(0);
@@ -813,7 +871,7 @@ useTransform은 변화시킬 값과 범위를 받는다.
 useTransform이 반환한 값은 Motion Value이므로 motion component의 값을 바꾸는데 사용한다.
 아래는 xValue의 변경된 값을 받아서 scale을 조절한 것이다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const xValue = useMotionValue(0);
@@ -832,7 +890,7 @@ function App() {
 지금까지는 설명을 위해 xValue, scaleValue로 적었지만, ES6 환경에서 이름이 같으면 변수가 알아서 받아진다.
 그러므로 xValue를 x로 바꾸고, scaleValue를 scale로 바꿔서 아래처럼 쓴다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const x = useMotionValue(0);
@@ -851,7 +909,7 @@ function App() {
 useTransform을 사용하면 자기 자신 외에 다른 motion component도 애니메이션을 만들 수 있다.
 \<Wrapper>를 motion component로 만들고 아래처럼 작성하면 드래그하면서 색이 바뀌게 된다.
 
-```
+```javascript
 // App.tsx
 const Wrapper = styled(motion.div)`
 	...
@@ -875,7 +933,6 @@ function App() {
 }
 
 export default App;
-
 ```
 
 ### useViewportScroll
@@ -897,7 +954,7 @@ useViewportScroll을 useTransform과 같이 조합하면 스크롤 시에 애니
 아래는 스크롤하면 scale이 커지게 만든 코드다.
 이때 스크롤을 해야 하므로 \<Wrapper>의 height를 조절해줬다.
 
-```
+```javascript
 // App.tsx
 const Wrapper = styled(motion.div)`
 	height: 500vh;
@@ -930,7 +987,7 @@ fontawesome에서 airbnb를 검색하고 열어준다.
 그러면 </> 모양의 버튼이 있는데, 이 버튼을 누르면 SVG가 복사된다.
 간단하게 아래 태그를 복사해서 써도 된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -945,7 +1002,7 @@ function App() {
 
 현재 SVG가 너무 크므로 styled component를 만들어서 크기를 조절해준다.
 
-```
+```javascript
 // App.tsx
 const Svg = styled.svg`
 	width: 300px;
@@ -972,7 +1029,7 @@ SVG는 외곽선의 스타일과, 내부의 스타일을 따로 적용한다.
 그리고 stroke의 굵기를 strokeWidth로 조절할 수 있다.
 우선은 fill을 transparent로 바꾸고 stroke와 strokeWidth를 조절해보자.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -993,7 +1050,7 @@ function App() {
 SVG에서 애니메이션 효과를 보여주려면 path를 motion component로 바꿔야 한다.
 그리고 애니메이션으로 무색에서 흰색으로 바뀌도록 만든다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -1020,7 +1077,7 @@ pathLength는 SVG가 그려지는 길이를 의미한다.
 이를 0에서 1까지 변하도록 만들면 그려지는 듯한 애니메이션 효과가 생긴다.
 pathLength가 잘 바뀌는지 보기 위해서 위의 fill은 색을 바꾸지 않도록 만든다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	return (
@@ -1044,7 +1101,7 @@ function App() {
 
 이제 위 내용을 variants와 styled component에 나눠 담으면 깔끔하게 정리된다.
 
-```
+```javascript
 // App.tsx
 const Svg = styled.svg`
 	width: 300px;
@@ -1089,7 +1146,7 @@ transition은 default로 기본값을 정한다.
 이를 사용해서 default와 다른 transition을 적용할 수 있다.
 아래는 fill에 따로 transition을 만든 것이다.
 
-```
+```javascript
 // App.tsx
 const svgVariants = {
 	start: { fill: "rgba(255, 255, 255, 0)", pathLength: 0 },
@@ -1124,7 +1181,7 @@ function App() {
 AnimatePresence는 컴포넌트가 사라지고 나타날 때 애니메이션을 적용하게 해준다.
 우선 state를 사용해서 버튼을 누르면 컴포넌트가 생기고 사라지도록 만들겠다.
 
-```
+```javascript
 // App.tsx
 const Box = styled(motion.div)`
 	width: 400px;
@@ -1155,7 +1212,7 @@ exit은 해당 컴포넌트가 없어질 때 적용하는 애니메이션이다.
 중요한 것은 exit은 AnimatePresence 내부에서만 사용할 수 있고, 첫 번째 자식 컴포넌트야 한다.
 아래처럼 애니메이션을 적용해보면 컴포넌트가 생길 때의 애니메이션과, 없어질 때의 애니메이션이 적용된다.
 
-```
+```javascript
 // App.tsx
 const boxVariants = {
 	start: {
@@ -1203,7 +1260,7 @@ AnimatePresence를 사용해서 슬라이더를 만들 수 있다.
 우선 버튼을 눌렀을 때, 왼쪽으로 넘어가는 슬라이더부터 만들어보겠다.
 현재 보여줄 번호를 담을 state가 필요하고, 버튼을 누르면 state의 값을 바꿔줘야 한다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const [showIndex, setShowIndex] = useState(0);
@@ -1228,7 +1285,7 @@ key를 사용하지 않으면 React가 새로 생성되는 컴포넌트인지 �
 그래서 variants의 animate나 exit이 제대로 동작하지 않는다.
 추가로 Box의 스타일을 바꿔서 안의 숫자가 잘 보이게 했다.
 
-```
+```javascript
 // App.tsx
 const Box = styled(motion.div)`
 	width: 400px;
@@ -1263,7 +1320,7 @@ function App() {
 
 마지막으로 Box에 variants를 줘서 애니메이션 효과를 주면 된다.
 
-```
+```javascript
 // App.tsx
 const boxVariants = {
 	start: {
@@ -1315,7 +1372,7 @@ function App() {
 다음으로 이전 숫자로 돌아가는 슬라이더를 만들려고 한다.
 버튼을 만들고 showIndex를 조절하는 것은 비슷하게 하면 된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const [showIndex, setShowIndex] = useState(0);
@@ -1327,9 +1384,7 @@ function App() {
 	};
 	return (
 		<Wrapper>
-			<AnimatePresence>
-				...
-			</AnimatePresence>
+			<AnimatePresence>...</AnimatePresence>
 			<button onClick={prevIndex}>Prev</button>
 			<button onClick={nextIndex}>Next</button>
 		</Wrapper>
@@ -1351,7 +1406,7 @@ motion component에서 custom이란 속성에 변수를 전달하면, 해당 변
 아래처럼 방향을 표시하는 state isRight를 만든다.
 그리고 각 버튼을 누를 때마다 isRight를 바꾸고, custom에 isRight를 전달한다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const [showIndex, setShowIndex] = useState(0);
@@ -1396,7 +1451,7 @@ variants의 속성을 콜백 함수로 바꿀 때, 값이 확실히 return 되�
 또한 우리는 타입스크립트를 사용하므로 전달하는 변수의 타입을 적어야 한다.
 아래는 isRight를 사용해서 x의 값을 바꾸는 코드다.
 
-```
+```javascript
 // App.tsx
 const boxVariants = {
 	start: (isRight: boolean) => ({
@@ -1430,7 +1485,7 @@ const boxVariants = {
 만약 exit이 일어나고 animate가 일어나길 원하면 exitBeforeEnter를 사용하면 된다.
 exitBeforeEnter는 AnimatePresence에서 사용하며 아래처럼 쓰면 된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	...
@@ -1452,7 +1507,7 @@ function App() {
 위에서 map과 null을 사용해서 컴포넌트가 사라지는 것을 표시하고 있다.
 이를 단순히 key를 변경시키는 것으로 해결할 수 있으므로 아래처럼 적어준다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	...
@@ -1482,7 +1537,7 @@ function App() {
 layout이 무엇인지는 알아보기 전에, 위치를 옮기는 애니메이션을 만들어보자.
 아래는 버튼을 누르면 원의 위치가 옮겨지는 코드다.
 
-```
+```javascript
 // App.tsx
 const Wrapper = styled(motion.div)`
 	height: 100vh;
@@ -1534,7 +1589,7 @@ clicked를 변수로 사용해서 Wrapper를 누를 때마다 Box의 스타일�
 그런데 위의 코드를 조금만 수정하고도 간단히 애니메이션을 추가할 수 있다.
 방법은 간단한데, Circle에 layout만 추가하면 된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const [clicked, setClicked] = useState(false);
@@ -1577,7 +1632,7 @@ variants는 구조를 바꾸지 않는다.
 그렇지만 두 박스 사이에선 layout이 작동하지 않는다.
 아래는 박스를 2개 만들고 layout을 사용해본 것이다.
 
-```
+```javascript
 // App.tsx
 const Wrapper = styled(motion.div)`
 	...
@@ -1610,7 +1665,7 @@ Framer motion은 이를 layoutId를 사용해서 해결한다.
 박스가 달라도 layoutId가 같다면 같은 컴포넌트로 생각하는 것이다.
 layout 대신에 layoutId="circle"을 줘보자.
 
-```
+```javascript
 // App.tsx
 function App() {
 	const [clicked, setClicked] = useState(false);
@@ -1642,7 +1697,7 @@ Framer Motion은 layoutId가 같은 대상은 컴포넌트를 넘어서 같은 �
 카드를 누르면 해당 카드가 확대되는 애니메이션을 만들어보려고 한다.
 우선 grid를 사용해서 카드를 4개 만들어준다.
 
-```
+```javascript
 // App.tsx
 const Box = styled(motion.div)`
 	width: 400px;
@@ -1685,7 +1740,7 @@ function App() {
 그리고 state를 만들어서 카드가 클릭되었는지 여부를 가지고 화면을 보여준다.
 모든 카드에 적용해야 하지만, 우선은 첫 번째 카드에만 클릭 기능을 만들어줬다.
 
-```
+```javascript
 // App.tsx
 const CardClicked = styled(motion.div)`
 	position: absolute;
@@ -1712,9 +1767,7 @@ function App() {
 			</Box>
 			{cardClicked ? (
 				<CardClicked onClick={onClick}>
-					<Card
-						style={{ width: "300px", height: "200px" }}
-					/>
+					<Card style={{ width: "300px", height: "200px" }} />
 				</CardClicked>
 			) : null}
 		</Wrapper>
@@ -1727,7 +1780,7 @@ function App() {
 우선 CardClicked에 쓰일 variants를 만들어서 적용시킨다.
 이때 카드가 사라질 때 애니메이션을 사용하기 위해 AnimatePresence로 감싸준다.
 
-```
+```javascript
 // App.tsx
 const clickedVariant = {
 	hidden: {
@@ -1767,7 +1820,7 @@ function App() {
 이제 첫 번째 카드가 CardClied 안의 Card로 변하는 애니메이션을 적용시키자.
 이는 각 카드에 layoutId를 지정해주면 된다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	...
@@ -1815,10 +1868,10 @@ function App() {
 clickState가 처음에는 null일 것을 생각하면 타입이 string | null이 된다.
 이를 useState를 사용할 때 적어줘야 한다.
 
-```
+```javascript
 // App.tsx
 function App() {
-	const [clickState, setClickState] = useState<string | null>(null);
+	const [clickState, setClickState] = (useState < string) | (null > null);
 	return (
 		<Wrapper>
 			<Box>
@@ -1837,7 +1890,7 @@ function App() {
 그리고 onClick 시에 clickState를 null로 만들어준다.
 마지막으로 애니메이션 연결을 위해 Card의 layoutId를 clickState로 만든다.
 
-```
+```javascript
 // App.tsx
 function App() {
 	...
@@ -1873,12 +1926,10 @@ function App() {
 그런데 상황에 따라 animate에 다른 값을 주고 싶을 수 있다.
 이때 useState를 사용하면 아래처럼 할 수 있다.
 
-```
+```javascript
 const check = useState(false);
 
-return (
-	<motion.div animate={check ? "middle" : "other"} />
-)
+return <motion.div animate={check ? "middle" : "other"} />;
 ```
 
 위에서 check의 값을 바꿔주는 코드만 추가하면 animate가 변경된다.
@@ -1892,7 +1943,7 @@ set을 사용하면 애니메이션을 지정하고, start는 해당 애니메�
 set은 애니메이션을 지정하는데 사용한다.
 이때 variants로 지정하는 것도 가능하다.
 
-```
+```javascript
 const controls = useAnimation();
 
 // use property
@@ -1904,30 +1955,30 @@ controls.set("hidden");
 
 다음으로 start는 아래처럼 직접 애니메이션을 지정해서 시작할 수 있다.
 
-```
+```javascript
 controls.start({
 	x: 0,
 	transition: {
-		duration: 1
-	}
+		duration: 1,
+	},
 });
 ```
 
 하지만 아래처럼 variants의 라벨을 사용하는 것이 편하다.
 
-```
+```javascript
 const divVariants = {
 	label1: {
 		x: 0,
 		transition: {
-			duration: 1
-		}
-	}
-}
+			duration: 1,
+		},
+	},
+};
 
 controls.start("label1");
 
-<motion.div variants={divVariants} animate={controls} />
+<motion.div variants={divVariants} animate={controls} />;
 ```
 
 애니메이션이 실행되는 도중에 중단하려면 `controls.stop()`으로 중단한다.

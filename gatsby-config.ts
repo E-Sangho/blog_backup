@@ -6,6 +6,23 @@ const config: GatsbyConfig = {
 		siteUrl: `https://www.yourdomain.tld`,
 	},
 	plugins: [
+		{
+			resolve: `gatsby-transformer-remark`,
+			options: {
+				plugins: [
+					`gatsby-remark-autolink-headers`,
+					`gatsby-remark-prismjs-title`,
+					`gatsby-remark-prismjs`,
+					{
+						resolve: `gatsby-remark-images`,
+						options: {
+							maxWidth: 560,
+						},
+					},
+					"gatsby-remark-numbered-footnotes",
+				],
+			},
+		},
 		"gatsby-plugin-styled-components",
 		{
 			resolve: "gatsby-plugin-google-analytics",
@@ -16,8 +33,8 @@ const config: GatsbyConfig = {
 		"gatsby-plugin-image",
 		"gatsby-plugin-react-helmet",
 		"gatsby-plugin-sitemap",
-		"gatsby-transformer-remark",
 		"gatsby-plugin-image",
+
 		{
 			resolve: `gatsby-plugin-sharp`,
 			options: {
@@ -63,52 +80,6 @@ const config: GatsbyConfig = {
 			options: {
 				name: `code`,
 				path: `${__dirname}/src/posts`,
-			},
-		},
-		{
-			resolve: `gatsby-transformer-remark`,
-			options: {
-				plugins: [
-					`gatsby-remark-autolink-headers`,
-					{
-						resolve: `gatsby-remark-prismjs`,
-						options: {
-							classPrefix: "language-",
-							inlineCodeMarker: null,
-							aliases: {},
-							showLineNumbers: false,
-							noInlineHighlight: false,
-							languageExtensions: [
-								{
-									language: "superscript",
-									extend: "javascript",
-									definition: {
-										superscript_types: /(SuperType)/,
-									},
-									insertBefore: {
-										function: {
-											superscript_keywords:
-												/(superif|superelse)/,
-										},
-									},
-								},
-							],
-							prompt: {
-								user: "root",
-								host: "localhost",
-								global: false,
-							},
-							escapeEntities: {},
-						},
-					},
-					{
-						resolve: `gatsby-remark-images`,
-						options: {
-							maxWidth: 560,
-						},
-					},
-					"gatsby-remark-numbered-footnotes",
-				],
 			},
 		},
 	],
