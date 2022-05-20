@@ -1939,16 +1939,16 @@ function App() {
 
 우선 clickState를 저장할 State를 만든다.
 그리고 ["1", "2", "3", "4"]로 map을 사용해서 Card를 만든다.
-이때 string은 원소로 사용하는 이유는 layoutId가 string을 써야하기 때문이다.
+이때 string을 원소로 사용하는 이유는 layoutId가 string을 써야하기 때문이다.
 그리고 onClick 시에 clickState를 바꿔줘야 한다.
 이때 clickState는 ["1", "2", "3", "4"] 중의 하나가 된다.
 clickState가 처음에는 null일 것을 생각하면 타입이 string | null이 된다.
-이를 useState를 사용할 때 적어줘야 한다.
+타입스크립트를 사용하면 useState를 사용할 때 string | null 타입을 적어줘야 한다.
 
 ```javascript
 // App.tsx
 function App() {
-	const [clickState, setClickState] = (useState < string) | (null > null);
+	const [clickState, setClickState] = useState(null);
 	return (
 		<Wrapper>
 			<Box>
@@ -1995,7 +1995,58 @@ function App() {
 }
 ```
 
-### Keyframe
+### Keyframes
+
+css에서 @keyframes를 사용할 때, 여러 애니메이션 상태를 만들었다.
+지금까지는 간단하게 initial, animate로 2단계만 사용했다.
+그나마도 컴포넌트가 사라지는 경우 exit이 추가되어 3단계를 사용했다.
+Framer Motion은 그 외에 여러 단계를 만드는 경우도 지원한다.
+방법은 간단한데 animate의 스타일 변화에 배열을 사용하면 된다.
+예를 들어서 scale을 5단계에 걸쳐서 바꾸려면 아래처럼 하면 된다.
+
+```javascript
+// App.tsx
+
+function App() {
+	return (
+		<Wrapper>
+			<Box
+				animate={{ scale: [1, 2, 1.2, 1.5, 3] }}
+				transition={{ delay: 1, duration: 2 }}
+			/>
+		</Wrapper>
+	);
+}
+```
+
+위 애니메이션은 scale이 1, 2, 1.2, 1.5, 3으로 5단계로 바뀐다.
+이때 애니메이션 첫 단계는 배열의 첫 번째 값을 사용한다.
+그런데 현재 지정된 스타일을 그대로 사용하고 싶을 수도 있다.
+이때는 배열의 첫 번째 값으로 null을 사용하면 된다.
+이렇게 하면 애니메이션이 좀 더 자연스럽게 보일 것이다.
+
+각 애니메이션 단계는 시간을 균등하게 사용한다.
+Framer Motion도 css @keyframes에서 했듯이 %를 바꿔서 시간 분배를 다르게 해줄 수 있다.
+keyframes의 시간 분배를 변경하려면 transition의 times 속성을 변경하면 된다.
+times는 0에서 1사이의 값을 사용해서 시간을 분배한다.
+아래는 전체 시간의 0%, 30%, 40%, 50%, 100% 사이의 시간을 나눈 것이다.
+
+```javascript
+function App() {
+	return (
+		<Wrapper>
+			<Box
+				animate={{ scale: [1, 2, 1.2, 1.5, 3] }}
+				transition={{
+					delay: 1,
+					duration: 2,
+					times: [0, 0.3, 0.4, 0.5, 1],
+				}}
+			/>
+		</Wrapper>
+	);
+}
+```
 
 ### Component animation controls
 
