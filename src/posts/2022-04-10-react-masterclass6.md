@@ -1,9 +1,11 @@
 ---
-title: "React Master Class 6"
-date: "2022-04-10 13:27:21"
-thumbnail: "../assets/images/react.png"
-summary: "Recoil and reactbeautiful dnd"
-categories: ["React"]
+title: React Master Class 6
+date: 2022-04-10 13:27:21
+layout: series
+series: React Master Class
+thumbnail: ../assets/images/react.png
+summary: Recoil and reactbeautiful dnd
+categories: [React]
 ---
 
 ## Recoil selector

@@ -120,6 +120,12 @@ function Header() {
 							variants={LinkVariants}
 							whileHover="hover"
 						>
+							<Link to="/series">Series</Link>
+						</HeaderNavLink>
+						<HeaderNavLink
+							variants={LinkVariants}
+							whileHover="hover"
+						>
 							<Link to="/projects">Projects</Link>
 						</HeaderNavLink>
 					</HeaderNavigation>

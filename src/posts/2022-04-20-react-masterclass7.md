@@ -1,9 +1,11 @@
 ---
-title: "Framer Motion"
-date: "2022-04-20 16:17:36"
-thumbnail: "../assets/images/react.png"
-summary: "Using animation effects with Framer Motion"
-categories: ["React"]
+title: Framer Motion
+date: 2022-04-20 16:17:36
+layout: series
+series: React Master Class
+thumbnail: ../assets/images/react.png
+summary: Using animation effects with Framer Motion
+categories: [React]
 ---
 
 # Framer Motion

@@ -1,9 +1,11 @@
 ---
-title: "State Management TodoList"
-date: "2022-03-31 15:19:22"
-thumbnail: "../assets/images/react.png"
-summary: "React Project to create ToDoList"
-categories: ["React"]
+title: State Management TodoList
+date: 2022-03-31 15:19:22
+layout: series
+series: React Master Class
+thumbnail: ../assets/images/react.png
+summary: React Project to create ToDoList
+categories: [React]
 ---
 
 # TodoList

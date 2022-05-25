@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { graphql } from "gatsby";
 import styled from "styled-components";
 import Prism from "prismjs";
-import DefaultLayout from "./default";
+import DefaultLayout from "../layout/default";
 import { IEdges, IPosts } from "../types/IPosts";
 import TableOfContents from "../components/TableOfContents";
 import MarkdownRenderer from "../components/MarkdownRenderer";
@@ -55,8 +55,8 @@ function PostLayout({
 
 export default PostLayout;
 
-export const queryMarkdown = graphql`
-	query queryMarkdown($slug: String) {
+export const querySeries = graphql`
+	query querySeries($slug: String) {
 		allMarkdownRemark(filter: { fields: { slug: { eq: $slug } } }) {
 			edges {
 				node {

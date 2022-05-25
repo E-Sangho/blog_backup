@@ -8,6 +8,8 @@ export interface IEdges {
 		frontmatter: {
 			date: string;
 			title: string;
+			layout: string;
+			series: string;
 			summary: string;
 			categories: string[];
 			thumbnail: {

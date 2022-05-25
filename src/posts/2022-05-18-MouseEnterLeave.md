@@ -1,9 +1,10 @@
 ---
-title: "Mouse Enter and Leave Events"
-date: "2022-05-18 16:08:57"
-thumbnail: "../assets/images/react.png"
-summary: ""
-categories: ["React"]
+title: Mouse Enter and Leave Events
+date: 2022-05-18 16:08:57
+layout: post
+thumbnail: ../assets/images/react.png
+summary: "Mouse Enter and Leave Events with delay"
+categories: [React]
 ---
 
 # Mouse Enter and Leave Events

@@ -32,11 +32,36 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 							fields {
 								slug
 							}
+							frontmatter {
+								layout
+								series
+							}
 						}
 					}
 				}
 			}
 		`
+	);
+
+	const series = queryAllMarkdownData.data.allMarkdownRemark.edges.filter(
+		({
+			node: {
+				frontmatter: { layout },
+			},
+		}) => layout === "series"
+	);
+
+	const seriesList = queryAllMarkdownData.data.allMarkdownRemark.edges.reduce(
+		(acc, cur) => {
+			if (cur.node.frontmatter.layout === "series") {
+				const seriesName = cur.node.frontmatter.series;
+				if (seriesName && !acc.includes(seriesName)) {
+					return [...acc, seriesName];
+				}
+			}
+			return acc;
+		},
+		[]
 	);
 
 	// Handling GraphQL Query Error
@@ -48,7 +73,19 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 	// Import Post Template Component
 	const PostTemplateComponent = path.resolve(
 		__dirname,
-		"src/layout/postLayout.tsx"
+		"src/template/post.tsx"
+	);
+
+	// Import SeriesList Template Component
+	const SeriesListTemplateComponent = path.resolve(
+		__dirname,
+		"src/template/seriesList.tsx"
+	);
+
+	// Import Series Template Component
+	const SeriesTemplateComponent = path.resolve(
+		__dirname,
+		"src/template/series.tsx"
 	);
 
 	// Page Generating Function
@@ -66,6 +103,33 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 		createPage(pageOptions);
 	};
 
+	const generateSeriesListPage = (seriesName) => {
+		const pageOptions = {
+			path: `series/${seriesName.replaceAll(" ", "-")}`,
+			component: SeriesListTemplateComponent,
+			context: { series: seriesName },
+		};
+
+		createPage(pageOptions);
+	};
+
+	const generateSeriesPage = ({
+		node: {
+			fields: { slug },
+			frontmatter: { series },
+		},
+	}) => {
+		const pageOptions = {
+			path: `series/${series.replaceAll(" ", "-")}${slug}`,
+			component: SeriesTemplateComponent,
+			context: { slug },
+		};
+
+		createPage(pageOptions);
+	};
+
 	// Generate Post Page And Passing Slug Props for Query
 	queryAllMarkdownData.data.allMarkdownRemark.edges.forEach(generatePostPage);
+	seriesList.forEach(generateSeriesListPage);
+	series.forEach(generateSeriesPage);
 };
