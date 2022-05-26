@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
-import { IPostData, IEdges } from "../types/IPosts";
-import { Link } from "gatsby";
+import React from "react";
+import { IEdges } from "../types/IPosts";
+
 import PostCard from "./PostCard";
 import styled from "styled-components";
 import infiniteScroll from "../hooks/infiniteScroll";

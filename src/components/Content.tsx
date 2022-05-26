@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 
 const ContentContainer = styled.div`
-	padding-top: 66px;
+	padding-top: 196px;
 `;
 
 interface IContent {

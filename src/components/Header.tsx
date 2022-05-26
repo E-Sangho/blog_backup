@@ -3,79 +3,90 @@ import styled from "styled-components";
 import { Link } from "gatsby";
 import GithubIcon from "../assets/github.svg";
 import { motion } from "framer-motion";
-import CheckScrollDown from "../hooks/scrollDown";
 
 const HeaderContainer = styled(motion.div)`
 	width: 100%;
-	height: 64px;
+
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	position: absolute;
 	top: 0px;
 	left: 0px;
+
 	background-color: white;
 	z-index: 999;
 	font-family: "Roboto";
 `;
 
-const HeaderContents = styled.div`
+const HeaderTop = styled.div`
 	width: 100%;
-	height: 100%;
 	max-width: 1024px;
-	display: grid;
-	grid-template-columns: 1fr 4fr 1fr;
-`;
 
-const HeaderStart = styled.div`
-	display: flex;
-	justify-contet: flex-start;
-	align-items: center;
-	color: ${(props) => props.theme.primaryColor};
-`;
+	margin-top: 40px;
+	padding: 4px 0px;
 
-const HeaderMiddle = styled.div`
+	box-sizing: border-box;
 	display: flex;
-	justify-content: center;
-	align-items: center;
-	a {
-		margin: 0px 8px;
-		font-size: ${({ theme }) => theme.fontSize.h6};
-	}
-`;
+	flex-direction: column;
 
-const HeaderEnd = styled.div`
-	display: flex;
-	justify-content: flex-end;
-	align-items: center;
-`;
-
-const HeaderNavigation = styled.div`
-	display: flex;
-	align-items: center;
+	border-top: 2px solid black;
+	border-bottom: 2px solid black;
 `;
 
 const HeaderLogo = styled.div`
-	font-size: ${({ theme }) => theme.fontSize.h4};
+	width: 100%;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 8px 0;
+
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+
+	font-family: "Cormorant Garamond", serif;
+	font-weight: bold;
+	font-size: 64px;
+	letter-spacing: -2px;
+	color: ${(props) => props.theme.primaryColor};
+`;
+
+const HeaderBottom = styled.div`
+	width: 100%;
+	max-width: 1024px;
+
+	display: flex;
+	position: relative;
+
+	border-bottom: 2px solid black;
+`;
+
+const HeaderNavigation = styled.div`
+	width: 100%;
+	height: 56px;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+`;
+
+const HeaderNavLink = styled(motion.div)`
+	margin: 0 8px;
+
+	font-size: ${({ theme }) => theme.fontSize.h5};
+	font-family: "Cormorant Garamond", serif;
 `;
 
 const HeaderIcon = styled.div`
 	width: 40px;
 	height: 40px;
+
+	position: absolute;
+	right: 40px;
+	top: 8px;
 `;
-
-const HeaderNavLink = styled(motion.div)``;
-
-const StyledLink = styled(Link)`
-	border-radius: 20px;
-`;
-
-const HeaderVariants = {
-	initial: {},
-	scrolled: {
-		borderBottom: "solid 2px rgba(0, 0, 0, 0.5)",
-	},
-};
 
 const LinkVariants = {
 	hover: {
@@ -84,60 +95,37 @@ const LinkVariants = {
 };
 
 function Header() {
-	const { isScrolled } = CheckScrollDown();
+	const LinkList = ["", "about", "posts", "series", "projects"];
 	return (
-		<HeaderContainer
-			variants={HeaderVariants}
-			animate={isScrolled ? "scrolled" : "initial"}
-		>
-			<HeaderContents>
-				<HeaderStart>
-					<Link to="/">
-						<HeaderLogo>WEBLOG</HeaderLogo>
-					</Link>
-				</HeaderStart>
-				<HeaderMiddle>
-					<HeaderNavigation>
+		<HeaderContainer>
+			<HeaderTop>
+				<HeaderLogo>
+					<Link to="/">WEBLOG</Link>
+				</HeaderLogo>
+			</HeaderTop>
+			<HeaderBottom>
+				<HeaderNavigation>
+					{LinkList.map((LinkUrl) => (
 						<HeaderNavLink
+							key={LinkUrl}
 							variants={LinkVariants}
 							whileHover="hover"
 						>
-							<StyledLink to="/">Home</StyledLink>
+							<Link to={`/${LinkUrl}`}>
+								{(LinkUrl === "" ? "Home" : LinkUrl).replace(
+									/\b[a-z]/,
+									(char) => char.toUpperCase()
+								)}
+							</Link>
 						</HeaderNavLink>
-						<HeaderNavLink
-							variants={LinkVariants}
-							whileHover="hover"
-						>
-							<Link to="/about">About</Link>
-						</HeaderNavLink>
-						<HeaderNavLink
-							variants={LinkVariants}
-							whileHover="hover"
-						>
-							<Link to="/posts">Posts</Link>
-						</HeaderNavLink>
-						<HeaderNavLink
-							variants={LinkVariants}
-							whileHover="hover"
-						>
-							<Link to="/series">Series</Link>
-						</HeaderNavLink>
-						<HeaderNavLink
-							variants={LinkVariants}
-							whileHover="hover"
-						>
-							<Link to="/projects">Projects</Link>
-						</HeaderNavLink>
-					</HeaderNavigation>
-				</HeaderMiddle>
-				<HeaderEnd>
-					<HeaderIcon>
-						<a href="https://github.com/E-Sangho">
-							<GithubIcon />
-						</a>
-					</HeaderIcon>
-				</HeaderEnd>
-			</HeaderContents>
+					))}
+				</HeaderNavigation>
+				<HeaderIcon>
+					<a href="https://github.com/E-Sangho">
+						<GithubIcon />
+					</a>
+				</HeaderIcon>
+			</HeaderBottom>
 		</HeaderContainer>
 	);
 }
