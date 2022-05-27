@@ -45,7 +45,7 @@ const Character = styled(motion.div)`
 	color: white;
 `;
 
-interface ITypeText {
+interface IStaggerText {
 	text: string;
 	speed: number;
 	imageUrl: string;
@@ -70,7 +70,7 @@ const CharVariants = {
 	},
 };
 
-function TypeText({ text, speed, imageUrl }: ITypeText) {
+function StaggerText({ text, speed, imageUrl }: IStaggerText) {
 	const words = text.split(" ");
 	return (
 		<Container imageUrl={imageUrl} style={{ backgroundImage: "" }}>
@@ -109,4 +109,4 @@ function TypeText({ text, speed, imageUrl }: ITypeText) {
 	);
 }
 
-export default TypeText;
+export default StaggerText;
