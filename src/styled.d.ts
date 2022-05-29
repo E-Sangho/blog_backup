@@ -5,6 +5,14 @@ declare module "styled-components" {
 		// primaryColor is Blue
 		primaryColor: string;
 
+		dittoColor: {
+			lightest: string;
+			light: string;
+			main: string;
+			dark: string;
+			darkest: string;
+		};
+
 		// secondaryColor is Orange
 		secondaryColor: string;
 		// grayColors are differ only opacity

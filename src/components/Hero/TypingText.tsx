@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
+import { StaticImage } from "gatsby-plugin-image";
 
-const Container = styled.div<{ imageUrl: string }>`
+const Container = styled.div`
 	width: 100%;
 	max-width: 1024px;
 	height: 400px;
 
+	position: relative;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	margin: 0 auto;
 	margin-top: 32px;
-
-	background-image: linear-gradient(
-			to bottom,
-			rgba(20, 20, 20, 0.3),
-			rgba(20, 20, 20, 0.8)
-		),
-		url(${(props) => props.imageUrl});
-	background-position: center center;
-	background-size: cover;
 `;
 
 const TypingZone = styled.div`
@@ -31,6 +24,8 @@ const TypingZone = styled.div`
 	justify-content: center;
 	align-items: center;
 	text-align: center;
+	z-index: 0;
+	background-color: transparent;
 `;
 
 const Text = styled.div`
@@ -75,12 +70,21 @@ function TypingText({ text, speed, imageUrl }: ITypingText) {
 	useEffect(() => {
 		setDisplayedText((prev) => prev + text[index]);
 	}, [index]);
-	const words = text.split(" ");
 	return (
-		<Container imageUrl={imageUrl}>
+		<Container>
+			<StaticImage
+				src={"../../assets/images/homeHero.jpg"}
+				alt="Hero image for home"
+				style={{
+					position: "absolute",
+					width: "100wh",
+					height: "100vh",
+					objectFit: "cover",
+					filter: "brightness(50%)",
+				}}
+			/>
 			<TypingZone>
 				<Text>
-					<Parenthesis>{"["}</Parenthesis>
 					{displayedText}
 					<Bar
 						initial={{ opacity: 0 }}
@@ -92,7 +96,6 @@ function TypingText({ text, speed, imageUrl }: ITypingText) {
 					>
 						|
 					</Bar>
-					<Parenthesis>{"]"}</Parenthesis>
 				</Text>
 			</TypingZone>
 		</Container>

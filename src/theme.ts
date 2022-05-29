@@ -4,6 +4,13 @@ export const LightTheme: DefaultTheme = {
 	// primaryColor is Blue
 	primaryColor: "#0F0FDC",
 
+	dittoColor: {
+		lightest: "#ffcdff",
+		light: "#e6a4f6",
+		main: "#b46acd",
+		dark: "#9c5ab4",
+		darkest: "#5a1894",
+	},
 	// secondaryColor is Orange
 	secondaryColor: "#FF9900",
 

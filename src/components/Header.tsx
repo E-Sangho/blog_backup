@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { Link } from "gatsby";
 import GithubIcon from "../assets/github.svg";
 import { motion } from "framer-motion";
+import BarIcon from "../assets/svg/bar.svg";
 
 const HeaderContainer = styled(motion.div)`
-	width: 100%;
+	width: 100vw;
 
 	display: flex;
 	flex-direction: column;
@@ -15,42 +16,40 @@ const HeaderContainer = styled(motion.div)`
 	top: 0px;
 	left: 0px;
 
-	background-color: white;
+	background-color: ${({ theme }) => theme.dittoColor.main};
+
 	z-index: 999;
 	font-family: "Roboto";
+
+	@media screen and (max-width: 1023px) {
+	}
+
+	@media screen and (max-width: 767px) {
+	}
 `;
 
 const HeaderTop = styled.div`
 	width: 100%;
 	max-width: 1024px;
 
-	margin-top: 40px;
-	padding: 4px 0px;
-
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
-
-	border-top: 2px solid black;
-	border-bottom: 2px solid black;
 `;
 
 const HeaderLogo = styled.div`
-	width: 100%;
-
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 8px 0;
-
-	border-top: 1px solid black;
-	border-bottom: 1px solid black;
-
-	font-family: "Cormorant Garamond", serif;
+	font-family: sans-serif;
 	font-weight: bold;
-	font-size: 64px;
-	letter-spacing: -2px;
+
 	color: ${(props) => props.theme.primaryColor};
+
+	@media screen and (max-width: 1023px) {
+	}
+
+	@media screen and (max-width: 767px) {
+		margin: 8px auto;
+		font-size: 24px;
+	}
 `;
 
 const HeaderBottom = styled.div`
@@ -60,7 +59,8 @@ const HeaderBottom = styled.div`
 	display: flex;
 	position: relative;
 
-	border-bottom: 2px solid black;
+	@media screen and (max-width: 1023px) {
+	}
 `;
 
 const HeaderNavigation = styled.div`
@@ -70,6 +70,24 @@ const HeaderNavigation = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
+
+	@media screen and (max-width: 767px) {
+		display: none;
+	}
+`;
+
+const MobileNavigation = styled.div`
+	width: 100%;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	color: white;
+
+	@media screen and (min-width: 768px) {
+		display: none;
+	}
 `;
 
 const HeaderNavLink = styled(motion.div)`
@@ -77,6 +95,10 @@ const HeaderNavLink = styled(motion.div)`
 
 	font-size: ${({ theme }) => theme.fontSize.h5};
 	font-family: "Cormorant Garamond", serif;
+
+	@media screen and (max-width: 767px) {
+		margin-bottom: 8px;
+	}
 `;
 
 const HeaderIcon = styled.div`
@@ -86,6 +108,10 @@ const HeaderIcon = styled.div`
 	position: absolute;
 	right: 40px;
 	top: 8px;
+
+	@media screen and (max-width: 767px) {
+		display: none;
+	}
 `;
 
 const LinkVariants = {
@@ -94,15 +120,37 @@ const LinkVariants = {
 	},
 };
 
+const Bar = styled.div`
+	width: 20px;
+	height: 20px;
+
+	position: absolute;
+	top: 8px;
+	right: 16px;
+	fill: white;
+
+	@media screen and (min-width: 768px) {
+		display: none;
+	}
+`;
+
 function Header() {
 	const LinkList = ["", "about", "posts", "series", "projects"];
+	const [barClicked, setBarClicked] = useState(false);
+	const barOnclick = () => {
+		setBarClicked((prev) => !prev);
+	};
 	return (
 		<HeaderContainer>
 			<HeaderTop>
 				<HeaderLogo>
-					<Link to="/">WEBLOG</Link>
+					<Link to="/">{":)itto"}</Link>
 				</HeaderLogo>
 			</HeaderTop>
+			<Bar onClick={barOnclick}>
+				<BarIcon />
+			</Bar>
+
 			<HeaderBottom>
 				<HeaderNavigation>
 					{LinkList.map((LinkUrl) => (
@@ -120,6 +168,31 @@ function Header() {
 						</HeaderNavLink>
 					))}
 				</HeaderNavigation>
+				{barClicked && (
+					<MobileNavigation>
+						{LinkList.map((LinkUrl) => (
+							<HeaderNavLink
+								key={LinkUrl}
+								variants={LinkVariants}
+								whileHover="hover"
+							>
+								<Link to={`/${LinkUrl}`}>
+									{(LinkUrl === ""
+										? "Home"
+										: LinkUrl
+									).replace(/\b[a-z]/, (char) =>
+										char.toUpperCase()
+									)}
+								</Link>
+							</HeaderNavLink>
+						))}
+						<HeaderIcon>
+							<a href="https://github.com/E-Sangho">
+								<GithubIcon />
+							</a>
+						</HeaderIcon>
+					</MobileNavigation>
+				)}
 				<HeaderIcon>
 					<a href="https://github.com/E-Sangho">
 						<GithubIcon />

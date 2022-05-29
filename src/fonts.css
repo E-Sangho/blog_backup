@@ -1,0 +1,11 @@
+@font-face {
+	font-family: "digital 7";
+	src: local("digital 7"),
+		url("./assets/fonts/digital-7/digital-7.ttf") format("truetype");
+	font-family: "fff forward";
+	src: local("fff forward"),
+		url("./assets/fonts/fff-forward/FFFFORWA.ttf") format("truetype");
+	font-family: "elecstorm";
+	src: local("elecstorm"),
+		url("./assets/fonts/elecstrom-font/ElecstromRegular-w1y4P.ttf");
+}
