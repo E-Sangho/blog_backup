@@ -289,18 +289,48 @@ JIT 엔진을 도입함으로 인해 Tailwind는 기존의 약점으로 지적�
 
 ## Prisma
 
-ORM
-Prisma = translator (SQL 등을 사용하지 않고 DB와 연결)
+### Why Prisma?
 
-vscode prisma extension(Prisma 검색: syntax highliting, formatting, auto-complete)
+애플리케이션 개발에서 관계형 데이터베이스(relational databases)로 작업하는 것은 많은 문제를 야기한다.
+기본적으로 데이터가 테이블 형태이기 때문에, 객체 정보를 불러오려면 많은 쿼리를 작성해야 한다.
+이는 스키마가 커질 수록 더 복잡해져서, 프로그램이 확장될 수록 더 많은 시간이 필요해진다.
 
-`npm i prisma -D`
+또한 SQL은 데이터베이스 제어능력은 뛰어나지만, 생산성이 크게 떨어진다.
+SQL 작성이 상당히 복잡하고 많은데다가, 스키마나 쿼리를 변경할 때마다 조정이 필요하다.
+게다가 쿼리 결과물의 type-safety가 보장되지 않는다는 문제도 있다.
 
-`npx prisma init`: prisma 폴더, .env 파일 생성
+이런 생각을 바탕으로 나온 것이 ORM(Object Relational Model)이다.
+ORM은 객체로 모델을 정의해서 데이터베이스에 연결해준다.
+그런데 객체는 클래스인데 반해 데이터베이스는 테이블 형태로 모델이 다르다.
+이를 ORM을 통해 자동으로 해결해주는데, 객체 스키마로 SQL을 자동으로 생성해준다.
+ORM은 객체를 사용하므로 좀 더 직관적이고, 개발자가 사용하기 편하다.
+
+프리즈마는 ORM에서 약간 더 개선한 것으로 특히 GraphQL과 같이 사용하기 좋다.
+
+### What is Prisma?
+
+프리즈마는 차세대 ORM으로 SQL을 사용하지 않고도 데이터베이스를 쓸 수 있게 해주는 도구다.
+아래 3가지는 프리즈마의 주 기능이다.
+
+-   Prisma Client: Node.js & TypeScript용 type-safe 쿼리를 자동으로 만들어준다. 그러므로 Node.js나 TypeScript로 만들어진 백엔드 어플리케이션에 사용할 수 있다.(e.g. REST API, GraphQL API)
+-   Prisma Migrate: 데이터베이스 이전 지원
+-   Prisma Studio: 데이터베이스의 데이터를 시각적으로 보여주고 편집할 수 있게 해준다.
+
+### Setup
+
+VSCode에서 Prisma Extension을 설치하기 위해 Prisma를 검색하고 설치해준다.
+프리즈마 익스텐션을 설치하면 코드 하이라이팅, 포맷팅, 자동 완성 등의 기능이 추가된다.
+이제 프리즈마를 설치하기 위해 `npm i prisma -D`를 입력한다.
+그리고 `npx prisma init`을 실행하면, prisma 폴더와 .env 파일 생성을 생성한다.
+이제 우리가 해야할 일은 아래 3가지다.
 
 1. .env에 데이터베이스 URL을 적어주기
 2. shcema.prisma에 provider를 바꿔주기(mysql)
 3. model 만들기
+
+1번은 이후에 PlanetScale에서 할 예정이므로 넘어간다.
+2, 3번은 prisma 폴더의 schema.prisma 파일에서 만들어야 한다.
+일
 
 ```javascript
 model User {
