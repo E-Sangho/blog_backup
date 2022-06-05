@@ -322,22 +322,144 @@ VSCode에서 Prisma Extension을 설치하기 위해 Prisma를 검색하고 설�
 프리즈마 익스텐션을 설치하면 코드 하이라이팅, 포맷팅, 자동 완성 등의 기능이 추가된다.
 이제 프리즈마를 설치하기 위해 `npm i prisma -D`를 입력한다.
 그리고 `npx prisma init`을 실행하면, prisma 폴더와 .env 파일 생성을 생성한다.
+
+### Overview
+
 이제 우리가 해야할 일은 아래 3가지다.
 
 1. .env에 데이터베이스 URL을 적어주기
-2. shcema.prisma에 provider를 바꿔주기(mysql)
+2. schema.prisma에 provider를 바꿔주기(mysql)
 3. model 만들기
 
 1번은 이후에 PlanetScale에서 할 예정이므로 넘어간다.
 2, 3번은 prisma 폴더의 schema.prisma 파일에서 만들어야 한다.
-일
+코드를 작성하기 전에 schema.prisma 파일이 하는 일을 잠시 설명하겠다.
+schema.prisma 파일은 3가지 일을 한다.
+
+-   datasource: 데이터베이스와 연결을 정의한다.
+-   generator: 프리즈마 클라이언트를 만든다.
+-   model: 어플리케이션의 모델을 정의한다.
+
+#### Data Sources
+
+데이터 소스는 프리즈마가 데이터베이스에 어떻게 연결할지를 결정한다.
+이때 코드는 schema.prisma 안에서 datasource API 블록에 작성한다.
+아래는 하나의 예시다.
+
+```javascript
+datasource db {
+	provider = "postgresql"
+	url      = "postgresql://johndoe:mypassword@localhost:5432/mydb?schema=public"
+}
+```
+
+위 코드를 provider과 url이 있다.
+provider는 어떤 데이터를 사용하는지 정한다.
+예를 들어서 MongoDB를 사용한다면 mongodb를 써야하고, MySQL을 쓴다면 mysql을 써줘야 한다.
+url은 데이터베이스의 주소를 적어줘야 한다.
+이때 데이터베이스 주소가 공개되면 안 되므로, .env파일에 적어줘서 사용하는 것이 좋다.
+우리는 .env 파일에 DATABASE_URL로 데이터베이스 주소를 적어줄 예정이므로 이를 사용해준다.
+
+```javascript
+// schema.prisma
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+```
+
+#### Generators
+
+프리즈마 클라이언트는 DB를 수정할 수 있는 도구로 `prisma generate` 명령으로 생성된다.
+기본적으로 사용하는 언어는 자바스크립트고, node_modules/.prisma/client 위치에 생성된다.
+
+generator는 프리즈마 클라이언트의 설정을 담당하며, provider로 사용하는 언어를 선택하고, output으로 생성 위치를 정한다.
+그런데 현재 프리즈마는 자바스크립트만 사용할 수 있고, 파일 저장위치를 굳이 바꿀 필요는 없다.
+그러므로 무조건 아래처럼 적어주면 된다.
+
+```javascript
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma-client-js"
+}
+```
+
+#### Model
+
+모델은 데이터의 스키마를 정한다.
+아래는 모델의 예시다.
 
 ```javascript
 model User {
+  id      Int      @id @default(autoincrement())
+  email   String   @unique
+  name    String?
+  role    Role     @default(USER)
+  posts   Post[]
+  profile Profile?
+}
+
+model Profile {
+  id     Int    @id @default(autoincrement())
+  bio    String
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Post {
+  id         Int        @id @default(autoincrement())
+  createdAt  DateTime   @default(now())
+  title      String
+  published  Boolean    @default(false)
+  author     User       @relation(fields: [authorId], references: [id])
+  authorId   Int
+  categories Category[] @relation(references: [id])
+}
+```
+
+위를 보면 모델을 어떻게 만드는지 대충 유추가 될 것이다.
+model 뒤에 모델의 이름을 적고 {} 안에 fields를 작성한다.
+fields에는 각 줄에 field를 작성하는데, field의 이름과 타입을 작성한다.
+그 외에도 뒤에 부가적인 부분이 있는데 이를 attributes라고 한다.
+아래는 모델의 작성법이다.
+
+```javascript
+model {ModalName} {
+	fieldName fieldType typeModifiers attributes
+}
+```
+
+fieldName에는 원하는 이름을 적어주면 된다.
+이때 각 모델은 반드시 id라는 필드를 포함해야 하는데, id는 조금 있다가 자세히 설명하겠다.
+
+fieldName 뒤에는는 fieldType을 적어줘야 한다.
+타입은 Int, String, Boolean, DateTime 등이 사용되며, 다른 모델을 사용할 수도 있다.
+위의 예시에서도 User의 profile은 Profile 타입인데, 이는 다른 Profile 모델의 데이터 스키마를 사용하는 것을 의미한다.
+
+fieldType 뒤에는 부가적인 타입 변환 기능이 있다.
+이를 Type Modifiers라고 하며 []를 붙이면 해당 타입의 배열을 의미하고, ?는 optional 한 것을 의미한다.
+위 예시에서 User의 posts는 Post[]타입이므로 Post 타입 데이터의 배열이고, profile은 ?가 붙어 optional한 것을 볼 수 있다.
+
+마지막으로 attributes에는 @id, @default, @unique 등을 설정할 수 있다.
+attributes는 해당 field를 특수하게 다루는 속성으로 id로 설정, 초기값 정하기, 유일성을 정할 수 있다.
+각 데이터는 서로를 구분하기 위해서 id를 사용해야 한다.
+당연히 id는 유일해야 하며 서로 구분하기 위한 특수한 값인만큼 이를 @id를 사용해 표시한다.
+@unique는 해당 field가 유일해야 함을 의미한다.
+다시 말해 데이터를 추가할 때, 해당 값이 중복되어서는 안 되는 데이터를 지정할 때 사용한다.
+예를 들어 email은 중복되어선 안 되므로 @unique를 붙여줘야 한다.
+
+@default는 해당값의 초기값을 정해주는데 사용한다.
+예를 들어서 초기값을 false로 지정하고 싶으면 @default(false)라고 적어준다.
+이때 초기값으로 함수를 사용할 수 있는데, 이를 사용하면 좀 더 유연하게 초기값을 정할 수 있다.
+예를 들어서 id를 지금까지 존재하는 데이터 수 + 1로 정하려면 @default(autoincrement())를 사용하고, 시간을 현재 시간으로 정하고 싶으면 @default(now())를 사용한다.
+
+우리 파일에서는 사용자 정보를 아래처럼 정의했다.
+
+```javascript
+// schema.prisma
+model User {
 	id Int @id @default(autoincrement())
-	//id 는 int고 unique하고 증가하는 순서로 정렬
 	phone Int? @unique
-	// phone은 있을 수도 없을 수도 있지만, 유일하다.
 	email String? @unique
 	name String
 	avatar String?
@@ -346,11 +468,29 @@ model User {
 }
 ```
 
+중요한 것만 설명하자면, id는 @id를 붙여서 id를 사용한다는 것을 표시하고 그 뒤에 @default(autoincrement())를 사용해서, 자동으로 증가하는 순서로 생성되도록 하였다.
+phone, email, avatar는 필수적이지 않은 정보라 ?를 붙여 optional로 정했다.
+그리고 createdAt은 @default(now())를 써서 현재 시간을 적어줬다.
+마지막으로 updatedAt에 @updatedAt을 사용했는데, 이는 attributes의 일종으로 업데이트 시간이다.
+비슷한 것으로 @createdAt이 있다.
+
 ## PlanetScale
 
-PlanetScale(MySQL serverless database)
-serverless: 서브를 유지할 필요가 없다.
-서버는 만들어야 함
+PlanetScale은 MySQL과 호환되는 serverless database다.
+여기서 serverless라는 것은 서버를 관리할 필요 없이 사용할 수 있다는 뜻이다.
+서버리스가 다른 서버와 다른 점은 트래픽에 따라 알아서 대역폭을 늘리고 줄여준다는 점이다.
+만약 서버를 1000명 분의 서비스를 사용했다면, 이용자수와 상관없이 1000명분의 금액을 내야한다.
+하지만 서버리스에서는 동적으로 자원을 할당한다.
+그래서 사용자 수가 적으면 자원을 할당하지 않고, 사용자 수가 많으면 자원을 할당해서 효율적으로 사용한다.
+그리고 실제 사용한 자원의 비용만 청구되므로 저렴하다.
+그 외에도 보안, 업데이트 측면을 신경쓰지 않고 어플리케이션 제작에만 신경쓸 수 있다.
+
+이름이 서버리스여서 서버가 필요 없다고 생각할 순 있지만, 서버가 필요없다는 것은 아니다.
+서버의 데이터베이스를 클라우드 시스템으로 사용한다는 것일 뿐, 나머지 소프트웨어적인 부분은 작성해야 한다.
+추후에 소프트웨어는 Next.js의 API를 사용해 만들겠다.
+
+[Planet Scale](https://planetscale.com/)에 접속해서 Sign in을 누른다.
+
 vitess, mysql scale
 회원가입 or 깃허브 로그인
 
@@ -440,3 +580,4 @@ localhost:3000/api/client-test로 들어가면 api가 나온다.
 
 1. [Tailwind](https://tailwindcss.com/)
 2. [Prisma](https://www.prisma.io/)
+3. [Planet Scale](https://planetscale.com/)
