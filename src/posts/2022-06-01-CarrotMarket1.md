@@ -313,7 +313,7 @@ ORM은 객체를 사용하므로 좀 더 직관적이고, 개발자가 사용하
 아래 3가지는 프리즈마의 주 기능이다.
 
 -   Prisma Client: Node.js & TypeScript용 type-safe 쿼리를 자동으로 만들어준다. 그러므로 Node.js나 TypeScript로 만들어진 백엔드 어플리케이션에 사용할 수 있다.(e.g. REST API, GraphQL API)
--   Prisma Migrate: 데이터베이스 이전 지원
+-   Prisma Migrate: 데이터를 SQL 데이터베이스에서 쓸 수 있게 바꿔준다.
 -   Prisma Studio: 데이터베이스의 데이터를 시각적으로 보여주고 편집할 수 있게 해준다.
 
 ### Setup
@@ -322,6 +322,16 @@ VSCode에서 Prisma Extension을 설치하기 위해 Prisma를 검색하고 설�
 프리즈마 익스텐션을 설치하면 코드 하이라이팅, 포맷팅, 자동 완성 등의 기능이 추가된다.
 이제 프리즈마를 설치하기 위해 `npm i prisma -D`를 입력한다.
 그리고 `npx prisma init`을 실행하면, prisma 폴더와 .env 파일 생성을 생성한다.
+추가적으로 프리즈마 파일을 저장할 때 정렬하기 위해 VSCode setting에 아래 코드를 추가해준다.
+VSCode setting은 ⌘ + ,를 누르면 열 수 있다.
+setting에서 파일 수정은 우측 상단의 Open Settings 아이콘을 누르면 된다.
+
+```javascript
+	...,
+	"[prisma]": {
+		"editor.defaultFormatter": "Prisma.prisma"
+	}
+```
 
 ### Overview
 
@@ -476,6 +486,8 @@ phone, email, avatar는 필수적이지 않은 정보라 ?를 붙여 optional로
 
 ## PlanetScale
 
+### Overview
+
 PlanetScale은 MySQL과 호환되는 serverless database다.
 여기서 serverless라는 것은 서버를 관리할 필요 없이 사용할 수 있다는 뜻이다.
 서버리스가 다른 서버와 다른 점은 트래픽에 따라 알아서 대역폭을 늘리고 줄여준다는 점이다.
@@ -487,69 +499,136 @@ PlanetScale은 MySQL과 호환되는 serverless database다.
 
 이름이 서버리스여서 서버가 필요 없다고 생각할 순 있지만, 서버가 필요없다는 것은 아니다.
 서버의 데이터베이스를 클라우드 시스템으로 사용한다는 것일 뿐, 나머지 소프트웨어적인 부분은 작성해야 한다.
-추후에 소프트웨어는 Next.js의 API를 사용해 만들겠다.
+추후에 서버는 Next.js의 API를 사용해 만들겠다.
+
+Planet Scale은 한달에 10GB, 1억 번의 읽기, 천만 번의 쓰기, 1000명의 동시 지원이 무료 서비스로 제공된다.
+이 정도면 우리 프로젝트에 차고 넘치므로 비용없이 만들 수 있다.
+또한 Planet Scale은 branch 기능이 있는데, 이는 깃허브의 branch와 비슷하다.
+branch로 데이터를 관리하다가 배포할 정도가 되면 이를 다른 브랜치와 합칠 수 있다.
+
+### Setup
 
 [Planet Scale](https://planetscale.com/)에 접속해서 Sign in을 누른다.
+회원가입을 하거나 깃허브 아이디로 로그인 한다.
+로그인 하면 화면이 나오는데, 우리는 CLI를 사용할 예정이므로 CLI를 설치해줘야 한다.
+[Planet Scale CLI Installation](https://github.com/planetscale/cli#installation)에서 자신의 버전에 맞는 cli를 설치한다.
+맥 유저는 `brew install planetscale/tap/pscale`와 `brew install mysql-client`를 설치해주면 된다.
+그리고 VSCode의 터미널에서 pscale을 입력했을 때, pscale cli 설명이 나오면 제대로 설치된 것이다.
 
-vitess, mysql scale
-회원가입 or 깃허브 로그인
+이제 로그인을 해줘야 하므로 `pscale auth login`을 입력한다.
+그러면 새 창이 뜨면서 Device confirmation이라는 창과, 문자열이 나온다.
+해당 문자열이 터미널의 user_code와 동일한지 확인하고 Confirm code를 누르면 로그인 된다.
 
-pscale 설치
-pscale auto login(화면과 터미널의 값이 같은지 확인 => logged in)
-pscale region list -> ap-northeast에 만들기
-pscale database create
-pscale database create carrot-market --region ap-northeast
+이제 데이터베이스를 만들어 보겠다.
+데이터베이스를 만들 때, 가까운 지역의 데이터베이스를 사용하는 것이 좋다.
+로그인 후에 `pscale region list`를 입력하면 pscale의 지역 정보가 나온다.
+이 글을 쓰는 현재 아래 9개의 지역이 있다.
 
-브라우저의 관리자 패널에 보면 새로운 데이터베이스가 생김
-브라우저에서 버튼으로 해결되긴 하지만, cli로 해결하는 것 추천
+```
+  NAME (9)                            SLUG                 ENABLED
+ ----------------------------------- -------------------- ---------
+  AWS us-east-1 (Northern Virginia)   us-east              Yes
+  AWS us-west-2 (Oregon)              us-west              Yes
+  AWS eu-west-1 (Dublin)              eu-west              Yes
+  AWS ap-south-1 (Mumbai)             ap-south             Yes
+  AWS ap-southeast-1 (Singapore)      ap-southeast         Yes
+  AWS ap-northeast-1 (Tokyo)          ap-northeast         Yes
+  AWS eu-central-1 (Frankfurt)        eu-central           Yes
+  AWS ap-southeast-2 (Sydney)         aws-ap-southeast-2   Yes
+  AWS sa-east-1 (Sao Paulo)           aws-sa-east-1        Yes
+```
 
-.env에 url을 적어줘야 한다.
-보통 데이터베이스는 만들 때 암호를 생성한다.
-Heroku, AWS는 해당 암호를 .env에 저장해야 한다.
-만약 암호가 유출되면 망함
-그래서 2개의 데이터 베이스를 준비한다.
-컴퓨터에서는 가짜 데이터베이스로 작업하고, 배포는 Heroku, AWS에서 한다.
+우리는 동북 아시아에 있으므로 도쿄의 데이터베이스를 사용하면 된다.
+ap-northeast가 동경 서버의 이름이므로 이를 사용하겠다.
+pscale database create {데이터베이스 이름} 으로 데이터 베이스를 만들 수 있다.
+이때 뒤에 --region ap-northeast을 적어주면, 도쿄의 데이터베이스를 쓸 수 있다.
+`pscale database create carrot-market --region ap-northeast`로 데이터베이스를 만들고, 출력되는 주소로 접속해보면 데이터베이스가 만들어진 것을 볼 수 있다.
 
-PlanetScale에서는 .env에 암호를 저장하지 않는다.
-cli에서 pscale을 입력하면 connet 명령이 있다.
-pscale connect carrot-market => 연결됨
--> url이 나옴. (콘솔을 유지해야 연결이 유지되므로 끄면 안 됨)
--> url을 .env의 DATABASE_URL에 추가
+사실 이는 플래닛 스케일 페이지에서 New database 버튼으로도 만들 수 있다.
+그렇지만 CLI로 작업하는 것이 일일이 접속하는 것보다 편하므로, CLI로 작업하도록 하겠다.
+
+이제 .ent 파일에 url을 적어줘야 한다.
+대부분의 회사에선 데이터베이스와 연결하기 위해 Secret Key를 사용한다.
+그리고 Secret Key를 .env 파일에 적어줘야 한다.
+만약 해당 키가 공개되거나, 다른 사람이 컴퓨터를 들여다보면 위험하다.
+그러므로 사람들은 작업용 데이터베이스를 따로 준비해서 코드를 만든다.
+그리고 배포시에만 데이터베이스를 사용한다.
+
+플래닛 스케일은 암호를 사용하지 않고 CLI의 기능을 사용한다.
+CLI로 로그인 했기 때문에 보안적 측면은 플래닛 스케일 회사에 맡기고 데이터베이스를 사용할 수 있다.
+`pscale`을 입력하면 connet라는 명령어가 있다.
+`pscale connect carrot-market`을 입력하면 데이터베이스와 연결된다.
+그러면 터미널에 주소가 나오는데, 이 주소를 사용해서 연결한다.
+해당 주소의 앞에 mysql://을 붙이고, 뒤에 데이터베이스의 이름을 추가하면 된다.
 
 ```javascript
+// .env
 DATABASE_URL = "mysql://127.0.0.1.3306/carrot-market";
 ```
 
-model을 db에 연결
-prisma는 schema.prism를 2가지 목적으로 살펴본다.
+이제 필요한 준비는 끝냈다.
+다음부터는 프리즈마를 사용해서 데이터베이스에 연결해보겠다.
 
-1. model을 dbdㅔ push하고 sql migration을 자동으로 처리
-2. 다른 db와 상호작용하기 위해 client를 생성하고, 그 client에 자동완성 기능을 추가하기 위해.
+### Foreign Key
 
-PlanetScale은 MySql과 호환되는 페이지.
-foerin key
+잠시 MySQL을 설명해야 한다.
+MySQL은 데이터를 테이블 형태로 저장한다.
+그리고 데이터 사이의 연결이 필요할 때 Foreign Key를 사용한다.
+예를 들어서 Post에서 User 정보가 들어간다고 하자.
+이때 User 정보는 User id를 사용한다.
+이는 테이블 형태를 유지하기 위해선 하나의 정보 밖에 들어갈 수 없고, id만 알아도 해당 데이터를 찾을 수 있기 때문이다.
+이처럼 다른 테이블의 정보를 찾을 수 있는 것을 Foreign Key라고 한다.
+MySQL에선 Foreign Key가 유효한지 확인한다.
+쉽게 말해서 해당 id가 가리키는 정보가 실제로 존재하는지 확인한다.
+그러므로 존재하지 않는 데이터의 id를 Foreign Key로 사용할 수 없다.
+
+플래닛 스케일은 Vitess를 기반으로 하는데, Vitess는 MySQL과 호환되지만 MySQL을 사용하진 않는다.
+둘의 차이점 중 하나가 플래닛 스케일은 Foreign Key를 제한하지 않는다는 것이다.
+플래닛 스케일은 데이터베이스를 여러 곳에 나눠서 저장하는데 특화되어 있다.
+그런데 Foreign Key는 같은 데이터베이스에서 검색해서 확인하기 때문에, 플래닛 스케일에서 이를 제한하기 어렵다.
+그래서 플래닛 스케일은 정보가 없더라도 Foreign Key를 만들 수 있다.
+
+이로 인해 발생하는 문제는 존재하지 않는 데이터로 Foreign Key가 생성될 수 있다는 것이다.
+보통은 Foreign Key를 제한하는 것은 데이터베이스에 맡기지만, 플래닛 스케일에선 불가능하다.
+그러므로 프로그래머가 이를 직접 제한하도록 만들어야 하는데, 프리즈마에서 해당 기능을 제공한다.
+schema.prisma 파일에 아래처럼 코드 2줄을 추가하면 된다.
 
 ```javascript
+// schema.prisma
 generator client {
-	provider = "prisma-client-js"
-	previewFeatures = ["referentialIntegrity]
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
+
 datasource db {
-	provider = "mysql"
-	url = env("DATABASE_URL")
-	referentialIntegrity = "prisma"
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
 }
 ```
 
-npx prisma db push
+schema.prism 파일에 모델을 만들었었다.
+모델을 만든 이유는 2가지가 있다.
+첫 번째로 model을 데이터베이스에 추가하고, SQL 변환을 자동으로 처리하기 위함이다.
+두 번째로 클라이언트를 만들어서 데이터베이스와 소통하고, 해당 클라이언트에 자동완성 기능을 추가하기 위해서다.
 
-PlanetScale에서 Branches를 눌러보면 main에서 Schema에 데이터베이스의 Schema가 나온다.
+우선 스키마를 플래닛 스케일에 추가해보자.
+이 일을 하기 전에 반드시 플래닛 스케일과 연결되어 있어야 한다는 것을 기억하자.
+`npx prisma db push`를 입력한다.
+플래닛 스케일에서 Branches를 눌러보면 main에서 Schema에, 우리가 만든 스키마의 SQL 버전이 나온다.
 
-npx prisma studio
+## Prisma Client
 
-libs/client.ts
+`npx prisma studio`를 입력하면 데이터베이스 관리 페이지가 나온다.
+여기서 어떤 모델을 사용할지 정할 수 있는데 User를 사용해보자.
+모델을 보면 Int는 #, String은 A, optional은 ?로 표현된 것을 볼 수 있다.
+이 페이지에서 Add record를 누르면 데이터를 추가할 수 있다.
+데이터를 하나 추가하고 Save change를 누르면 데이터가 추가된다.
 
-`npm i @prisma/client`
+다음으로 프리즈마 클라이언트를 사용해보자.
+`npm i @prisma/client`로 프리즈마 클라이언트를 설치한다.
+libs폴더를 만들고 그 안에 client.ts 파일을 만든다.
+그 후 아래처럼 적어준다.
 
 ```javascript
 // client.ts
@@ -558,9 +637,48 @@ import { PrismaClient } from "@prisma/client";
 export default new PrismaClient();
 ```
 
-PrismaClient는 프론트엔드에서 사용할 수 없도록 막혀있다.
+이제 위 파일의 PrismaClient를 다른 파일에서 불러와서, 프리즈마 클라이언트를 사용할 수 있다.
+프리즈마 클라이언트는 `npx prisma generate` 명령어를 사용하면 생성된다.
+우리는 그 이전에 `npx prisma db push`를 입력했을 때, 자동으로 생성되므로 따로 입력할 필요는 없다.
+프리즈마 클라이언트는 node_modules/@prisma/client에 만들어져 있다.
+여기서 index.d.ts를 보면 우리가 만든 모델의 타입이 정의되어 있다.
+프리즈마 클라이언트는 이를 사용해서 데이터의 타입을 검사하고, 타입이 맞지 않으면 에러를 표시한다.
 
-/pages/api/client-test.tsx
+다시 client.ts로 돌아가서 클라이언트를 사용하기 위해 코드를 아래처럼 수정했다.
+
+```javascript
+// client.ts
+import { PrismaClient } from "@prisma/client";
+
+const client = new PrismaClient();
+
+client.user.create({
+	data: {
+		email: "Email@gmail.com",
+		name: "Your name",
+	},
+});
+```
+
+위 코드는 Users 모델에 따라서 데이터를 생성한다.
+이때 필수적인 데이터인 name만 적어주면, id, createdAt 등은 자동으로 생성된다.
+
+그런데 PrismaClient를 모든 파일에서 쓸 수 있으면 문제가 된다.
+프론트엔드에서 PrismaClient를 불러올 수 있으면, 클라이언트에서 서버를 거치지 않고 데이터베이스를 수정할 수 있게 되기 때문이다.
+하지만 PrismaClient를 pages의 파일에서 불러서 사용하면 쓸 수 없다.
+PrismaClient는 프론트엔드에서 사용할 수 없도록 막혀 있기 때문이다.
+PrismaClient를 index.tsx 파일에서 불러온 다음, 브라우저에서 열어보면 에러가 나온다.
+이처럼 프리즈마가 PrismaClient를 브라우저에서 쓸 수 없도록 막기 때문에, 브라우저에서 데이터베이스가 변경될 걱정없이 PrismaClient를 사용할 수 있다.
+
+이제 PrismaClient를 서버에서 사용해보겠다.
+Next.js는 API를 만들기 위해 별도로 파일을 만들 필요가 없다.
+Next.js는 pages/api 폴더에 작성된 내용을 서버로 사용한다.
+api 폴더에 client-test.tsx 파일을 만들자.
+여기서 export default로 반환되는 함수를 서버에서 사용한다.
+이때 해당 함수에서는 req, res를 사용할 수 있는데, 둘의 역할은 Express에서 했던 것과 동일하다.
+두 변수를 누르면 어떤 메소드를 사용할 수 있는지 볼 수 있다.
+타입스크립트를 사용하면 req, res에 NextApiRequest, NextApiResopnse 타입을 추가해줘야 한다.
+아래는 API를 사용해서 간단한 json 데이터를 반환한다.
 
 ```javascript
 // client-test.tsx
@@ -574,7 +692,46 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 ```
 
-localhost:3000/api/client-test로 들어가면 api가 나온다.
+API 생성 주소는 /api/{파일이름}으로 결정된다.
+위 API를 확인하려면 localhost:3000/api/client-test로 들어가면 된다.
+
+다시 client.ts 파일로 돌아가서 아래처럼 파일을 수정하자.
+
+```javascript
+// client.ts
+import { PrismaClient } from "@prisma/client";
+
+export default new PrismaClient();
+```
+
+그리고 이를 client-test.tsx 파일에서 불러와서 사용할 수 있다.
+PrismaClient를 API와 같이 사용하면, 데이터를 만드는 부분을 구현할 수 있다.
+이때 PrismaClient는 비동기 함수이므로 async를 function 앞에 추가해주고, await을 PrismaClient 앞에 적어줬다.
+
+```javascript
+// client-test.tsx
+import { NextApiRequest, NextApiResponse } from "next";
+import PrismaClient from "../../libs/client";
+
+export default async function handler(
+	req: NextApiRequest,
+	res: NextApiResponse
+) {
+	await PrismaClient.user.create({
+		data: {
+			email: "Email@gmail.com",
+			name: "Your name",
+		},
+	});
+	res.json({
+		ok: true,
+		data: "xx",
+	});
+}
+```
+
+이제 "http://localhost:3000/api/client-test"에 접속하면 json 데이터가 출력된다.
+그리고 프리즈마 스튜디오에 들어가보면 프리즈마 클라이언트에서 만든 데이터도 추가되었다.
 
 ## References
 
