@@ -261,6 +261,25 @@ module.exports = {
 그 외의 좀 더 자세한 내용은 Tailwind의 [Hover, Focus, and Other States](https://tailwindcss.com/docs/hover-focus-and-other-states)에 잘 정리되어 있다.
 Core Concepts의 다른 글들도 굉장히 중요한 내용이므로 가급적 읽어보는 것을 추천한다.
 
+### Plugins
+
+Tailwind는 플러그인을 설치하면 여러가지 기능을 추가할 수 있다.
+예를 들어서 폼의 스타일을 초기화하거나, 글에 일관적인 스타일을 적용할 수 있다.
+그 중에서 Forms 플러그인을 설치해서 폼의 스타일을 지정하거나 초기화 하는 방법을 알아보겠다.
+
+방법은 간단한데 `npm i @tailwindcss/forms`를 설치해준다.
+그리고 tailwind.config.js 파일로 가서 하단의 plugins에 아래처럼 추가해준다.
+
+```javascript
+//tailwind.config.js
+module.exports = {
+	...
+	plugins: [require("@tailwindcss/forms")],
+};
+```
+
+이제 form을 보면 스타일이 초기화된 것을 볼 수 있다.
+
 ### Just in Time Engine
 
 과거 Tailwind는 모든 클래스를 담은 거대한 CSS 덩어리였는데, 그대로 배포한다면 쓰지 않는 CSS까지 포함되는 낭비가 생기게 된다.
