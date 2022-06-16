@@ -297,12 +297,10 @@ LinkedList.prototype.addAtTail = function (val) {
 
 	if (this.size !== 0) {
 		this.tail.next = newTail;
-		this.tail = newTail;
-		++this.size;
-		return;
+	} else {
+		this.head = newTail;
 	}
 
-	this.head = newTail;
 	this.tail = newTail;
 	++this.size;
 };
@@ -398,7 +396,7 @@ LinkedList.prototype.getAtIndex = function (index) {
 대신에 for문으로 정해진 위치를 찾는다.
 tail 역시 addAtTail을 굉장히 간단하게 만들어줬다.
 다만 tail의 추가는 장단점이 존재한다.
-addAtIndex나 deleteAtIndex는 tail에 추가된 경우 tail을 별도로 바꿔줘야 한다.
+addAtIndex나 deleteAtIndex는 tail을 변경한 경우 tail을 별도로 바꿔줘야 한다.
 이 때문에 추가적인 코드가 필요하고 실수할 가능성이 커진다.
 
 아래는 지금까지 작성한 전체 코드다.
@@ -433,12 +431,10 @@ LinkedList.prototype.addAtTail = function (val) {
 
 	if (this.size !== 0) {
 		this.tail.next = newTail;
-		this.tail = newTail;
-		++this.size;
-		return;
+	} else {
+		this.head = newTail;
 	}
 
-	this.head = newTail;
 	this.tail = newTail;
 	++this.size;
 };
@@ -524,3 +520,257 @@ LinkedList.prototype.getAtIndex = function (index) {
 트리 구조와 연결 리스트의 차이는 next가 여러 개일 수 있다는 것이다.
 반면 이전 노드로 돌아가는 prev는 1개라서 그다지 다를 것이 없다.
 그러므로 앞의 단일 연결 리스트의 노드에 prev를 추가하는 것만 해보겠다.
+우선 노드에 prev를 추가한다.
+
+```javascript
+var Node = function (val) {
+	this.val = val;
+	this.prev = null;
+	this.next = null;
+};
+```
+
+addAtHead는 size가 0이 아닐 때, 새 헤드와 기존 헤드를 연결해야 한다.
+이때 기존 헤드의 prev가 새 헤드가 되어야 하므로 이를 추가해줬다.
+
+```javascript
+LinkedList.prototype.addAtHead = function (val) {
+	const newHead = new Node(val);
+
+	if (this.size !== 0) {
+		newHead.next = this.head;
+		this.head.prev = newHead;
+	} else {
+		this.tail = newHead;
+	}
+
+	this.head = newHead;
+	++this.size;
+};
+```
+
+addAtTail 역시 size가 0이 아니면 연결할 때 prev를 설정해줘야 한다.
+
+```javascript
+LinkedList.prototype.addAtTail = function (val) {
+	const newTail = new Node(val);
+
+	if (this.size !== 0) {
+		newTail.prev = this.tail;
+		this.tail.next = newTail;
+	} else {
+		this.head = newTail;
+	}
+
+	this.tail = newTail;
+	++this.size;
+};
+```
+
+addAtIndex에서 기존에는 prev가 없었기 때문에 index보다 한 칸 앞의 노드를 찾아줬었다.
+이제는 prev가 존재하므로 index 위치를 찾을 수 있고, 코드를 좀 더 직관적으로 만들 수 있다.
+
+```javascript
+LinkedList.prototype.addAtIndex = function (index, val) {
+	if (index > this.size || 0 > index) {
+		return;
+	}
+
+	if (index === 0) {
+		this.addAtHead(val);
+		return;
+	}
+
+	if (index === this.size) {
+		this.addAtTail(val);
+		return;
+	}
+
+	let nextNode = this.head;
+	let newNode = new Node(val);
+
+	for (let i = 0; i < index; ++i) {
+		nextNode = nextNode.next;
+	}
+
+	let prevNode = nextNode.prev;
+
+	newNode.next = nextNode;
+	newNode.prev = prevNode;
+	nextNode.prev = newNode;
+	prevNode.next = newNode;
+	++this.size;
+};
+```
+
+deleteAtIndex 역시 코드가 좀 더 간결해진다.
+노드를 지울 때 문제가 되는 부분은 tail을 지울 때다.
+addAtIndex는 곧 바로 tail에서 노드를 추가해줬다.
+하지만 deleteAtIndex에선 이것이 불가능했는데, prev가 없어서 앞의 노드의 값을 변경할 수 없었기 때문이다.
+그래서 tail에 추가하는 경우를 따로 빼지 못하고, for문으로 index - 1을 찾아줘야 했다.
+이렇게 되면서 nextNode를 curNode.next.next로 찾아줘야 했는데, 이는 그다지 직관적이지 못한 코드다.
+또한 tail을 지우는 경우는 curNode.next.next가 null인 경우라서 이를 따로 처리해줘야만 했다.
+
+prev를 추가하면 바로 지울 노드를 찾아주고, 이 노드를 기준으로 prev와 next를 찾을 수 있다.
+특히 tail에서 지울 경우는 "index === this.size - 1"로 쉽게 판별 가능하다.
+이 방식으로 정리하면 tail을 따로 처리해주는 if문을 지울 수 있다.
+또한 addAtIndex 코드와 비슷한 코드를 만들 수 있으므로, 코드의 일관성이 높아진다.
+
+```javascript
+LinkedList.prototype.deleteAtIndex = function (index) {
+	if (index > this.size - 1 || 0 > index) {
+		return;
+	}
+
+	if (index === 0) {
+		this.head = this.head.next;
+		--this.size;
+		return;
+	}
+
+	if (index === this.size - 1) {
+		this.tail = this.tail.prev;
+		this.tail.next = null;
+		--this.size;
+		return;
+	}
+
+	let deletedNode = this.head;
+
+	for (let i = 0; i < index; ++i) {
+		deletedNode = deletedNode.next;
+	}
+
+	let prevNode = deletedNode.prev;
+	let nextNode = deletedNode.next;
+
+	prevNode.next = nextNode;
+	nextNode.prev = prevNode;
+
+	--this.size;
+};
+```
+
+get은 prev를 추가해도 굳이 바꿀 필요는 없다.
+약간 더 효율적이게 만든다면, size와 index를 비교해서 head와 tail 중 가까운 곳에서 값을 찾을 수는 있다.
+아래는 이중 연결 리스트 코드 전문이다.
+
+```javascript
+var Node = function (val) {
+	this.val = val;
+	this.prev = null;
+	this.next = null;
+};
+
+var MyLinkedList = function () {
+	this.head = null;
+	this.tail = null;
+	this.size = 0;
+};
+
+LinkedList.prototype.getAtIndex = function (index) {
+	if (index > this.size - 1 || 0 > index || this.size === 0) {
+		return -1;
+	}
+
+	let curNode = this.head;
+
+	for (let i = 0; i < index; ++i) {
+		curNode = curNode.next;
+	}
+
+	return curNode.val;
+};
+
+LinkedList.prototype.addAtHead = function (val) {
+	const newHead = new Node(val);
+
+	if (this.size !== 0) {
+		newHead.next = this.head;
+		this.head.prev = newHead;
+	} else {
+		this.tail = newHead;
+	}
+
+	this.head = newHead;
+	++this.size;
+};
+
+LinkedList.prototype.addAtTail = function (val) {
+	const newTail = new Node(val);
+
+	if (this.size !== 0) {
+		newTail.prev = this.tail;
+		this.tail.next = newTail;
+	} else {
+		this.head = newTail;
+	}
+
+	this.tail = newTail;
+	++this.size;
+};
+
+LinkedList.prototype.addAtIndex = function (index, val) {
+	if (index > this.size || 0 > index) {
+		return;
+	}
+
+	if (index === 0) {
+		this.addAtHead(val);
+		return;
+	}
+
+	if (index === this.size) {
+		this.addAtTail(val);
+		return;
+	}
+
+	let nextNode = this.head;
+	let newNode = new Node(val);
+
+	for (let i = 0; i < index; ++i) {
+		nextNode = nextNode.next;
+	}
+
+	let prevNode = nextNode.prev;
+
+	newNode.next = nextNode;
+	newNode.prev = prevNode;
+	nextNode.prev = newNode;
+	prevNode.next = newNode;
+	++this.size;
+};
+
+LinkedList.prototype.deleteAtIndex = function (index) {
+	if (index > this.size - 1 || 0 > index) {
+		return;
+	}
+
+	if (index === 0) {
+		this.head = this.head.next;
+		--this.size;
+		return;
+	}
+
+	if (index === this.size - 1) {
+		this.tail = this.tail.prev;
+		this.tail.next = null;
+		--this.size;
+		return;
+	}
+
+	let deletedNode = this.head;
+
+	for (let i = 0; i < index; ++i) {
+		deletedNode = deletedNode.next;
+	}
+
+	let prevNode = deletedNode.prev;
+	let nextNode = deletedNode.next;
+
+	prevNode.next = nextNode;
+	nextNode.prev = prevNode;
+
+	--this.size;
+};
+```
