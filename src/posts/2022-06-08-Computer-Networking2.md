@@ -374,3 +374,24 @@ SMTP: Push Protocol
 ### 2.3.3 Mail Access Protocols
 
 ## 2.4 DNS The Internet's Directory Service
+
+hostname
+IP addresses
+
+ip 주소는 4칸으로 구분한다.(e.g. 121.7.106.83)
+각 칸은 0 ~ 255이고 .으로 구분한다.
+왼쪽에서 오른쪽으로 가면서 구체적인 위치 정보를 알 수 있다.
+
+### 2.4.1 Services Provided by DNS
+
+hostname, ip 주소 외에도 구분 가능하다.
+DNS(domain name system)
+DNS: hostname => ip 주소
+
+브라우저의 url에서 hostname 추출 -> DNS 서버로 전송 -> ip주소 수신 -> 해당 ip 주소와 통신
+
+DNS 서버는 IP 주소를 캐시로 남겨놓기 때문에, 주변의 DNS 서버에서 ip 주소를 빠르게 받아올 수 있다.
+
+- Host aliasing
+- Mail server aliasing
+-
